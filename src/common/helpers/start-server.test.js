@@ -57,7 +57,7 @@ describe('#startServer', () => {
       expect(hapiServerSpy).toHaveBeenCalled()
       expect(mockHapiLoggerInfo).toHaveBeenCalledWith('Setting up MongoDb')
       expect(mockHapiLoggerInfo).toHaveBeenCalledWith(
-        'MongoDb connected to cdp-node-backend-template'
+        'MongoDb connected to epr-laps-backend'
       )
       expect(mockHapiLoggerInfo).toHaveBeenCalledWith(
         'Server started successfully'
