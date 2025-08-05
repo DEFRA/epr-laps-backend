@@ -29,9 +29,7 @@ export const mongoDb = {
       server.events.on('stop', async () => {
         server.logger.info('Closing Mongo client')
         try {
-          if (client && !client.closed) {
-            await client.close(true)
-          }
+          await client.close(true)
         } catch (e) {
           server.logger.error(e, 'failed to close mongo client')
         }
@@ -42,4 +40,5 @@ export const mongoDb = {
 
 async function createIndexes(db) {
   await db.collection('mongo-locks').createIndex({ id: 1 })
+  await db.collection('example-data').createIndex({ id: 1 })
 }
