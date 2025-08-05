@@ -14,14 +14,6 @@ describe('#mongoDb', () => {
     })
 
     afterAll(async () => {
-      if (
-        server &&
-        server.mongoClient &&
-        server.mongoClient.topology &&
-        !server.mongoClient.topology.isDestroyed()
-      ) {
-        await server.mongoClient.close(true)
-      }
       await server.stop({ timeout: 0 })
     })
 
