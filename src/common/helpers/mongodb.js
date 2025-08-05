@@ -40,5 +40,5 @@ export const mongoDb = {
 
 async function createIndexes(db) {
   await db.collection('mongo-locks').createIndex({ id: 1 })
-  // await db.collection('example-data').createIndex({ id: 1 })
+  await db.collection('example-data').createIndex({ id: 1 })
 }
