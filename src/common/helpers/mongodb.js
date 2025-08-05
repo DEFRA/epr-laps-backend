@@ -16,7 +16,7 @@ export const mongoDb = {
       const db = client.db(databaseName)
       const locker = new LockManager(db.collection('mongo-locks'))
 
-      await createIndexes(db)
+      // await createIndexes(db)
 
       server.logger.info(`MongoDb connected to ${databaseName}`)
 
@@ -38,6 +38,6 @@ export const mongoDb = {
   }
 }
 
-async function createIndexes(db) {
-  await db.collection('mongo-locks').createIndex({ id: 1 })
-}
+// async function createIndexes(db) {
+//   await db.collection('mongo-locks').createIndex({ id: 1 })
+// }
