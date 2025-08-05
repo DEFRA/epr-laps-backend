@@ -14,7 +14,7 @@ describe('#mongoDb', () => {
     })
 
     afterAll(async () => {
-      await server.stop()
+      await server.stop({ timeout: 0 })
     })
 
     test('Server should have expected MongoDb decorators', () => {
