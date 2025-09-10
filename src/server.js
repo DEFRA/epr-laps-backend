@@ -1,5 +1,5 @@
 import Hapi from '@hapi/hapi'
-
+import Jwt from '@hapi/jwt'
 import { secureContext } from '@defra/hapi-secure-context'
 
 import { config } from './config.js'
@@ -39,6 +39,31 @@ async function createServer() {
     }
   })
 
+    // Register JWT plugin
+    await server.register(Jwt)
+
+    // Define JWT auth strategy
+    server.auth.strategy('jwt', 'jwt', {
+      keys: config.get('auth.jwtSecret'), // store secret in your config/env
+      verify: {
+        aud: false,
+        iss: false,
+        sub: false,
+        nbf: true,
+        exp: true,
+        maxAgeSec: 14400
+      },
+      validate: (artifacts, request, h) => {
+        return {
+          isValid: true,
+          credentials: { user: artifacts.decoded.payload }
+        }
+      }
+    })
+  
+    // Make JWT the default auth strategy
+    server.auth.default('jwt')
+  
   // Hapi Plugins:
   // requestLogger  - automatically logs incoming requests
   // requestTracing - trace header logging and propagation

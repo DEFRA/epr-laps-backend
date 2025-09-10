@@ -128,6 +128,24 @@ const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  auth: {
+    session: {
+      ttl: {
+        doc: 'Session timeout in seconds',
+        format: Number,
+        nullable: true,
+        default: null,
+        env: 'SESSION_TTL'
+      }
+    },
+    jwtSecret: {
+      doc: 'Secret key for signing JWT tokens',
+      format: String,
+      default: 'jwt-secret-must-be-at-least-32-characters-long',
+      env: 'JWT_SECRET',
+      sensitive: true
+    }
   }
 })
 
