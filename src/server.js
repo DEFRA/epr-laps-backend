@@ -39,31 +39,45 @@ async function createServer() {
     }
   })
 
-    // Register JWT plugin
-    await server.register(Jwt)
+  // Register JWT plugin
+  await server.register(Jwt)
 
-    // Define JWT auth strategy
-    server.auth.strategy('jwt', 'jwt', {
-      keys: config.get('auth.jwtSecret'), // store secret in your config/env
-      verify: {
-        aud: false,
-        iss: false,
-        sub: false,
-        nbf: true,
-        exp: true,
-        maxAgeSec: 14400
-      },
-      validate: (artifacts, request, h) => {
-        return {
-          isValid: true,
-          credentials: { user: artifacts.decoded.payload }
+  // Define JWT auth strategy
+  server.auth.strategy('jwt', 'jwt', {
+    keys: config.get('auth.jwtSecret'), // store secret in your config/env
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      nbf: true,
+      exp: true,
+      maxAgeSec: 14400
+    },
+    validate: (artifacts, request, h) => {
+      const payload = artifacts.decoded.payload
+  
+      // Expect JWT to contain localAuthority and role
+      const localAuthority = payload.localAuthority
+      const role = payload.role
+  
+      if (!localAuthority || !role) {
+        return { isValid: false }
+      }
+  
+      return {
+        isValid: true,
+        credentials: {
+          userId: payload.userId,        // or whatever your identifier is
+          localAuthority,
+          role
         }
       }
-    })
-  
-    // Make JWT the default auth strategy
-    server.auth.default('jwt')
-  
+    }
+  })
+
+  // Make JWT the default auth strategy
+  server.auth.default('jwt')
+
   // Hapi Plugins:
   // requestLogger  - automatically logs incoming requests
   // requestTracing - trace header logging and propagation
