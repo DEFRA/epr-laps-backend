@@ -55,19 +55,19 @@ async function createServer() {
     },
     validate: (artifacts, request, h) => {
       const payload = artifacts.decoded.payload
-  
+
       // Expect JWT to contain localAuthority and role
       const localAuthority = payload.localAuthority
       const role = payload.role
-  
+
       if (!localAuthority || !role) {
         return { isValid: false }
       }
-  
+
       return {
         isValid: true,
         credentials: {
-          userId: payload.userId,        // or whatever your identifier is
+          userId: payload.userId,
           localAuthority,
           role
         }
