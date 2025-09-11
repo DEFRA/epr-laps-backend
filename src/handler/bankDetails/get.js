@@ -9,7 +9,7 @@ const getBankDetails = async (request, h) => {
     // Call the mock API and pass localAuthority as query param
     const BASE_URL = process.env.API_URL
     const response = await fetch(
-      `${BASE_URL}/bank-details?localAuthority=${encodeURIComponent(localAuthority)}`
+      `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
     )
 
     if (!response.ok) {
