@@ -28,12 +28,14 @@ const getBankDetails = async (request, h) => {
     }
 
     const flags = {
-      showNotificationBanner: role?.trim().toUpperCase() === "HOF",
-      showConfirmBankDetails: bankDetails.confirmed === false || !bankDetails.confirmed,
-      showDropdownDetails: role?.trim().toUpperCase() !== "HOF" || role?.trim.toUpperCase === "CEO"
-    };
-    
-    return h.response({ ...bankDetails, ...flags }).code(200);
+      showNotificationBanner: role?.trim().toUpperCase() === 'HOF',
+      showConfirmBankDetails:
+        bankDetails.confirmed === false || !bankDetails.confirmed,
+      showDropdownDetails:
+        role?.trim().toUpperCase() !== 'HOF' || role?.trim.toUpperCase === 'CEO'
+    }
+
+    return h.response({ ...bankDetails, ...flags }).code(200)
   } catch (err) {
     console.error('Error fetching bank details:', err)
     return h.response({ error: 'Failed to fetch bank details' }).code(500)
