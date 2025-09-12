@@ -1,4 +1,6 @@
 import dotenv from 'dotenv'
+import { StatusCodes } from 'http-status-codes'
+
 dotenv.config()
 
 const getBankDetails = async (request, h) => {
@@ -19,7 +21,8 @@ const getBankDetails = async (request, h) => {
     let bankDetails = await response.json()
 
     if (role?.toUpperCase() !== 'CEO' && bankDetails?.sortcode) {
-      const lastTwoDigits = bankDetails.sortcode.slice(-2)
+      const digitsToTake = 2
+      const lastTwoDigits = bankDetails.sortcode.slice(-digitsToTake)
       const masked = 'ending with' + lastTwoDigits
       bankDetails = {
         ...bankDetails,
@@ -35,10 +38,12 @@ const getBankDetails = async (request, h) => {
         role?.trim().toUpperCase() !== 'HOF' || role?.trim.toUpperCase === 'CEO'
     }
 
-    return h.response({ ...bankDetails, ...flags }).code(200)
+    return h.response({ ...bankDetails, ...flags }).code(StatusCodes.OK)
   } catch (err) {
     console.error('Error fetching bank details:', err)
-    return h.response({ error: 'Failed to fetch bank details' }).code(500)
+    return h
+      .response({ error: 'Failed to fetch bank details' })
+      .code(StatusCodes.INTERNAL_SERVER_ERROR)
   }
 }
 

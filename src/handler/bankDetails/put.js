@@ -1,4 +1,4 @@
-const putBankDetails = (request, h) => {
+const putBankDetails = (_request, h) => {
   //   const { localAuthority } = request.params
   //   const { confirmed } = request.payload
 

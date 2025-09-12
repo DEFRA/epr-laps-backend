@@ -11,7 +11,7 @@ import { pulse } from './common/helpers/pulse.js'
 import { requestTracing } from './common/helpers/request-tracing.js'
 import { setupProxy } from './common/helpers/proxy/setup-proxy.js'
 
-export const jwtValidate = (artifacts, request, h) => {
+export const jwtValidate = (artifacts, _request, _h) => {
   const payload = artifacts.decoded.payload
   const localAuthority = payload.localAuthority
   const role = payload.role
