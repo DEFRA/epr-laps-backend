@@ -11,6 +11,25 @@ import { pulse } from './common/helpers/pulse.js'
 import { requestTracing } from './common/helpers/request-tracing.js'
 import { setupProxy } from './common/helpers/proxy/setup-proxy.js'
 
+export const jwtValidate = (artifacts, request, h) => {
+  const payload = artifacts.decoded.payload
+  const localAuthority = payload.localAuthority
+  const role = payload.role
+
+  if (!localAuthority || !role) {
+    return { isValid: false }
+  }
+
+  return {
+    isValid: true,
+    credentials: {
+      userId: payload.userId,
+      localAuthority,
+      role
+    }
+  }
+}
+
 async function createServer() {
   setupProxy()
   const server = Hapi.server({
@@ -44,7 +63,7 @@ async function createServer() {
 
   // Define JWT auth strategy
   server.auth.strategy('jwt', 'jwt', {
-    keys: config.get('auth.jwtSecret'), // store secret in your config/env
+    keys: config.get('auth.jwtSecret'),
     verify: {
       aud: false,
       iss: false,
@@ -53,29 +72,9 @@ async function createServer() {
       exp: true,
       maxAgeSec: 14400
     },
-    validate: (artifacts, request, h) => {
-      const payload = artifacts.decoded.payload
-
-      // Expect JWT to contain localAuthority and role
-      const localAuthority = payload.localAuthority
-      const role = payload.role
-
-      if (!localAuthority || !role) {
-        return { isValid: false }
-      }
-
-      return {
-        isValid: true,
-        credentials: {
-          userId: payload.userId,
-          localAuthority,
-          role
-        }
-      }
-    }
+    validate: jwtValidate
   })
 
-  // Make JWT the default auth strategy
   server.auth.default('jwt')
 
   // Hapi Plugins:
