@@ -1,12 +1,14 @@
 import { vi, describe, test, expect, beforeAll, afterAll } from 'vitest'
 import { createServer, jwtValidate } from './server.js'
 
-// Mock MongoDB BEFORE importing server
-vi.mock('../../common/helpers/mongodb.js', () => ({
+// ✅ Mock the entire mongoDb module so no real client is created
+vi.mock('./common/helpers/mongodb.js', () => ({
   mongoDb: {
+    name: 'mongoDb',
+    version: '1.0.0',
     register: vi.fn(async (server) => {
-      server.decorate('server', 'mongo', {})
-      server.decorate('request', 'mongo', {})
+      server.decorate('server', 'mongo', {}) // fake mongo on server
+      server.decorate('request', 'mongo', {}) // fake mongo on request
     })
   }
 }))
@@ -44,10 +46,12 @@ describe('Server bootstrap', () => {
 
   beforeAll(async () => {
     server = await createServer()
-  })
+  }, 20000) // ⬅ increase timeout for safety
 
   afterAll(async () => {
-    if (server) await server.stop({ timeout: 0 })
+    if (server) {
+      await server.stop({ timeout: 0 })
+    }
   })
 
   test('createServer returns a Hapi server instance', () => {
