@@ -1,7 +1,7 @@
 // src/common/helpers/mongodb.js
 
 import { MongoClient } from 'mongodb'
-import LockManager from 'mongo-locks' // real lock manager
+import { LockManager } from 'mongo-locks' // real lock manager
 
 // Helper to safely decorate server/request
 function safeDecorate(server, type, name, value, options = {}) {

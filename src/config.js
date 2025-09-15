@@ -144,6 +144,12 @@ const config = convict({
       default: '',
       env: 'AUTH_ISSUER',
       sensitive: true
+    },
+    jwtMaxAge: {
+      doc: 'JWT max age duration',
+      format: String,
+      default: '4h',
+      env: 'AUTH_JWT_MAX_AGE'
     }
   }
 })

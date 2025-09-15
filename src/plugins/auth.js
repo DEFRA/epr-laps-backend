@@ -38,7 +38,6 @@ export const jwtValidate = (decoded, _request, _h) => {
 
 export const authPlugin = {
   name: 'auth',
-  version: '1.0.0',
   register: async (server) => {
     await server.register(HapiAuthJwt2)
 
@@ -51,7 +50,7 @@ export const authPlugin = {
         sub: false,
         nbf: true,
         exp: true,
-        maxAge: '4h'
+        maxAge: config.get('auth.jwtMaxAge')
       }
     })
 

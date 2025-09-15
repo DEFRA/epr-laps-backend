@@ -21,7 +21,7 @@ vi.mock('mongodb', () => ({
 
 // Mock LockManager (mongo-locks)
 vi.mock('mongo-locks', () => ({
-  default: vi.fn().mockImplementation(() => ({
+  LockManager: vi.fn().mockImplementation(() => ({
     acquire: vi.fn(),
     release: vi.fn()
   }))
