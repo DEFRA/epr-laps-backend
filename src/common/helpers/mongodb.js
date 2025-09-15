@@ -29,7 +29,9 @@ export const mongoDb = {
       server.events.on('stop', async () => {
         server.logger.info('Closing Mongo client')
         try {
-          await client.close(true)
+          if (client && client.topology?.isConnected()) {
+            await client.close(true)
+          }
         } catch (e) {
           server.logger.error(e, 'failed to close mongo client')
         }
