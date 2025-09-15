@@ -3,7 +3,7 @@ import Hapi from '@hapi/hapi'
 // now import the auth plugin normally
 import { authPlugin, getKey, jwtValidate } from './auth.js'
 
-// ✅ Mock the MongoDB helper before importing anything that might use it
+// Mock the MongoDB helper before importing anything that might use it
 vi.mock('../common/helpers/mongodb.js', () => {
   return {
     mongoDb: {

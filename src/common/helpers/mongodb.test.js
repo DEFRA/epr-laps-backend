@@ -4,7 +4,7 @@ import { createServer } from '../../server.js'
 
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
 
-// 1️⃣ Mock MongoClient
+// Mock MongoClient
 vi.mock('mongodb', () => ({
   MongoClient: {
     connect: vi.fn().mockResolvedValue({
@@ -19,7 +19,7 @@ vi.mock('mongodb', () => ({
   }
 }))
 
-// 2️⃣ Mock LockManager (mongo-locks)
+// Mock LockManager (mongo-locks)
 vi.mock('mongo-locks', () => ({
   default: vi.fn().mockImplementation(() => ({
     acquire: vi.fn(),
