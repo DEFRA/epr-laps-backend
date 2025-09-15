@@ -19,7 +19,8 @@ const getBankDetails = async (request, h) => {
 
     // Mask sortcode for non-CEO roles
     if (role?.toUpperCase() !== 'CEO' && bankDetails?.sortcode) {
-      const lastTwoDigits = bankDetails.sortcode.slice(-2)
+      const LAST_DIGITS_COUNT = 2
+      const lastTwoDigits = bankDetails.sortcode.slice(-LAST_DIGITS_COUNT)
       bankDetails = {
         ...bankDetails,
         sortcode: 'ending with ' + lastTwoDigits

@@ -8,7 +8,9 @@ function safeDecorate(server, type, name, value, options = {}) {
   try {
     server.decorate(type, name, value, options)
   } catch (err) {
-    if (!/already defined/.test(err.message)) throw err
+    if (!/already defined/.test(err.message)) {
+      throw err
+    }
   }
 }
 

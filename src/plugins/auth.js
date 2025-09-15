@@ -13,15 +13,16 @@ const client = jwksClient({
 
 // Helper: resolve signing key dynamically
 export const getKey = (header, callback) => {
-  client.getSigningKey(header.kid, (err, key) => {
+  return client.getSigningKey(header.kid, (err, key) => {
     if (err) return callback(err)
+
     const signingKey = key.publicKey || key.rsaPublicKey
-    callback(null, signingKey)
+    return callback(null, signingKey)
   })
 }
 
 // Custom JWT validation
-export const jwtValidate = (decoded, request, h) => {
+export const jwtValidate = (decoded, _request, _h) => {
   const { userId, localAuthority, role } = decoded
 
   if (!localAuthority || !role) {
