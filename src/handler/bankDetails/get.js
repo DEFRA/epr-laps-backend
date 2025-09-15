@@ -1,41 +1,38 @@
 import dotenv from 'dotenv'
 import { StatusCodes } from 'http-status-codes'
+import fetch from 'node-fetch'
 
 dotenv.config()
 
 const getBankDetails = async (request, h) => {
   try {
-    // Retrieve localAuthority (and optionally role) from JWT
     const { localAuthority, role } = request.auth.credentials
-
-    // Call the mock API and pass localAuthority as query param
     const BASE_URL = process.env.API_URL
-    const response = await fetch(
-      `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
-    )
+    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
 
+    const response = await fetch(url, { method: 'GET' })
     if (!response.ok) {
       throw new Error(`External API error: ${response.status}`)
     }
 
     let bankDetails = await response.json()
 
+    // Mask sortcode for non-CEO roles
     if (role?.toUpperCase() !== 'CEO' && bankDetails?.sortcode) {
-      const digitsToTake = 2
-      const lastTwoDigits = bankDetails.sortcode.slice(-digitsToTake)
-      const masked = 'ending with' + lastTwoDigits
+      const lastTwoDigits = bankDetails.sortcode.slice(-2)
       bankDetails = {
         ...bankDetails,
-        sortcode: masked
+        sortcode: 'ending with ' + lastTwoDigits
       }
     }
 
     const flags = {
-      showNotificationBanner: role?.trim().toUpperCase() === 'HOF',
-      showConfirmBankDetails:
-        bankDetails.confirmed === false || !bankDetails.confirmed,
+      showNotificationBanner:
+        !bankDetails.confirmed || role?.trim().toUpperCase() === 'CEO',
+      showConfirmBankDetails: !bankDetails.confirmed,
       showDropdownDetails:
-        role?.trim().toUpperCase() !== 'HOF' || role?.trim.toUpperCase === 'CEO'
+        role?.trim().toUpperCase() === 'HOF' ||
+        role?.trim().toUpperCase() === 'CEO'
     }
 
     return h.response({ ...bankDetails, ...flags }).code(StatusCodes.OK)

@@ -1,0 +1,59 @@
+import HapiAuthJwt2 from 'hapi-auth-jwt2'
+import jwksClient from 'jwks-rsa'
+import { config } from './../config.js'
+
+// Setup JWKS client
+const client = jwksClient({
+  jwksUri: config.get('auth.jwksUri'),
+  cache: true,
+  cacheMaxEntries: 5,
+  cacheMaxAge: 600000 // 10 minutes
+})
+
+// Helper: resolve signing key dynamically
+const getKey = (header, callback) => {
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) return callback(err)
+    const signingKey = key.publicKey || key.rsaPublicKey
+    callback(null, signingKey)
+  })
+}
+
+// Custom JWT validation
+const jwtValidate = (decoded, request, h) => {
+  const { userId, localAuthority, role } = decoded
+
+  if (!localAuthority || !role) {
+    return { isValid: false }
+  }
+
+  return {
+    isValid: true,
+    credentials: { userId, localAuthority, role }
+  }
+}
+
+export const authPlugin = {
+  name: 'auth',
+  version: '1.0.0',
+  register: async (server) => {
+    // Register hapi-auth-jwt2
+    await server.register(HapiAuthJwt2)
+
+    // Define JWT auth strategy using dynamic JWKS
+    server.auth.strategy('jwt', 'jwt', {
+      key: getKey,
+      validate: jwtValidate,
+      verifyOptions: {
+        aud: false,
+        iss: false,
+        sub: false,
+        nbf: true,
+        exp: true,
+        maxAge: '4h'
+      }
+    })
+
+    server.auth.default('jwt')
+  }
+}

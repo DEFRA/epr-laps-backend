@@ -1,94 +1,120 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { getBankDetails } from '../../handler/bankDetails/get.js'
+import { describe, it, beforeEach, vi, expect } from 'vitest'
+import fetch from 'node-fetch'
+// import { StatusCodes } from 'http-status-codes'
+import { getBankDetails } from './get' // adjust path if needed
+
+// ----- Mock fetch -----
+vi.mock('node-fetch', () => ({
+  default: vi.fn()
+}))
+
+// ----- Mock h.response -----
+const createH = () => ({
+  response: vi.fn(function (payload) {
+    return { code: vi.fn().mockReturnValue(payload) }
+  })
+})
+
+// ----- Mock request helper -----
+const makeRequest = (role = 'CEO', localAuthority = 'LA1') => ({
+  auth: { credentials: { role, localAuthority } }
+})
+
+// ----- Reset mocks -----
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('getBankDetails', () => {
-  let originalFetch
-
-  beforeEach(() => {
-    // Mock global fetch
-    originalFetch = global.fetch
-    global.fetch = vi.fn()
-  })
-
-  afterEach(() => {
-    global.fetch = originalFetch
-    vi.restoreAllMocks()
-  })
-
-  const createH = () => ({
-    response: vi.fn().mockReturnThis(),
-    code: vi.fn().mockReturnThis()
-  })
-
-  it('returns masked sortcode for non-CEO roles', async () => {
-    const mockRequest = {
-      auth: { credentials: { localAuthority: '123', role: 'user' } }
-    }
-    const h = createH()
-
-    const apiResponse = { sortcode: '123456', confirmed: true }
-    global.fetch.mockResolvedValue({
+  it('returns unmasked sortcode for CEO role', async () => {
+    fetch.mockResolvedValueOnce({
       ok: true,
-      json: vi.fn().mockResolvedValue(apiResponse)
+      json: async () => ({ sortcode: '654321', confirmed: false })
     })
 
-    await getBankDetails(mockRequest, h)
+    const h = createH()
+    const request = makeRequest('CEO')
 
-    expect(h.response).toHaveBeenCalled()
+    await getBankDetails(request, h)
+
     const responseArg = h.response.mock.calls[0][0]
-    expect(responseArg.sortcode).toContain('ending with')
-    expect(h.code).toHaveBeenCalledWith(200)
+    expect(responseArg.sortcode).toBe('654321')
+    expect(responseArg.showDropdownDetails).toBe(true)
+    expect(responseArg.showNotificationBanner).toBe(true)
   })
 
-  it('sets flags correctly for HOF role', async () => {
-    const mockRequest = {
-      auth: { credentials: { localAuthority: '123', role: 'HOF' } }
-    }
-    const h = createH()
-
-    const apiResponse = { sortcode: '123456', confirmed: false }
-    global.fetch.mockResolvedValue({
+  it('masks sortcode for non-CEO roles', async () => {
+    fetch.mockResolvedValueOnce({
       ok: true,
-      json: vi.fn().mockResolvedValue(apiResponse)
+      json: async () => ({ sortcode: '123456', confirmed: true })
     })
 
-    await getBankDetails(mockRequest, h)
+    const h = createH()
+    const request = makeRequest('Staff')
+
+    await getBankDetails(request, h)
+
+    const responseArg = h.response.mock.calls[0][0]
+    expect(responseArg.sortcode).toBe('ending with 56')
+    expect(responseArg.showDropdownDetails).toBe(false)
+    expect(responseArg.showNotificationBanner).toBe(false)
+  })
+
+  it('sets flags correctly for HOF when confirmed is false', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ sortcode: '987654', confirmed: false })
+    })
+
+    const h = createH()
+    const request = makeRequest('HOF')
+
+    await getBankDetails(request, h)
 
     const responseArg = h.response.mock.calls[0][0]
     expect(responseArg.showNotificationBanner).toBe(true)
     expect(responseArg.showConfirmBankDetails).toBe(true)
-    expect(h.code).toHaveBeenCalledWith(200)
+    expect(responseArg.showDropdownDetails).toBe(true)
   })
 
-  it('handles external API errors gracefully', async () => {
-    const mockRequest = {
-      auth: { credentials: { localAuthority: '123', role: 'user' } }
-    }
-    const h = createH()
-
-    global.fetch.mockResolvedValue({ ok: false, status: 404 })
-
-    await getBankDetails(mockRequest, h)
-
-    expect(h.response).toHaveBeenCalledWith({
-      error: 'Failed to fetch bank details'
+  it('does not show notification for HOF when confirmed is true', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ sortcode: '987654', confirmed: true })
     })
-    expect(h.code).toHaveBeenCalledWith(500)
+
+    const h = createH()
+    const request = makeRequest('HOF')
+
+    await getBankDetails(request, h)
+
+    const responseArg = h.response.mock.calls[0][0]
+    expect(responseArg.showNotificationBanner).toBe(false)
+    expect(responseArg.showConfirmBankDetails).toBe(false)
+    expect(responseArg.showDropdownDetails).toBe(true)
   })
 
-  it('handles fetch exceptions gracefully', async () => {
-    const mockRequest = {
-      auth: { credentials: { localAuthority: '123', role: 'user' } }
-    }
+  it('handles external API errors', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 500 })
+
     const h = createH()
+    const request = makeRequest()
 
-    global.fetch.mockRejectedValue(new Error('Network error'))
+    await getBankDetails(request, h)
 
-    await getBankDetails(mockRequest, h)
+    const responseArg = h.response.mock.calls[0][0]
+    expect(responseArg.error).toBe('Failed to fetch bank details')
+  })
 
-    expect(h.response).toHaveBeenCalledWith({
-      error: 'Failed to fetch bank details'
-    })
-    expect(h.code).toHaveBeenCalledWith(500)
+  it('handles fetch exceptions', async () => {
+    fetch.mockRejectedValueOnce(new Error('Network error'))
+
+    const h = createH()
+    const request = makeRequest()
+
+    await getBankDetails(request, h)
+
+    const responseArg = h.response.mock.calls[0][0]
+    expect(responseArg.error).toBe('Failed to fetch bank details')
   })
 })

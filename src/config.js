@@ -1,4 +1,5 @@
 import convict from 'convict'
+import 'dotenv/config'
 import convictFormatWithValidator from 'convict-format-with-validator'
 
 import { convictValidateMongoUri } from './common/helpers/convict/validate-mongo-uri.js'
@@ -130,20 +131,18 @@ const config = convict({
     }
   },
   auth: {
-    session: {
-      ttl: {
-        doc: 'Session timeout in seconds',
-        format: Number,
-        nullable: true,
-        default: null,
-        env: 'SESSION_TTL'
-      }
-    },
-    jwtSecret: {
-      doc: 'Secret key for signing JWT tokens',
+    jwksUri: {
+      doc: 'JWKS URI for fetching public keys to verify JWTs',
       format: String,
-      default: 'jwt-secret-must-be-at-least-32-characters-long',
-      env: 'JWT_SECRET',
+      default: '',
+      env: 'AUTH_JWKS_URI',
+      sensitive: true
+    },
+    issuer: {
+      doc: 'Issuer URL of the JWTs',
+      format: String,
+      default: '',
+      env: 'AUTH_ISSUER',
       sensitive: true
     }
   }
