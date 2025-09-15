@@ -14,8 +14,9 @@ const client = jwksClient({
 // Helper: resolve signing key dynamically
 export const getKey = (header, callback) => {
   return client.getSigningKey(header.kid, (err, key) => {
-    if (err) return callback(err)
-
+    if (err) {
+      return callback(err)
+    }
     const signingKey = key.publicKey || key.rsaPublicKey
     return callback(null, signingKey)
   })
