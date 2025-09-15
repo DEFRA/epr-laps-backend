@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { StatusCodes } from 'http-status-codes'
+import { statusCodes } from '../../common/constants/status-codes.js'
 import fetch from 'node-fetch'
 
 dotenv.config()
@@ -36,12 +36,12 @@ const getBankDetails = async (request, h) => {
         role?.trim().toUpperCase() === 'CEO'
     }
 
-    return h.response({ ...bankDetails, ...flags }).code(StatusCodes.OK)
+    return h.response({ ...bankDetails, ...flags }).code(statusCodes.ok)
   } catch (err) {
     console.error('Error fetching bank details:', err)
     return h
       .response({ error: 'Failed to fetch bank details' })
-      .code(StatusCodes.INTERNAL_SERVER_ERROR)
+      .code(statusCodes.internalServerError)
   }
 }
 
