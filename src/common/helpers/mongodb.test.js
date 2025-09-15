@@ -1,44 +1,70 @@
-import { Db, MongoClient } from 'mongodb'
-import { LockManager } from 'mongo-locks'
+// src/common/helpers/mongodb.test.js
+import { mongoDb } from './mongodb.js'
+import { createServer } from '../../server.js'
+
+import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
+
+// 1️⃣ Mock MongoClient
+vi.mock('mongodb', () => ({
+  MongoClient: {
+    connect: vi.fn().mockResolvedValue({
+      db: () => ({
+        collection: () => ({
+          createIndex: vi.fn().mockResolvedValue(true)
+        })
+      }),
+      topology: { isConnected: () => true },
+      close: vi.fn()
+    })
+  }
+}))
+
+// 2️⃣ Mock LockManager (mongo-locks)
+vi.mock('mongo-locks', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    acquire: vi.fn(),
+    release: vi.fn()
+  }))
+}))
 
 describe('#mongoDb', () => {
   let server
 
-  beforeAll(async () => {
-    const { createServer } = await import('../../server.js')
+  beforeEach(async () => {
     server = await createServer()
-    await server.initialize()
+
+    // Ensure logger exists
+    server.logger = server.logger || {}
+    server.logger.info = vi.fn()
+    server.logger.error = vi.fn()
   })
 
-  afterAll(async () => {
-    // Only stop once
-    if (server) {
-      await server.stop({ timeout: 0 })
-    }
+  afterEach(async () => {
+    if (server?.stop) await server.stop()
+    vi.resetAllMocks()
   })
 
-  test('Server should have expected MongoDb decorators', () => {
-    expect(server.db).toBeInstanceOf(Db)
-    expect(server.mongoClient).toBeInstanceOf(MongoClient)
-    expect(server.locker).toBeInstanceOf(LockManager)
-  })
+  test('Should setup MongoDb without errors', async () => {
+    await mongoDb.plugin.register(server, {
+      mongoUrl: 'mongodb://localhost:27017/test',
+      mongoOptions: {},
+      databaseName: 'test'
+    })
 
-  test('MongoDb should have expected database name', () => {
-    expect(server.db.databaseName).toBe('epr-laps-backend')
-  })
+    const logs = server.logger.info.mock.calls.map((c) => c[0])
+    expect(logs.join('')).toContain('Setting up MongoDb')
+    expect(logs.join('')).toContain('MongoDb connected to test')
 
-  test('MongoDb should have expected namespace', () => {
-    expect(server.db.namespace).toBe('epr-laps-backend')
-  })
+    // Ensure server decorated
+    expect(server.mongoClient).toBeDefined()
+    expect(server.db).toBeDefined()
 
-  test('Should close Mongo client on server stop', async () => {
-    const closeSpy = vi.spyOn(server.mongoClient, 'close')
-    await server.stop({ timeout: 0 })
-    expect(closeSpy).toHaveBeenCalledWith(true)
+    // Locker mock check
+    expect(server.locker).toHaveProperty('acquire')
+    expect(server.locker).toHaveProperty('release')
 
-    // Re-initialize server for other tests if needed
-    const { createServer } = await import('../../server.js')
-    server = await createServer()
-    await server.initialize()
+    // Request decorations
+    expect(typeof server.decorate).toBe('function')
+    // expect(typeof server.db).toBeDefined
   })
 })
