@@ -1,3 +1,4 @@
+// keep existing imports...
 import HapiAuthJwt2 from 'hapi-auth-jwt2'
 import jwksClient from 'jwks-rsa'
 import { config } from './../config.js'
@@ -11,7 +12,7 @@ const client = jwksClient({
 })
 
 // Helper: resolve signing key dynamically
-const getKey = (header, callback) => {
+export const getKey = (header, callback) => {
   client.getSigningKey(header.kid, (err, key) => {
     if (err) return callback(err)
     const signingKey = key.publicKey || key.rsaPublicKey
@@ -20,7 +21,7 @@ const getKey = (header, callback) => {
 }
 
 // Custom JWT validation
-const jwtValidate = (decoded, request, h) => {
+export const jwtValidate = (decoded, request, h) => {
   const { userId, localAuthority, role } = decoded
 
   if (!localAuthority || !role) {
@@ -37,10 +38,8 @@ export const authPlugin = {
   name: 'auth',
   version: '1.0.0',
   register: async (server) => {
-    // Register hapi-auth-jwt2
     await server.register(HapiAuthJwt2)
 
-    // Define JWT auth strategy using dynamic JWKS
     server.auth.strategy('jwt', 'jwt', {
       key: getKey,
       validate: jwtValidate,
