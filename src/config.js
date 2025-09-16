@@ -134,14 +134,14 @@ const config = convict({
       doc: 'JWKS URI for fetching public keys to verify JWTs',
       format: String,
       default: '',
-      env: 'DISCOVERY_URL',
+      env: 'DEFRA_ID_DISCOVERY_URL',
       sensitive: true
     },
     FSSAPIUrl: {
       doc: 'FSS URL to get the bank details',
       format: String,
       default: '',
-      env: 'FSS_MOCK_API_URL',
+      env: 'FSS_API_URL',
       sensitive: true
     }
   }
