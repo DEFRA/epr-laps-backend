@@ -1,13 +1,11 @@
-import dotenv from 'dotenv'
 import { statusCodes } from '../../common/constants/status-codes.js'
 import fetch from 'node-fetch'
-
-dotenv.config()
+import { config } from '../../config.js'
 
 const getBankDetails = async (request, h) => {
   try {
     const { localAuthority, role } = request.auth.credentials
-    const BASE_URL = process.env.API_URL
+    const BASE_URL = config.get('auth.FSSAPIUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
 
     const response = await fetch(url, { method: 'GET' })

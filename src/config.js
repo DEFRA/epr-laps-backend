@@ -1,5 +1,4 @@
 import convict from 'convict'
-import 'dotenv/config'
 import convictFormatWithValidator from 'convict-format-with-validator'
 
 import { convictValidateMongoUri } from './common/helpers/convict/validate-mongo-uri.js'
@@ -131,25 +130,19 @@ const config = convict({
     }
   },
   auth: {
-    jwksUri: {
+    discoveryUrl: {
       doc: 'JWKS URI for fetching public keys to verify JWTs',
       format: String,
       default: '',
-      env: 'AUTH_JWKS_URI',
+      env: 'DISCOVERY_URL',
       sensitive: true
     },
-    issuer: {
-      doc: 'Issuer URL of the JWTs',
+    FSSAPIUrl: {
+      doc: 'FSS URL to get the bank details',
       format: String,
       default: '',
       env: 'AUTH_ISSUER',
       sensitive: true
-    },
-    jwtMaxAge: {
-      doc: 'JWT max age duration',
-      format: String,
-      default: '4h',
-      env: 'AUTH_JWT_MAX_AGE'
     }
   }
 })

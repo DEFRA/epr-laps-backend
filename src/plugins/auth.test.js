@@ -1,33 +1,53 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Hapi from '@hapi/hapi'
 import jwksClient from 'jwks-rsa'
+import fetch from 'node-fetch'
 import { authPlugin, getKey, jwtValidate } from './auth.js'
 
-// Mock the MongoDB helper before importing anything that might use it
-vi.mock('../common/helpers/mongodb.js', () => {
-  return {
-    mongoDb: {
-      plugin: {
-        name: 'mongodb',
-        register: vi.fn().mockResolvedValue(undefined)
-      }
+// ----------------------------
+// Mock dependencies
+// ----------------------------
+
+// Mock MongoDB helper
+vi.mock('../common/helpers/mongodb.js', () => ({
+  mongoDb: {
+    plugin: {
+      name: 'mongodb',
+      register: vi.fn().mockResolvedValue(undefined)
     }
   }
-})
+}))
 
 // Mock jwks-rsa
-vi.mock('jwks-rsa', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      getSigningKey: vi.fn()
-    }))
-  }
-})
+vi.mock('jwks-rsa', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    getSigningKey: vi.fn()
+  }))
+}))
+
+// Mock node-fetch
+vi.mock('node-fetch', () => ({
+  default: vi.fn()
+}))
+
+// ----------------------------
+// Auth plugin tests
+// ----------------------------
 
 describe('auth plugin', () => {
   let server
 
   beforeEach(async () => {
+    vi.clearAllMocks()
+
+    // Mock fetch response for discovery endpoint
+    fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        jwks_uri: 'https://example.com/.well-known/jwks.json'
+      })
+    })
+
     server = Hapi.server()
     await server.register(authPlugin)
   })
@@ -44,6 +64,10 @@ describe('auth plugin', () => {
     expect(jwtValidate).toBeTypeOf('function')
   })
 })
+
+// ----------------------------
+// jwtValidate tests
+// ----------------------------
 
 describe('jwtValidate', () => {
   it('should return isValid false if localAuthority is missing', () => {
@@ -70,11 +94,14 @@ describe('jwtValidate', () => {
   })
 })
 
+// ----------------------------
+// getKey tests
+// ----------------------------
+
 describe('getKey', () => {
   let mockGetSigningKey
 
   beforeEach(() => {
-    // Reset mocks before each test
     vi.clearAllMocks()
     mockGetSigningKey = vi.fn()
     jwksClient.mockImplementation(() => ({
@@ -120,5 +147,27 @@ describe('getKey', () => {
       expect(key).toBeUndefined()
       done()
     })
+  })
+})
+
+// ----------------------------
+// Discovery fetch error tests
+// ----------------------------
+
+describe('auth plugin discovery errors', () => {
+  it('should throw if discovery endpoint fails', async () => {
+    fetch.mockResolvedValue({ ok: false, statusText: 'Not Found' })
+    const tempServer = Hapi.server()
+    await expect(tempServer.register(authPlugin)).rejects.toThrow(
+      'Failed to fetch OpenID config'
+    )
+  })
+
+  it('should throw if jwks_uri is missing', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({}) })
+    const tempServer = Hapi.server()
+    await expect(tempServer.register(authPlugin)).rejects.toThrow(
+      'No jwks_uri found in discovery document'
+    )
   })
 })

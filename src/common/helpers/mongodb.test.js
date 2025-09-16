@@ -1,10 +1,37 @@
 // src/common/helpers/mongodb.test.js
 import { mongoDb } from './mongodb.js'
 import { createServer } from '../../server.js'
-
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
 
+// ----------------------------
+// Mock config.get for auth discovery URL
+// ----------------------------
+vi.mock('./../config.js', () => ({
+  config: {
+    get: vi.fn().mockImplementation((key) => {
+      if (key === 'auth.discoveryUrl') {
+        return 'https://example.com/.well-known/openid-configuration'
+      }
+      return ''
+    })
+  }
+}))
+
+// ----------------------------
+// Mock fetch for JWKS
+// ----------------------------
+vi.mock('node-fetch', () => ({
+  default: vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      jwks_uri: 'https://example.com/.well-known/jwks.json'
+    })
+  })
+}))
+
+// ----------------------------
 // Mock MongoClient
+// ----------------------------
 vi.mock('mongodb', () => ({
   MongoClient: {
     connect: vi.fn().mockResolvedValue({
@@ -19,7 +46,9 @@ vi.mock('mongodb', () => ({
   }
 }))
 
+// ----------------------------
 // Mock LockManager (mongo-locks)
+// ----------------------------
 vi.mock('mongo-locks', () => ({
   LockManager: vi.fn().mockImplementation(() => ({
     acquire: vi.fn(),
@@ -27,6 +56,9 @@ vi.mock('mongo-locks', () => ({
   }))
 }))
 
+// ----------------------------
+// Tests
+// ----------------------------
 describe('#mongoDb', () => {
   let server
 
@@ -65,6 +97,5 @@ describe('#mongoDb', () => {
 
     // Request decorations
     expect(typeof server.decorate).toBe('function')
-    // expect(typeof server.db).toBeDefined
   })
 })

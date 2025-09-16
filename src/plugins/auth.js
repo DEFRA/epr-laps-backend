@@ -1,17 +1,33 @@
-// keep existing imports...
 import HapiAuthJwt2 from 'hapi-auth-jwt2'
 import jwksClient from 'jwks-rsa'
+import fetch from 'node-fetch'
 import { config } from './../config.js'
 
-// Setup JWKS client
-const client = jwksClient({
-  jwksUri: config.get('auth.jwksUri'),
-  cache: true,
-  cacheMaxEntries: 5,
-  cacheMaxAge: 600000 // 10 minutes
-})
+let client
 
-// Helper: resolve signing key dynamically
+// Load JWKS URI dynamically from discovery endpoint
+async function initJwksClient() {
+  const discoveryUrl = config.get('auth.discoveryUrl')
+
+  const response = await fetch(discoveryUrl)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch OpenID config: ${response.statusText}`)
+  }
+
+  const discovery = await response.json()
+  if (!discovery.jwks_uri) {
+    throw new Error('No jwks_uri found in discovery document')
+  }
+
+  client = jwksClient({
+    jwksUri: discovery.jwks_uri,
+    cache: true,
+    cacheMaxEntries: 5,
+    cacheMaxAge: 600000 // 10 minutes
+  })
+}
+
+// resolve signing key dynamically
 export const getKey = (header, callback) => {
   return client.getSigningKey(header.kid, (err, key) => {
     if (err) {
@@ -39,6 +55,7 @@ export const jwtValidate = (decoded, _request, _h) => {
 export const authPlugin = {
   name: 'auth',
   register: async (server) => {
+    await initJwksClient()
     await server.register(HapiAuthJwt2)
 
     server.auth.strategy('jwt', 'jwt', {
@@ -49,8 +66,7 @@ export const authPlugin = {
         iss: false,
         sub: false,
         nbf: true,
-        exp: true,
-        maxAge: config.get('auth.jwtMaxAge')
+        exp: true
       }
     })
 
