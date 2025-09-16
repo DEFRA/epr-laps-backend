@@ -7,6 +7,8 @@ let client
 
 // Load JWKS URI dynamically from discovery endpoint
 async function initJwksClient() {
+  console.log('Config object:', config)
+  console.log('auth.discoveryUrl value:', config.get('auth.discoveryUrl'))
   const discoveryUrl = config.get('auth.discoveryUrl')
 
   const response = await fetch(discoveryUrl)

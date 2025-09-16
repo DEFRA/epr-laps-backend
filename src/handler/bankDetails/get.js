@@ -5,7 +5,7 @@ import { config } from '../../config.js'
 const getBankDetails = async (request, h) => {
   try {
     const { localAuthority, role } = request.auth.credentials
-    const BASE_URL = config.get('auth.FSSAPIUrl')
+    const BASE_URL = config.get('FSSAPIUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
 
     const response = await fetch(url, { method: 'GET' })

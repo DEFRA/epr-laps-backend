@@ -136,14 +136,14 @@ const config = convict({
       default: '',
       env: 'DEFRA_ID_DISCOVERY_URL',
       sensitive: true
-    },
-    FSSAPIUrl: {
-      doc: 'FSS URL to get the bank details',
-      format: String,
-      default: '',
-      env: 'FSS_API_URL',
-      sensitive: true
     }
+  },
+  FSSAPIUrl: {
+    doc: 'FSS URL to get the bank details',
+    format: String,
+    default: '',
+    env: 'FSS_API_URL',
+    sensitive: true
   }
 })
 

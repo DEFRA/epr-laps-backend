@@ -1,16 +1,16 @@
 import { getBankDetails } from '../handler/bankDetails/get.js'
 import { putBankDetails } from '../handler/bankDetails/put.js'
 
-const bankDetailsGet = {
-  method: 'GET',
+const bankDetailsRoutes = {
+  method: ['GET', 'PUT'],
   path: '/bank-details/{localAuthority}',
-  handler: getBankDetails
+  handler: (request, h) => {
+    if (request.method === 'get') {
+      return getBankDetails(request, h)
+    } else if (request.method === 'put') {
+      return putBankDetails(request, h)
+    }
+  }
 }
 
-const bankDetailsPut = {
-  method: 'PUT',
-  path: '/bank-details/{localAuthority}',
-  handler: putBankDetails
-}
-
-export { bankDetailsGet, bankDetailsPut }
+export { bankDetailsRoutes }
