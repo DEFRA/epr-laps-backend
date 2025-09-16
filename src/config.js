@@ -141,7 +141,7 @@ const config = convict({
       doc: 'FSS URL to get the bank details',
       format: String,
       default: '',
-      env: 'AUTH_ISSUER',
+      env: 'FSS_MOCK_API_URL',
       sensitive: true
     }
   }
