@@ -131,14 +131,19 @@ const config = convict({
   },
   auth: {
     discoveryUrl: {
-      doc: 'JWKS URI for fetching public keys to verify JWTs',
+      doc: 'URI for fetching Metadata document for the signup signin policy',
       format: String,
       default: '',
       env: 'DEFRA_ID_DISCOVERY_URL',
       sensitive: true
+    },
+    jwks: {
+      cache: true,
+      cacheMaxEntries: 5,
+      cacheMaxAge: 600000 // 10 minutes
     }
   },
-  FSSAPIUrl: {
+  fssApiUrl: {
     doc: 'FSS URL to get the bank details',
     format: String,
     default: '',

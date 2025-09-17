@@ -19,11 +19,11 @@ async function initJwksClient() {
     throw new Error('No jwks_uri found in discovery document')
   }
 
+  const jwksConfig = config.get('auth.jwks')
+
   client = jwksClient({
     jwksUri: discovery.jwks_uri,
-    cache: true,
-    cacheMaxEntries: 5,
-    cacheMaxAge: 600000 // 10 minutes
+    ...jwksConfig
   })
 }
 

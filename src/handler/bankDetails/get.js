@@ -10,7 +10,7 @@ const getBankDetails = async (request, h) => {
     const relationship = relationships?.[0]
     const role = roles?.[0]?.toUpperCase()
 
-    const BASE_URL = config.get('FSSAPIUrl')
+    const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(relationship)}`
 
     const response = await fetch(url, { method: 'GET' })
