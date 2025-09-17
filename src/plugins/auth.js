@@ -40,15 +40,15 @@ export const getKey = (header, callback) => {
 
 // Custom JWT validation
 export const jwtValidate = (decoded, _request, _h) => {
-  const { userId, localAuthority, role } = decoded
+  const { userId, relationships, roles } = decoded
 
-  if (!localAuthority || !role) {
+  if (!relationships || !roles) {
     return { isValid: false }
   }
 
   return {
     isValid: true,
-    credentials: { userId, localAuthority, role }
+    credentials: { userId, relationships, roles }
   }
 }
 

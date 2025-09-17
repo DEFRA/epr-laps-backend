@@ -4,9 +4,14 @@ import { config } from '../../config.js'
 
 const getBankDetails = async (request, h) => {
   try {
-    const { localAuthority, role } = request.auth.credentials
+    const { relationships, roles } = request.auth.credentials
+
+    // Assume single-item arrays
+    const relationship = relationships?.[0]
+    const role = roles?.[0]?.toUpperCase()
+
     const BASE_URL = config.get('FSSAPIUrl')
-    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
+    const url = `${BASE_URL}/bank-details/${encodeURIComponent(relationship)}`
 
     const response = await fetch(url, { method: 'GET' })
     if (!response.ok) {
@@ -16,7 +21,7 @@ const getBankDetails = async (request, h) => {
     let bankDetails = await response.json()
 
     // Mask sortcode for non-CEO roles
-    if (role?.toUpperCase() !== 'CEO' && bankDetails?.sortcode) {
+    if (role !== 'CEO' && bankDetails?.sortcode) {
       const LAST_DIGITS_COUNT = 2
       const lastTwoDigits = bankDetails.sortcode.slice(-LAST_DIGITS_COUNT)
       bankDetails = {
@@ -26,12 +31,9 @@ const getBankDetails = async (request, h) => {
     }
 
     const flags = {
-      showNotificationBanner:
-        !bankDetails.confirmed || role?.trim().toUpperCase() === 'CEO',
+      showNotificationBanner: !bankDetails.confirmed || role === 'CEO',
       showConfirmBankDetails: !bankDetails.confirmed,
-      showDropdownDetails:
-        role?.trim().toUpperCase() === 'HOF' ||
-        role?.trim().toUpperCase() === 'CEO'
+      showDropdownDetails: role === 'HOF' || role === 'CEO'
     }
 
     return h.response({ ...bankDetails, ...flags }).code(statusCodes.ok)

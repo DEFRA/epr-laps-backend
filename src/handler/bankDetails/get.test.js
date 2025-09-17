@@ -1,6 +1,5 @@
 import { describe, it, beforeEach, vi, expect } from 'vitest'
 import fetch from 'node-fetch'
-// import { StatusCodes } from 'http-status-codes'
 import { getBankDetails } from './get' // adjust path if needed
 
 // ----- Mock fetch -----
@@ -16,8 +15,8 @@ const createH = () => ({
 })
 
 // ----- Mock request helper -----
-const makeRequest = (role = 'CEO', localAuthority = 'LA1') => ({
-  auth: { credentials: { role, localAuthority } }
+const makeRequest = (roles = ['CEO'], relationships = ['LA1']) => ({
+  auth: { credentials: { roles, relationships } }
 })
 
 // ----- Reset mocks -----
@@ -33,7 +32,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest('CEO')
+    const request = makeRequest(['CEO'])
 
     await getBankDetails(request, h)
 
@@ -50,7 +49,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest('Staff')
+    const request = makeRequest(['Staff'])
 
     await getBankDetails(request, h)
 
@@ -67,7 +66,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest('HOF')
+    const request = makeRequest(['HOF'])
 
     await getBankDetails(request, h)
 
@@ -84,7 +83,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest('HOF')
+    const request = makeRequest(['HOF'])
 
     await getBankDetails(request, h)
 

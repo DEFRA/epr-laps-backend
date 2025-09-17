@@ -70,26 +70,30 @@ describe('auth plugin', () => {
 // ----------------------------
 
 describe('jwtValidate', () => {
-  it('should return isValid false if localAuthority is missing', () => {
-    const decoded = { userId: '123', role: 'admin' }
+  it('should return isValid false if relationships is missing', () => {
+    const decoded = { userId: '123', roles: ['admin'] }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(false)
   })
 
-  it('should return isValid false if role is missing', () => {
-    const decoded = { userId: '123', localAuthority: 'LA1' }
+  it('should return isValid false if roles is missing', () => {
+    const decoded = { userId: '123', relationships: ['LA1'] }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(false)
   })
 
   it('should return isValid true and credentials if all required fields exist', () => {
-    const decoded = { userId: '123', localAuthority: 'LA1', role: 'admin' }
+    const decoded = {
+      userId: '123',
+      relationships: ['LA1'],
+      roles: ['admin']
+    }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(true)
     expect(result.credentials).toEqual({
       userId: '123',
-      localAuthority: 'LA1',
-      role: 'admin'
+      relationships: ['LA1'],
+      roles: ['admin']
     })
   })
 })
