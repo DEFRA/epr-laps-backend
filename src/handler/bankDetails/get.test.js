@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, vi, expect } from 'vitest'
 import fetch from 'node-fetch'
-import { getBankDetails } from './get' // adjust path if needed
+import { getBankDetails } from './get.js'
 
 // ----- Mock fetch -----
 vi.mock('node-fetch', () => ({
@@ -15,9 +15,17 @@ const createH = () => ({
 })
 
 // ----- Mock request helper -----
-const makeRequest = (roles = ['CEO'], relationships = ['LA1']) => ({
-  auth: { credentials: { roles, relationships } }
+const makeRequest = (
+  role = 'CEO',
+  localAuthority = 'Glamshire County Council'
+) => ({
+  auth: { credentials: { role, localAuthority } }
 })
+
+// ----- Mock logger -----
+vi.mock('./logging/logger.js', () => ({
+  createLogger: () => ({ error: vi.fn() })
+}))
 
 // ----- Reset mocks -----
 beforeEach(() => {
@@ -32,7 +40,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest(['CEO'])
+    const request = makeRequest('CEO', 'Glamshire County Council')
 
     await getBankDetails(request, h)
 
@@ -49,7 +57,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest(['Staff'])
+    const request = makeRequest('Staff', 'Test Organization')
 
     await getBankDetails(request, h)
 
@@ -66,7 +74,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest(['HOF'])
+    const request = makeRequest('HOF', 'Some Authority')
 
     await getBankDetails(request, h)
 
@@ -83,7 +91,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest(['HOF'])
+    const request = makeRequest('HOF', 'Some Authority')
 
     await getBankDetails(request, h)
 
@@ -97,7 +105,7 @@ describe('getBankDetails', () => {
     fetch.mockResolvedValueOnce({ ok: false, status: 500 })
 
     const h = createH()
-    const request = makeRequest()
+    const request = makeRequest('CEO', 'Glamshire County Council')
 
     await getBankDetails(request, h)
 
@@ -109,7 +117,7 @@ describe('getBankDetails', () => {
     fetch.mockRejectedValueOnce(new Error('Network error'))
 
     const h = createH()
-    const request = makeRequest()
+    const request = makeRequest('CEO', 'Glamshire County Council')
 
     await getBankDetails(request, h)
 

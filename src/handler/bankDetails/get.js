@@ -1,22 +1,22 @@
 import { statusCodes } from '../../common/constants/status-codes.js'
 import fetch from 'node-fetch'
 import { config } from '../../config.js'
+import { createLogger } from '../../common/helpers/logging/logger.js'
+
+const logger = createLogger()
 
 const getBankDetails = async (request, h) => {
   try {
-    const { relationships, roles } = request.auth.credentials
-
-    // Assume single-item arrays
-    const relationship = relationships?.[0]
-    const role = roles?.[0]?.toUpperCase()
-
+    const { localAuthority, role } = request.auth.credentials
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/bank-details/${encodeURIComponent(relationship)}`
-
-    const response = await fetch(url, { method: 'GET' })
-    if (!response.ok) {
-      throw new Error(`External API error: ${response.status}`)
-    }
+    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
+    const response = await fetch(url, {
+      method: 'get',
+      headers: {
+        'x-api-key': 'some-api-key',
+        'Content-Type': 'application/json'
+      }
+    })
 
     let bankDetails = await response.json()
 
@@ -38,7 +38,7 @@ const getBankDetails = async (request, h) => {
 
     return h.response({ ...bankDetails, ...flags }).code(statusCodes.ok)
   } catch (err) {
-    console.error('Error fetching bank details:', err)
+    logger.error('Error fetching bank details:', err)
     return h
       .response({ error: 'Failed to fetch bank details' })
       .code(statusCodes.internalServerError)

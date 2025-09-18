@@ -1,14 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import Boom from '@hapi/boom'
 import Hapi from '@hapi/hapi'
-import jwksClient from 'jwks-rsa'
-import fetch from 'node-fetch'
+import Wreck from '@hapi/wreck'
 import { authPlugin, getKey, jwtValidate } from './auth.js'
 
 // ----------------------------
 // Mock dependencies
 // ----------------------------
-
-// Mock MongoDB helper
 vi.mock('../common/helpers/mongodb.js', () => ({
   mongoDb: {
     plugin: {
@@ -18,36 +16,37 @@ vi.mock('../common/helpers/mongodb.js', () => ({
   }
 }))
 
-// Mock jwks-rsa
-vi.mock('jwks-rsa', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    getSigningKey: vi.fn()
-  }))
+vi.mock('@hapi/wreck', () => ({
+  default: {
+    get: vi.fn()
+  }
 }))
 
-// Mock node-fetch
-vi.mock('node-fetch', () => ({
-  default: vi.fn()
+vi.mock('./../config.js', () => ({
+  config: {
+    get: vi
+      .fn()
+      .mockReturnValue('https://example.com/.well-known/openid-configuration')
+  }
+}))
+
+vi.mock('jwk-to-pem', () => ({
+  default: vi.fn(() => 'MOCK_PEM')
 }))
 
 // ----------------------------
 // Auth plugin tests
 // ----------------------------
-
 describe('auth plugin', () => {
   let server
 
   beforeEach(async () => {
     vi.clearAllMocks()
-
-    // Mock fetch response for discovery endpoint
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
+    Wreck.get.mockResolvedValue({
+      payload: {
         jwks_uri: 'https://example.com/.well-known/jwks.json'
-      })
+      }
     })
-
     server = Hapi.server()
     await server.register(authPlugin)
   })
@@ -68,32 +67,32 @@ describe('auth plugin', () => {
 // ----------------------------
 // jwtValidate tests
 // ----------------------------
-
 describe('jwtValidate', () => {
   it('should return isValid false if relationships is missing', () => {
-    const decoded = { userId: '123', roles: ['admin'] }
+    const decoded = { sub: '123', roles: ['admin'] }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(false)
   })
 
   it('should return isValid false if roles is missing', () => {
-    const decoded = { userId: '123', relationships: ['LA1'] }
+    const decoded = { sub: '123', relationships: ['LA1'] }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(false)
   })
 
-  it('should return isValid true and credentials if all required fields exist', () => {
+  it('should return isValid true and correct credentials if all required fields exist', () => {
     const decoded = {
-      userId: '123',
-      relationships: ['LA1'],
-      roles: ['admin']
+      sub: '123',
+      relationships: ['444:1234:Glamshire County Council:0:employee:0'],
+      roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3'],
+      currentRelationshipId: '444'
     }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(true)
     expect(result.credentials).toEqual({
       userId: '123',
-      relationships: ['LA1'],
-      roles: ['admin']
+      localAuthority: 'Glamshire County Council',
+      role: 'CEO'
     })
   })
 })
@@ -101,77 +100,73 @@ describe('jwtValidate', () => {
 // ----------------------------
 // getKey tests
 // ----------------------------
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import Wreck from '@hapi/wreck'
+import jwkToPem from 'jwk-to-pem'
+import Boom from '@hapi/boom'
+import { getKey } from './auth.js'
+import { config } from '../config.js'
+
+vi.mock('@hapi/wreck')
+vi.mock('jwk-to-pem')
+vi.mock('../config.js')
 
 describe('getKey', () => {
-  let mockGetSigningKey
+  const testPem =
+    '-----BEGIN PUBLIC KEY-----\ntest-pem-key\n-----END PUBLIC KEY-----'
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetSigningKey = vi.fn()
-    jwksClient.mockImplementation(() => ({
-      getSigningKey: mockGetSigningKey
-    }))
   })
 
-  it('should call jwksClient.getSigningKey with the correct kid', (done) => {
-    const fakeKey = { publicKey: 'FAKE_KEY' }
-    mockGetSigningKey.mockImplementation((kid, cb) => cb(null, fakeKey))
+  it('returns PEM key when JWKS has keys', async () => {
+    config.get.mockReturnValue('http://fake-discovery')
+    Wreck.get
+      .mockResolvedValueOnce({ payload: { jwks_uri: 'http://fake-jwks' } })
+      .mockResolvedValueOnce({
+        payload: { keys: [{ kty: 'RSA', n: 'n', e: 'AQAB' }] }
+      })
+    jwkToPem.mockReturnValue(testPem)
 
-    const header = { kid: '1234' }
-    getKey(header, (err, key) => {
-      expect(err).toBeNull()
-      expect(key).toBe('FAKE_KEY')
-      expect(mockGetSigningKey).toHaveBeenCalledWith(
-        '1234',
-        expect.any(Function)
-      )
-      done()
-    })
+    const result = await getKey()
+    expect(result).toEqual({ key: testPem })
   })
 
-  it('should return rsaPublicKey if publicKey is missing', (done) => {
-    const fakeKey = { rsaPublicKey: 'RSA_KEY' }
-    mockGetSigningKey.mockImplementation((kid, cb) => cb(null, fakeKey))
+  it('throws Boom.unauthorized if JWKS has no keys', async () => {
+    config.get.mockReturnValue('http://fake-discovery')
+    Wreck.get
+      .mockResolvedValueOnce({ payload: { jwks_uri: 'http://fake-jwks' } })
+      .mockResolvedValueOnce({ payload: { keys: [] } }) // JWKS empty
 
-    const header = { kid: '5678' }
-    getKey(header, (err, key) => {
-      expect(err).toBeNull()
-      expect(key).toBe('RSA_KEY')
-      done()
-    })
-  })
-
-  it('should pass errors from getSigningKey to callback', (done) => {
-    const error = new Error('something went wrong')
-    mockGetSigningKey.mockImplementation((kid, cb) => cb(error, null))
-
-    const header = { kid: '9999' }
-    getKey(header, (err, key) => {
-      expect(err).toBe(error)
-      expect(key).toBeUndefined()
-      done()
-    })
-  })
-})
-
-// ----------------------------
-// Discovery fetch error tests
-// ----------------------------
-
-describe('auth plugin discovery errors', () => {
-  it('should throw if discovery endpoint fails', async () => {
-    fetch.mockResolvedValue({ ok: false, statusText: 'Not Found' })
-    const tempServer = Hapi.server()
-    await expect(tempServer.register(authPlugin)).rejects.toThrow(
-      'Failed to fetch OpenID config'
+    await expect(getKey()).rejects.toThrow(
+      Boom.unauthorized('No JWKS keys found').message
     )
   })
 
-  it('should throw if jwks_uri is missing', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => ({}) })
-    const tempServer = Hapi.server()
-    await expect(tempServer.register(authPlugin)).rejects.toThrow(
+  it('throws Boom.internal if discovery doc has no jwks_uri', async () => {
+    config.get.mockReturnValue('http://fake-discovery')
+    Wreck.get.mockResolvedValueOnce({ payload: {} }) // missing jwks_uri
+
+    await expect(getKey()).rejects.toThrow(
       'No jwks_uri found in discovery document'
     )
+  })
+
+  it('throws Boom.internal if JWKS fetch fails', async () => {
+    config.get.mockReturnValue('http://fake-discovery')
+    Wreck.get
+      .mockResolvedValueOnce({ payload: { jwks_uri: 'http://fake-jwks' } })
+      .mockRejectedValueOnce(new Error('Network error')) // JWKS fetch fails
+
+    await expect(getKey()).rejects.toThrow(
+      'Cannot verify auth token: Network error'
+    )
+  })
+
+  it('throws Boom.internal if discovery fetch fails', async () => {
+    config.get.mockReturnValue('http://fake-discovery')
+    Wreck.get.mockRejectedValueOnce(new Error('Discovery error'))
+
+    await expect(getKey()).rejects.toThrow('Cannot verify auth token')
   })
 })

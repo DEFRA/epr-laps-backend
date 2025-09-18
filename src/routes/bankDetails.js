@@ -3,7 +3,7 @@ import { getBankDetails } from '../handler/bankDetails/get.js'
 import { putBankDetails } from '../handler/bankDetails/put.js'
 
 const bankDetailsRoutes = {
-  method: ['GET', 'PUT'],
+  method: ['get', 'put'],
   path: '/bank-details/{localAuthority}',
   handler: (request, h) => {
     if (request.method === 'get') {
@@ -16,6 +16,9 @@ const bankDetailsRoutes = {
         .code(statusCodes.notAllowed)
     }
   }
+  // options: {
+  //   auth: false
+  // }
 }
 
 export { bankDetailsRoutes }

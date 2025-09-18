@@ -32,6 +32,10 @@ async function createServer() {
         xss: 'enabled',
         noSniff: true,
         xframe: true
+      },
+      cors: {
+        origin: ['*'],
+        additionalHeaders: ['cache-control', 'x-requested-with']
       }
     },
     router: {
@@ -40,6 +44,7 @@ async function createServer() {
   })
 
   // Hapi Plugins:
+  // auth           -
   // requestLogger  - automatically logs incoming requests
   // requestTracing - trace header logging and propagation
   // secureContext  - loads CA certificates from environment config

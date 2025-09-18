@@ -137,10 +137,11 @@ const config = convict({
       env: 'DEFRA_ID_DISCOVERY_URL',
       sensitive: true
     },
-    jwks: {
-      cache: true,
-      cacheMaxEntries: 5,
-      cacheMaxAge: 600000 // 10 minutes
+    issuer: {
+      doc: 'Expected JWT issuer',
+      format: String,
+      default: '',
+      env: 'JWT_ISSUER'
     }
   },
   fssApiUrl: {
