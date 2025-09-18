@@ -3,6 +3,8 @@ import Boom from '@hapi/boom'
 import Hapi from '@hapi/hapi'
 import Wreck from '@hapi/wreck'
 import { authPlugin, getKey, jwtValidate } from './auth.js'
+import jwkToPem from 'jwk-to-pem'
+import { config } from '../config.js'
 
 // ----------------------------
 // Mock dependencies
@@ -100,13 +102,6 @@ describe('jwtValidate', () => {
 // ----------------------------
 // getKey tests
 // ----------------------------
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import Wreck from '@hapi/wreck'
-import jwkToPem from 'jwk-to-pem'
-import Boom from '@hapi/boom'
-import { getKey } from './auth.js'
-import { config } from '../config.js'
-
 vi.mock('@hapi/wreck')
 vi.mock('jwk-to-pem')
 vi.mock('../config.js')
