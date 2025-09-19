@@ -30,7 +30,6 @@ const makeRequest = (
   logger: mockLogger
 })
 
-
 // ----- Reset mocks -----
 beforeEach(() => {
   vi.clearAllMocks()
