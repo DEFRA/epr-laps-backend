@@ -1,10 +1,7 @@
 import { statusCodes } from '../../common/constants/status-codes.js'
 import fetch from 'node-fetch'
 import { config } from '../../config.js'
-import { createLogger } from '../../common/helpers/logging/logger.js'
 import { processBankDetails } from '../../common/helpers/utils/process-bank-details.js'
-
-const logger = createLogger()
 
 const getBankDetails = async (request, h) => {
   try {
@@ -20,12 +17,15 @@ const getBankDetails = async (request, h) => {
     })
 
     const bankDetails = await response.json()
+    request.logger.debug('Raw bank details received:', bankDetails)
 
     // Use utility function
     const processedDetails = processBankDetails(bankDetails, role)
+    request.logger.info('Processed bank details response:', processedDetails)
+
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
-    logger.error('Error fetching bank details:', err)
+    request.logger.error('Error fetching bank details:', err)
     return h
       .response({ error: 'Failed to fetch bank details' })
       .code(statusCodes.internalServerError)
