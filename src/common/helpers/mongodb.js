@@ -1,5 +1,3 @@
-// src/common/helpers/mongodb.js
-
 import { MongoClient } from 'mongodb'
 import { LockManager } from 'mongo-locks' // real lock manager
 

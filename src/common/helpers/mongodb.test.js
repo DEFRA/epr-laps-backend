@@ -1,4 +1,3 @@
-// src/common/helpers/mongodb.test.js
 import { mongoDb } from './mongodb.js'
 import { createServer } from '../../server.js'
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
