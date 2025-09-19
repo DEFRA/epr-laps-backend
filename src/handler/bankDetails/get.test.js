@@ -1,25 +1,15 @@
 import { describe, it, beforeEach, vi, expect } from 'vitest'
 import fetch from 'node-fetch'
 import { getBankDetails } from './get.js'
+import Boom from '@hapi/boom'
 
 // ----- Mock fetch -----
 vi.mock('node-fetch', () => ({
   default: vi.fn()
 }))
 
-// ----- Mock h.response -----
-const createH = () => ({
-  response: vi.fn(function (payload) {
-    return { code: vi.fn().mockReturnValue(payload) }
-  })
-})
-
 // ----- Mock logger -----
-vi.mock('./logging/logger.js', () => ({
-  createLogger: () => ({ error: vi.fn() })
-}))
-
-const mockLogger = { error: vi.fn() }
+const mockLogger = { error: vi.fn(), info: vi.fn(), debug: vi.fn() }
 
 // ----- Mock request helper -----
 const makeRequest = (
@@ -30,39 +20,45 @@ const makeRequest = (
   logger: mockLogger
 })
 
-// ----- Reset mocks -----
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
 describe('getBankDetails', () => {
-  it('handles external API errors', async () => {
-    fetch.mockResolvedValueOnce({ ok: false, status: 500 })
+  it('throws Boom.internal when external API returns non-OK', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Server Error',
+      json: async () => ({})
+    })
 
-    const h = createH()
-    const request = makeRequest(
-      'Chief Executive Officer',
-      'Glamshire County Council'
-    )
+    const request = makeRequest()
 
-    await getBankDetails(request, h)
+    await expect(getBankDetails(request, {})).rejects.toThrowError(Boom.Boom)
 
-    const responseArg = h.response.mock.calls[0][0]
-    expect(responseArg.error).toBe('Failed to fetch bank details')
+    try {
+      await getBankDetails(request, {})
+    } catch (err) {
+      expect(err.isBoom).toBe(true)
+      expect(err.output.statusCode).toBe(500) // internal
+      expect(err.message).toBe('Failed to fetch bank details')
+    }
   })
 
-  it('handles fetch exceptions', async () => {
+  it('throws Boom.internal when fetch rejects', async () => {
     fetch.mockRejectedValueOnce(new Error('Network error'))
 
-    const h = createH()
-    const request = makeRequest(
-      'Chief Executive Officer',
-      'Glamshire County Council'
-    )
+    const request = makeRequest()
 
-    await getBankDetails(request, h)
+    await expect(getBankDetails(request, {})).rejects.toThrowError(Boom.Boom)
 
-    const responseArg = h.response.mock.calls[0][0]
-    expect(responseArg.error).toBe('Failed to fetch bank details')
+    try {
+      await getBankDetails(request, {})
+    } catch (err) {
+      expect(err.isBoom).toBe(true)
+      expect(err.output.statusCode).toBe(500) // internal
+      expect(err.message).toBe('Failed to fetch bank details')
+    }
   })
 })

@@ -2,6 +2,7 @@ import { statusCodes } from '../../common/constants/status-codes.js'
 import fetch from 'node-fetch'
 import { config } from '../../config.js'
 import { processBankDetails } from '../../common/helpers/utils/process-bank-details.js'
+import Boom from '@hapi/boom'
 
 const getBankDetails = async (request, h) => {
   try {
@@ -26,9 +27,7 @@ const getBankDetails = async (request, h) => {
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
     request.logger.error('Error fetching bank details:', err)
-    return h
-      .response({ error: 'Failed to fetch bank details' })
-      .code(statusCodes.internalServerError)
+    throw Boom.internal('Failed to fetch bank details')
   }
 }
 
