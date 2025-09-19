@@ -16,7 +16,7 @@ const createH = () => ({
 
 // ----- Mock request helper -----
 const makeRequest = (
-  role = 'CEO',
+  role = 'Chief Executive Officer',
   localAuthority = 'Glamshire County Council'
 ) => ({
   auth: { credentials: { role, localAuthority } }
@@ -40,7 +40,10 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest('CEO', 'Glamshire County Council')
+    const request = makeRequest(
+      'Chief Executive Officer',
+      'Glamshire County Council'
+    )
 
     await getBankDetails(request, h)
 
@@ -74,7 +77,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest('HOF', 'Some Authority')
+    const request = makeRequest('Head Of Finance', 'Some Authority')
 
     await getBankDetails(request, h)
 
@@ -91,7 +94,7 @@ describe('getBankDetails', () => {
     })
 
     const h = createH()
-    const request = makeRequest('HOF', 'Some Authority')
+    const request = makeRequest('Head Of Finance', 'Some Authority')
 
     await getBankDetails(request, h)
 
@@ -105,7 +108,10 @@ describe('getBankDetails', () => {
     fetch.mockResolvedValueOnce({ ok: false, status: 500 })
 
     const h = createH()
-    const request = makeRequest('CEO', 'Glamshire County Council')
+    const request = makeRequest(
+      'Chief Executive Officer',
+      'Glamshire County Council'
+    )
 
     await getBankDetails(request, h)
 
@@ -117,7 +123,10 @@ describe('getBankDetails', () => {
     fetch.mockRejectedValueOnce(new Error('Network error'))
 
     const h = createH()
-    const request = makeRequest('CEO', 'Glamshire County Council')
+    const request = makeRequest(
+      'Chief Executive Officer',
+      'Glamshire County Council'
+    )
 
     await getBankDetails(request, h)
 
