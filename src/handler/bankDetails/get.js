@@ -20,8 +20,9 @@ const getBankDetails = async (request, h) => {
 
     let bankDetails = await response.json()
 
+    const CEO = 'Chief Executive Officer'
     // Mask sortcode for non-CEO roles
-    if (role !== 'Chief Executive Officer' && bankDetails?.sortcode) {
+    if (role !== CEO && bankDetails?.sortcode) {
       const LAST_DIGITS_COUNT = 2
       const lastTwoDigits = bankDetails.sortcode.slice(-LAST_DIGITS_COUNT)
       bankDetails = {
@@ -31,11 +32,9 @@ const getBankDetails = async (request, h) => {
     }
 
     const flags = {
-      showNotificationBanner:
-        !bankDetails.confirmed || role === 'Chief Executive Officer',
+      showNotificationBanner: !bankDetails.confirmed || role === CEO,
       showConfirmBankDetails: !bankDetails.confirmed,
-      showDropdownDetails:
-        role === 'Head Of Finance' || role === 'Chief Executive Officer'
+      showDropdownDetails: role === 'Head Of Finance' || role === CEO
     }
 
     return h.response({ ...bankDetails, ...flags }).code(statusCodes.ok)
