@@ -44,7 +44,7 @@ async function createServer() {
   })
 
   // Hapi Plugins:
-  // auth           -
+  // auth           - authenticates and attaches user credentials to requests
   // requestLogger  - automatically logs incoming requests
   // requestTracing - trace header logging and propagation
   // secureContext  - loads CA certificates from environment config

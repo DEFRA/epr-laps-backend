@@ -16,9 +16,6 @@ const bankDetailsRoutes = {
         .code(statusCodes.notAllowed)
     }
   }
-  // options: {
-  //   auth: false
-  // }
 }
 
 export { bankDetailsRoutes }
