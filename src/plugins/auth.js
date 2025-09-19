@@ -4,44 +4,7 @@ import Wreck from '@hapi/wreck'
 import Boom from '@hapi/boom'
 import { config } from './../config.js'
 
-// export const getKey = async (header) => {
-
-//   // 1. Fetch the OpenID Connect discovery document
-//   const discoveryUrl = config.get('auth.discoveryUrl')
-//   // const discoveryRes = await Wreck.get(discoveryUrl, { json: true })
-//   // const discovery = discoveryRes.payload
-
-//   let discovery
-//   try {
-//     const discoveryRes = await Wreck.get(discoveryUrl, { json: true })
-//     discovery = discoveryRes.payload
-//   } catch (e) {
-//     throw Boom.internal('Cannot verify auth token', e)
-//   }
-
-//   if (!discovery.jwks_uri) {
-//     throw Boom.internal('No jwks_uri found in discovery document')
-//   }
-
-//   // 2. Fetch the JWKS keys from the discovered URI
-//   const jwksUri  = discovery.jwks_uri
-
-//   try {
-//     const { payload } = await Wreck.get(jwksUri, { json: true });
-//     const keys = payload.keys;
-
-//     if (!keys?.length) {
-//       throw Boom.unauthorized('No JWKS keys found');  // <--- immediately wrapped below
-//     }
-
-//     return { key: jwkToPem(keys[0]) };
-//   } catch (e) {
-//     throw Boom.internal('Cannot verify auth token', e);
-//   }
-
-// }
-
-export const getKey = async (header) => {
+export const getKey = async (_header) => {
   const discoveryUrl = config.get('auth.discoveryUrl')
   let discovery
   try {
@@ -62,7 +25,7 @@ export const getKey = async (header) => {
     const keys = payload?.keys || []
 
     if (!keys.length) {
-      throw Boom.unauthorized('No JWKS keys found') // <-- fix
+      throw Boom.unauthorized('No JWKS keys found')
     }
 
     const pem = jwkToPem(keys[0])
