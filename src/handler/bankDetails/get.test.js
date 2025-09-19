@@ -14,18 +14,22 @@ const createH = () => ({
   })
 })
 
+// ----- Mock logger -----
+vi.mock('./logging/logger.js', () => ({
+  createLogger: () => ({ error: vi.fn() })
+}))
+
+const mockLogger = { error: vi.fn() }
+
 // ----- Mock request helper -----
 const makeRequest = (
   role = 'Chief Executive Officer',
   localAuthority = 'Glamshire County Council'
 ) => ({
-  auth: { credentials: { role, localAuthority } }
+  auth: { credentials: { role, localAuthority } },
+  logger: mockLogger
 })
 
-// ----- Mock logger -----
-vi.mock('./logging/logger.js', () => ({
-  createLogger: () => ({ error: vi.fn() })
-}))
 
 // ----- Reset mocks -----
 beforeEach(() => {
