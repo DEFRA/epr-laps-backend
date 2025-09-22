@@ -136,12 +136,6 @@ const config = convict({
       default: '',
       env: 'DEFRA_ID_DISCOVERY_URL',
       sensitive: true
-    },
-    issuer: {
-      doc: 'Expected JWT issuer',
-      format: String,
-      default: '',
-      env: 'JWT_ISSUER'
     }
   },
   fssApiUrl: {

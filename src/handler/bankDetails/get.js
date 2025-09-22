@@ -7,6 +7,7 @@ import Boom from '@hapi/boom'
 const getBankDetails = async (request, h) => {
   try {
     const { localAuthority, role } = request.auth.credentials
+
     const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
     const response = await fetch(url, {

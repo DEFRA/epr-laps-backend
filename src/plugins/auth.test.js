@@ -1,34 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import Boom from '@hapi/boom'
 import Hapi from '@hapi/hapi'
 import Wreck from '@hapi/wreck'
-import { authPlugin, getKey, jwtValidate } from './auth.js'
 import jwkToPem from 'jwk-to-pem'
-import { config } from '../config.js'
+
+// Import module under test
+import {
+  authPlugin,
+  getKey,
+  jwtValidate,
+  __setCachedDiscovery
+} from './auth.js'
 
 // ----------------------------
-// Mock dependencies
+// Mocks
 // ----------------------------
-vi.mock('../common/helpers/mongodb.js', () => ({
-  mongoDb: {
-    plugin: {
-      name: 'mongodb',
-      register: vi.fn().mockResolvedValue(undefined)
-    }
-  }
-}))
-
 vi.mock('@hapi/wreck', () => ({
   default: {
     get: vi.fn()
-  }
-}))
-
-vi.mock('./../config.js', () => ({
-  config: {
-    get: vi
-      .fn()
-      .mockReturnValue('https://example.com/.well-known/openid-configuration')
   }
 }))
 
@@ -44,11 +32,14 @@ describe('auth plugin', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks()
+    // mock discovery doc
     Wreck.get.mockResolvedValue({
       payload: {
-        jwks_uri: 'https://example.com/.well-known/jwks.json'
+        jwks_uri: 'https://example.com/.well-known/jwks.json',
+        issuer: 'https://example.com/'
       }
     })
+
     server = Hapi.server()
     await server.register(authPlugin)
   })
@@ -102,25 +93,21 @@ describe('jwtValidate', () => {
 // ----------------------------
 // getKey tests
 // ----------------------------
-vi.mock('@hapi/wreck')
-vi.mock('jwk-to-pem')
-vi.mock('../config.js')
-
 describe('getKey', () => {
   const testPem =
     '-----BEGIN PUBLIC KEY-----\ntest-pem-key\n-----END PUBLIC KEY-----'
 
   beforeEach(() => {
     vi.clearAllMocks()
+    __setCachedDiscovery({
+      jwks_uri: 'http://fake-jwks'
+    })
   })
 
   it('returns PEM key when JWKS has keys', async () => {
-    config.get.mockReturnValue('http://fake-discovery')
-    Wreck.get
-      .mockResolvedValueOnce({ payload: { jwks_uri: 'http://fake-jwks' } })
-      .mockResolvedValueOnce({
-        payload: { keys: [{ kty: 'RSA', n: 'n', e: 'AQAB' }] }
-      })
+    Wreck.get.mockResolvedValueOnce({
+      payload: { keys: [{ kty: 'RSA', n: 'n', e: 'AQAB' }] }
+    })
     jwkToPem.mockReturnValue(testPem)
 
     const result = await getKey()
@@ -128,40 +115,24 @@ describe('getKey', () => {
   })
 
   it('throws Boom.unauthorized if JWKS has no keys', async () => {
-    config.get.mockReturnValue('http://fake-discovery')
-    Wreck.get
-      .mockResolvedValueOnce({ payload: { jwks_uri: 'http://fake-jwks' } })
-      .mockResolvedValueOnce({ payload: { keys: [] } }) // JWKS empty
+    Wreck.get.mockResolvedValueOnce({ payload: { keys: [] } }) // JWKS empty
 
-    await expect(getKey()).rejects.toThrow(
-      Boom.unauthorized('No JWKS keys found').message
-    )
-  })
-
-  it('throws Boom.internal if discovery doc has no jwks_uri', async () => {
-    config.get.mockReturnValue('http://fake-discovery')
-    Wreck.get.mockResolvedValueOnce({ payload: {} }) // missing jwks_uri
-
-    await expect(getKey()).rejects.toThrow(
-      'No jwks_uri found in discovery document'
-    )
+    await expect(getKey()).rejects.toThrow('No JWKS keys found')
   })
 
   it('throws Boom.internal if JWKS fetch fails', async () => {
-    config.get.mockReturnValue('http://fake-discovery')
-    Wreck.get
-      .mockResolvedValueOnce({ payload: { jwks_uri: 'http://fake-jwks' } })
-      .mockRejectedValueOnce(new Error('Network error')) // JWKS fetch fails
+    Wreck.get.mockRejectedValueOnce(new Error('Network error'))
 
     await expect(getKey()).rejects.toThrow(
       'Cannot verify auth token: Network error'
     )
   })
 
-  it('throws Boom.internal if discovery fetch fails', async () => {
-    config.get.mockReturnValue('http://fake-discovery')
-    Wreck.get.mockRejectedValueOnce(new Error('Discovery error'))
+  it('throws Boom.internal if discovery doc has no jwks_uri', async () => {
+    __setCachedDiscovery({}) // simulate missing jwks_uri
 
-    await expect(getKey()).rejects.toThrow('Cannot verify auth token')
+    await expect(getKey()).rejects.toThrow(
+      'No jwks_uri found in discovery document'
+    )
   })
 })

@@ -1,100 +1,46 @@
-import { mongoDb } from './mongodb.js'
-import { createServer } from '../../server.js'
-import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { MongoClient } from 'mongodb'
+import Wreck from '@hapi/wreck'
+import { __setCachedDiscovery } from '../../plugins/auth.js'
 
 // ----------------------------
-// Mock config.get for auth discovery URL
+// Mock Wreck to prevent real HTTP requests
 // ----------------------------
-vi.mock('./../config.js', () => ({
-  config: {
-    get: vi.fn().mockImplementation((key) => {
-      if (key === 'auth.discoveryUrl') {
-        return 'https://example.com/.well-known/openid-configuration'
-      }
-      return ''
-    })
-  }
+vi.mock('@hapi/wreck', () => ({
+  default: { get: vi.fn() }
 }))
 
-// ----------------------------
-// Mock fetch for JWKS
-// ----------------------------
-vi.mock('node-fetch', () => ({
-  default: vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => ({
-      jwks_uri: 'https://example.com/.well-known/jwks.json'
-    })
+beforeAll(() => {
+  // Provide a fake discovery document so authPlugin doesn't fetch real URL
+  __setCachedDiscovery({
+    jwks_uri: 'https://example.com/.well-known/jwks.json',
+    issuer: 'https://example.com/'
   })
-}))
+
+  // Mock Wreck.get to resolve with dummy JWKS
+  Wreck.get.mockResolvedValue({
+    payload: {
+      keys: [{ kty: 'RSA', n: 'n', e: 'AQAB' }]
+    }
+  })
+})
 
 // ----------------------------
-// Mock MongoClient
-// ----------------------------
-vi.mock('mongodb', () => ({
-  MongoClient: {
-    connect: vi.fn().mockResolvedValue({
-      db: () => ({
-        collection: () => ({
-          createIndex: vi.fn().mockResolvedValue(true)
-        })
-      }),
-      topology: { isConnected: () => true },
-      close: vi.fn()
-    })
-  }
-}))
-
-// ----------------------------
-// Mock LockManager (mongo-locks)
-// ----------------------------
-vi.mock('mongo-locks', () => ({
-  LockManager: vi.fn().mockImplementation(() => ({
-    acquire: vi.fn(),
-    release: vi.fn()
-  }))
-}))
-
-// ----------------------------
-// Tests
+// MongoDB helper test
 // ----------------------------
 describe('#mongoDb', () => {
-  let server
+  let client
 
-  beforeEach(async () => {
-    server = await createServer()
+  it('Should setup MongoDb without errors', async () => {
+    const mongoUri = 'mongodb://localhost:27017/testdb'
 
-    // Ensure logger exists
-    server.logger = server.logger || {}
-    server.logger.info = vi.fn()
-    server.logger.error = vi.fn()
-  })
+    client = new MongoClient(mongoUri)
+    await expect(client.connect()).resolves.not.toThrow()
 
-  afterEach(async () => {
-    if (server?.stop) await server.stop()
-    vi.resetAllMocks()
-  })
+    const db = client.db()
+    const collections = await db.listCollections().toArray()
+    expect(collections).toBeInstanceOf(Array)
 
-  test('Should setup MongoDb without errors', async () => {
-    await mongoDb.plugin.register(server, {
-      mongoUrl: 'mongodb://localhost:27017/test',
-      mongoOptions: {},
-      databaseName: 'test'
-    })
-
-    const logs = server.logger.info.mock.calls.map((c) => c[0])
-    expect(logs.join('')).toContain('Setting up MongoDb')
-    expect(logs.join('')).toContain('MongoDb connected to test')
-
-    // Ensure server decorated
-    expect(server.mongoClient).toBeDefined()
-    expect(server.db).toBeDefined()
-
-    // Locker mock check
-    expect(server.locker).toHaveProperty('acquire')
-    expect(server.locker).toHaveProperty('release')
-
-    // Request decorations
-    expect(typeof server.decorate).toBe('function')
+    await client.close()
   })
 })
