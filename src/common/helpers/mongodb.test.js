@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { safeDecorate } from './mongodb'
 
 // Mocks
 const clientMock = {
@@ -73,5 +74,55 @@ describe('#mongoDb plugin', () => {
     await server.stop()
     await server.stop()
     expect(server.stop).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('safeDecorate', () => {
+  it('decorates successfully when no error', () => {
+    const server = { decorate: vi.fn() }
+
+    expect(() => safeDecorate(server, 'server', 'foo', () => 42)).not.toThrow()
+    expect(server.decorate).toHaveBeenCalledWith(
+      'server',
+      'foo',
+      expect.any(Function),
+      {}
+    )
+  })
+
+  it('ignores "already defined" error', () => {
+    const server = {
+      decorate: vi.fn(() => {
+        throw new Error('foo already defined bar')
+      })
+    }
+
+    expect(() => safeDecorate(server, 'server', 'foo', () => 42)).not.toThrow()
+  })
+
+  it('throws unexpected errors', () => {
+    const server = {
+      decorate: vi.fn(() => {
+        throw new Error('something else')
+      })
+    }
+
+    expect(() => safeDecorate(server, 'server', 'foo', () => 42)).toThrow(
+      'something else'
+    )
+  })
+
+  it('passes options correctly', () => {
+    const server = { decorate: vi.fn() }
+    const options = { apply: true }
+
+    safeDecorate(server, 'request', 'bar', () => 'baz', options)
+
+    expect(server.decorate).toHaveBeenCalledWith(
+      'request',
+      'bar',
+      expect.any(Function),
+      options
+    )
   })
 })

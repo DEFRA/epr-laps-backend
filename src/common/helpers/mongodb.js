@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb'
 import { LockManager } from 'mongo-locks' // real lock manager
 
 // Helper to safely decorate server/request
-function safeDecorate(server, type, name, value, options = {}) {
+export function safeDecorate(server, type, name, value, options = {}) {
   try {
     server.decorate(type, name, value, options)
   } catch (err) {
