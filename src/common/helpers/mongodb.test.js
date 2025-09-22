@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { safeDecorate } from './mongodb'
+import { safeDecorate, createIndexes } from './mongodb'
 
 // Mocks
 const clientMock = {
@@ -124,5 +124,22 @@ describe('safeDecorate', () => {
       expect.any(Function),
       options
     )
+  })
+})
+
+describe('createIndexes', () => {
+  it('calls createIndex on the mongo-locks collection', async () => {
+    // Mock db and collection
+    const createIndexMock = vi.fn()
+    const collectionMock = vi.fn(() => ({ createIndex: createIndexMock }))
+    const dbMock = { collection: collectionMock }
+
+    await createIndexes(dbMock)
+
+    // Check that db.collection was called with 'mongo-locks'
+    expect(collectionMock).toHaveBeenCalledWith('mongo-locks')
+
+    // Check that createIndex was called with the correct argument
+    expect(createIndexMock).toHaveBeenCalledWith({ id: 1 })
   })
 })

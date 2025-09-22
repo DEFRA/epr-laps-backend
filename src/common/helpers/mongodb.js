@@ -13,7 +13,7 @@ export function safeDecorate(server, type, name, value, options = {}) {
 }
 
 // Stub for createIndexes if you don't have it
-async function createIndexes(db) {
+export async function createIndexes(db) {
   await db.collection('mongo-locks').createIndex({ id: 1 })
 }
 
