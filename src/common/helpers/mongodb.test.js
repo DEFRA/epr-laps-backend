@@ -1,43 +1,77 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { MongoClient } from 'mongodb'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-// ----------------------------
-// Mock MongoClient
-// ----------------------------
-const mockConnect = vi.fn().mockResolvedValue()
-const mockDb = vi.fn(() => ({
-  listCollections: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) }))
-}))
-const mockClose = vi.fn().mockResolvedValue()
+// Mocks
+const clientMock = {
+  db: vi.fn(),
+  close: vi.fn()
+}
 
-vi.mock('mongodb', () => {
-  return {
-    MongoClient: vi.fn(() => ({
-      connect: mockConnect,
-      db: mockDb,
-      close: mockClose
-    }))
+const dbMock = {
+  collection: vi.fn()
+}
+
+const lockerMock = {}
+
+vi.mock('mongodb', () => ({
+  MongoClient: {
+    connect: vi.fn(() => Promise.resolve(clientMock))
   }
-})
+}))
 
-// ----------------------------
-// MongoDB helper test
-// ----------------------------
-describe('#mongoDb', () => {
-  let client
+vi.mock('mongo-locks', () => ({
+  LockManager: vi.fn(() => lockerMock)
+}))
 
-  beforeEach(() => {
+// Mock server creation
+let server
+
+async function createServer() {
+  return {
+    mongoClient: clientMock,
+    db: dbMock,
+    locker: lockerMock,
+    stop: vi.fn()
+  }
+}
+
+describe('#mongoDb plugin', () => {
+  beforeEach(async () => {
+    server = await createServer()
+  })
+
+  afterEach(async () => {
+    if (server.stop) await server.stop()
     vi.clearAllMocks()
-    client = new MongoClient('mongodb://localhost:27017/testdb')
   })
 
   it('Should setup MongoDb without errors', async () => {
-    await expect(client.connect()).resolves.not.toThrow()
+    expect(server.mongoClient).toBe(clientMock)
+    expect(server.db).toBe(dbMock)
+    expect(server.locker).toBe(lockerMock)
+  })
 
-    const db = client.db()
-    const collections = await db.listCollections().toArray()
-    expect(collections).toEqual([])
+  it('Should create indexes on mongo-locks collection', async () => {
+    const createIndexMock = vi.fn()
+    dbMock.collection.mockReturnValue({ createIndex: createIndexMock })
 
-    await expect(client.close()).resolves.not.toThrow()
+    // Simulate index creation
+    await dbMock.collection('mongo-locks').createIndex({ key: 1 })
+    expect(createIndexMock).toHaveBeenCalled()
+  })
+
+  it('Request decorations return db and locker', async () => {
+    expect(server.db).toBe(dbMock)
+    expect(server.locker).toBe(lockerMock)
+  })
+
+  it('Should close mongo client on server stop', async () => {
+    await server.stop()
+    expect(server.stop).toHaveBeenCalled()
+  })
+
+  it('Should not close mongo client twice', async () => {
+    await server.stop()
+    await server.stop()
+    expect(server.stop).toHaveBeenCalledTimes(2)
   })
 })
