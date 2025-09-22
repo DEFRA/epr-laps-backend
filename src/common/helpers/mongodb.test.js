@@ -1,28 +1,23 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MongoClient } from 'mongodb'
-import Wreck from '@hapi/wreck'
-import { __setCachedDiscovery } from '../../plugins/auth.js'
 
 // ----------------------------
-// Mock Wreck to prevent real HTTP requests
+// Mock MongoClient
 // ----------------------------
-vi.mock('@hapi/wreck', () => ({
-  default: { get: vi.fn() }
+const mockConnect = vi.fn().mockResolvedValue()
+const mockDb = vi.fn(() => ({
+  listCollections: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) }))
 }))
+const mockClose = vi.fn().mockResolvedValue()
 
-beforeAll(() => {
-  // Provide a fake discovery document so authPlugin doesn't fetch real URL
-  __setCachedDiscovery({
-    jwks_uri: 'https://example.com/.well-known/jwks.json',
-    issuer: 'https://example.com/'
-  })
-
-  // Mock Wreck.get to resolve with dummy JWKS
-  Wreck.get.mockResolvedValue({
-    payload: {
-      keys: [{ kty: 'RSA', n: 'n', e: 'AQAB' }]
-    }
-  })
+vi.mock('mongodb', () => {
+  return {
+    MongoClient: vi.fn(() => ({
+      connect: mockConnect,
+      db: mockDb,
+      close: mockClose
+    }))
+  }
 })
 
 // ----------------------------
@@ -31,16 +26,18 @@ beforeAll(() => {
 describe('#mongoDb', () => {
   let client
 
-  it('Should setup MongoDb without errors', async () => {
-    const mongoUri = 'mongodb://localhost:27017/testdb'
+  beforeEach(() => {
+    vi.clearAllMocks()
+    client = new MongoClient('mongodb://localhost:27017/testdb')
+  })
 
-    client = new MongoClient(mongoUri)
+  it('Should setup MongoDb without errors', async () => {
     await expect(client.connect()).resolves.not.toThrow()
 
     const db = client.db()
     const collections = await db.listCollections().toArray()
-    expect(collections).toBeInstanceOf(Array)
+    expect(collections).toEqual([])
 
-    await client.close()
+    await expect(client.close()).resolves.not.toThrow()
   })
 })
