@@ -4,9 +4,9 @@ import { config } from '../../config.js'
 import { processBankDetails } from '../../common/helpers/utils/process-bank-details.js'
 import Boom from '@hapi/boom'
 
-const getBankDetails = async (request, h) => {
+const getBankDetails = async (localAuthority, request, h) => {
   try {
-    const { localAuthority, role } = request.auth.credentials
+    const { role } = request.auth.credentials
 
     const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`

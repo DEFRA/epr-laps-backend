@@ -34,14 +34,17 @@ describe('getBankDetails', () => {
     })
 
     const request = makeRequest()
+    const localAuthority = request.auth.credentials.localAuthority
 
-    await expect(getBankDetails(request, {})).rejects.toThrowError(Boom.Boom)
+    await expect(
+      getBankDetails(localAuthority, request, {})
+    ).rejects.toThrowError(Boom.Boom)
 
     try {
-      await getBankDetails(request, {})
+      await getBankDetails(localAuthority, request, {})
     } catch (err) {
       expect(err.isBoom).toBe(true)
-      expect(err.output.statusCode).toBe(500) // internal
+      expect(err.output.statusCode).toBe(500)
       expect(err.message).toBe('Failed to fetch bank details')
     }
   })
@@ -50,15 +53,16 @@ describe('getBankDetails', () => {
     fetch.mockRejectedValueOnce(new Error('Network error'))
 
     const request = makeRequest()
+    const localAuthority = request.auth.credentials.localAuthority
 
-    await expect(getBankDetails(request, {})).rejects.toThrowError(Boom.Boom)
+    await expect(
+      getBankDetails(localAuthority, request, {})
+    ).rejects.toThrowError(Boom.Boom)
 
-    try {
-      await getBankDetails(request, {})
-    } catch (err) {
+    await getBankDetails(localAuthority, request, {}).catch((err) => {
       expect(err.isBoom).toBe(true)
-      expect(err.output.statusCode).toBe(500) // internal
+      expect(err.output.statusCode).toBe(500)
       expect(err.message).toBe('Failed to fetch bank details')
-    }
+    })
   })
 })

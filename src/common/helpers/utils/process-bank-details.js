@@ -20,11 +20,5 @@ export function processBankDetails(bankDetails, role) {
     }
   }
 
-  const flags = {
-    showNotificationBanner: !maskedBankDetails.confirmed || role === CEO,
-    showConfirmBankDetails: !maskedBankDetails.confirmed,
-    showDropdownDetails: role === 'Head Of Finance' || role === CEO
-  }
-
-  return { ...maskedBankDetails, ...flags }
+  return { ...maskedBankDetails }
 }

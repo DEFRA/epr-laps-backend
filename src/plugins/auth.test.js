@@ -61,14 +61,8 @@ describe('auth plugin', () => {
 // jwtValidate tests
 // ----------------------------
 describe('jwtValidate', () => {
-  it('should return isValid false if relationships is missing', () => {
-    const decoded = { sub: '123', roles: ['admin'] }
-    const result = jwtValidate(decoded, {}, {})
-    expect(result.isValid).toBe(false)
-  })
-
   it('should return isValid false if roles is missing', () => {
-    const decoded = { sub: '123', relationships: ['LA1'] }
+    const decoded = { sub: '123' }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(false)
   })
@@ -76,15 +70,12 @@ describe('jwtValidate', () => {
   it('should return isValid true and correct credentials if all required fields exist', () => {
     const decoded = {
       sub: '123',
-      relationships: ['444:1234:Glamshire County Council:0:employee:0'],
-      roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3'],
-      currentRelationshipId: '444'
+      roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3']
     }
     const result = jwtValidate(decoded, {}, {})
     expect(result.isValid).toBe(true)
     expect(result.credentials).toEqual({
       userId: '123',
-      localAuthority: 'Glamshire County Council',
       role: 'CEO'
     })
   })

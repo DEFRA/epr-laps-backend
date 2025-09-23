@@ -35,23 +35,10 @@ export const getKey = async (_header) => {
 
 // Custom JWT validation
 export const jwtValidate = (decoded, _request, _h) => {
-  const { sub: userId, relationships, roles, currentRelationshipId } = decoded
+  const { sub: userId, roles } = decoded
 
-  if (!relationships || !roles) {
+  if (!roles) {
     return { isValid: false }
-  }
-
-  // Extract local authority name from relationships array
-  let localAuthority = null
-  if (currentRelationshipId && Array.isArray(relationships)) {
-    const match = relationships.find((r) =>
-      r.startsWith(currentRelationshipId + ':')
-    )
-    if (match) {
-      const parts = match.split(':')
-      // e.g. "444:1234:Glamshire County Council:0:employee:0"
-      localAuthority = parts[2] || null
-    }
   }
 
   // Extract role
@@ -65,7 +52,6 @@ export const jwtValidate = (decoded, _request, _h) => {
     isValid: true,
     credentials: {
       userId,
-      localAuthority,
       role
     }
   }
