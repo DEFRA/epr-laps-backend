@@ -6,7 +6,7 @@ const bankDetailsRoutes = {
   method: ['get', 'put'],
   path: '/bank-details/{localAuthority}',
   handler: (request, h) => {
-    const { localAuthority } = request.param
+    const { localAuthority } = request.params
     if (request.method === 'get') {
       return getBankDetails(localAuthority, request, h)
     } else if (request.method === 'put') {
