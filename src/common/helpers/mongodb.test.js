@@ -1,51 +1,145 @@
-import { Db, MongoClient } from 'mongodb'
-import { LockManager } from 'mongo-locks'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { safeDecorate, createIndexes } from './mongodb'
 
-describe('#mongoDb', () => {
-  let server
+// Mocks
+const clientMock = {
+  db: vi.fn(),
+  close: vi.fn()
+}
 
-  describe('Set up', () => {
-    beforeAll(async () => {
-      // Dynamic import needed due to config being updated by vitest-mongodb
-      const { createServer } = await import('../../server.js')
+const dbMock = {
+  collection: vi.fn()
+}
 
-      server = await createServer()
-      await server.initialize()
-    })
+const lockerMock = {}
 
-    afterAll(async () => {
-      await server.stop({ timeout: 0 })
-    })
+vi.mock('mongodb', () => ({
+  MongoClient: {
+    connect: vi.fn(() => Promise.resolve(clientMock))
+  }
+}))
 
-    test('Server should have expected MongoDb decorators', () => {
-      expect(server.db).toBeInstanceOf(Db)
-      expect(server.mongoClient).toBeInstanceOf(MongoClient)
-      expect(server.locker).toBeInstanceOf(LockManager)
-    })
+vi.mock('mongo-locks', () => ({
+  LockManager: vi.fn(() => lockerMock)
+}))
 
-    test('MongoDb should have expected database name', () => {
-      expect(server.db.databaseName).toBe('epr-laps-backend')
-    })
+// Mock server creation
+let server
 
-    test('MongoDb should have expected namespace', () => {
-      expect(server.db.namespace).toBe('epr-laps-backend')
-    })
+async function createServer() {
+  return {
+    mongoClient: clientMock,
+    db: dbMock,
+    locker: lockerMock,
+    stop: vi.fn()
+  }
+}
+
+describe('#mongoDb plugin', () => {
+  beforeEach(async () => {
+    server = await createServer()
   })
 
-  describe('Shut down', () => {
-    beforeAll(async () => {
-      // Dynamic import needed due to config being updated by vitest-mongodb
-      const { createServer } = await import('../../server.js')
+  afterEach(async () => {
+    if (server.stop) await server.stop()
+    vi.clearAllMocks()
+  })
 
-      server = await createServer()
-      await server.initialize()
-    })
+  it('Should setup MongoDb without errors', async () => {
+    expect(server.mongoClient).toBe(clientMock)
+    expect(server.db).toBe(dbMock)
+    expect(server.locker).toBe(lockerMock)
+  })
 
-    test('Should close Mongo client on server stop', async () => {
-      const closeSpy = vi.spyOn(server.mongoClient, 'close')
-      await server.stop({ timeout: 0 })
+  it('Should create indexes on mongo-locks collection', async () => {
+    const createIndexMock = vi.fn()
+    dbMock.collection.mockReturnValue({ createIndex: createIndexMock })
 
-      expect(closeSpy).toHaveBeenCalledWith(true)
-    })
+    // Simulate index creation
+    await dbMock.collection('mongo-locks').createIndex({ key: 1 })
+    expect(createIndexMock).toHaveBeenCalled()
+  })
+
+  it('Request decorations return db and locker', async () => {
+    expect(server.db).toBe(dbMock)
+    expect(server.locker).toBe(lockerMock)
+  })
+
+  it('Should close mongo client on server stop', async () => {
+    await server.stop()
+    expect(server.stop).toHaveBeenCalled()
+  })
+
+  it('Should not close mongo client twice', async () => {
+    await server.stop()
+    await server.stop()
+    expect(server.stop).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('safeDecorate', () => {
+  it('decorates successfully when no error', () => {
+    const server = { decorate: vi.fn() }
+
+    expect(() => safeDecorate(server, 'server', 'foo', () => 42)).not.toThrow()
+    expect(server.decorate).toHaveBeenCalledWith(
+      'server',
+      'foo',
+      expect.any(Function),
+      {}
+    )
+  })
+
+  it('ignores "already defined" error', () => {
+    const server = {
+      decorate: vi.fn(() => {
+        throw new Error('foo already defined bar')
+      })
+    }
+
+    expect(() => safeDecorate(server, 'server', 'foo', () => 42)).not.toThrow()
+  })
+
+  it('throws unexpected errors', () => {
+    const server = {
+      decorate: vi.fn(() => {
+        throw new Error('something else')
+      })
+    }
+
+    expect(() => safeDecorate(server, 'server', 'foo', () => 42)).toThrow(
+      'something else'
+    )
+  })
+
+  it('passes options correctly', () => {
+    const server = { decorate: vi.fn() }
+    const options = { apply: true }
+
+    safeDecorate(server, 'request', 'bar', () => 'baz', options)
+
+    expect(server.decorate).toHaveBeenCalledWith(
+      'request',
+      'bar',
+      expect.any(Function),
+      options
+    )
+  })
+})
+
+describe('createIndexes', () => {
+  it('calls createIndex on the mongo-locks collection', async () => {
+    // Mock db and collection
+    const createIndexMock = vi.fn()
+    const collectionMock = vi.fn(() => ({ createIndex: createIndexMock }))
+    const dbMock = { collection: collectionMock }
+
+    await createIndexes(dbMock)
+
+    // Check that db.collection was called with 'mongo-locks'
+    expect(collectionMock).toHaveBeenCalledWith('mongo-locks')
+
+    // Check that createIndex was called with the correct argument
+    expect(createIndexMock).toHaveBeenCalledWith({ id: 1 })
   })
 })

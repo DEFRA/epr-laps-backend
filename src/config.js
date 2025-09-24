@@ -128,6 +128,22 @@ const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  auth: {
+    discoveryUrl: {
+      doc: 'URI for fetching Metadata document for the signup signin policy',
+      format: String,
+      default: '',
+      env: 'DEFRA_ID_DISCOVERY_URL',
+      sensitive: true
+    }
+  },
+  fssApiUrl: {
+    doc: 'FSS URL to get the bank details',
+    format: String,
+    default: '',
+    env: 'FSS_API_URL',
+    sensitive: true
   }
 })
 
