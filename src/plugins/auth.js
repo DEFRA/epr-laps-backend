@@ -76,8 +76,7 @@ export const authPlugin = {
       validate: jwtValidate,
       verifyOptions: {
         algorithms: ['RS256'],
-        issuer: cachedDiscovery.issuer,
-        ignoreExpiration: true
+        issuer: cachedDiscovery.issuer
       }
     })
 
