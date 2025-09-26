@@ -6,19 +6,19 @@
  */
 
 const CEO = 'Chief Executive Officer'
+const HOF = 'Head of Finance'
 
 export function processBankDetails(bankDetails, role) {
   let maskedBankDetails = { ...bankDetails }
 
   // Mask sortcode for non-CEO roles
-  if (role !== CEO && maskedBankDetails?.sortcode) {
+  if (role !== CEO && role !== HOF && maskedBankDetails?.sortCode) {
     const LAST_DIGITS_COUNT = 2
-    const lastTwoDigits = maskedBankDetails.sortcode.slice(-LAST_DIGITS_COUNT)
+    const lastTwoDigits = maskedBankDetails.sortCode.slice(-LAST_DIGITS_COUNT)
     maskedBankDetails = {
       ...maskedBankDetails,
-      sortcode: 'ending with ' + lastTwoDigits
+      sortCode: 'ending with ' + lastTwoDigits
     }
   }
-
   return { ...maskedBankDetails }
 }
