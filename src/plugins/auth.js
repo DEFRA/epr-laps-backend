@@ -52,7 +52,8 @@ export const jwtValidate = (decoded, _request, _h) => {
     isValid: true,
     credentials: {
       userId,
-      role
+      role,
+      ...decoded
     }
   }
 }
