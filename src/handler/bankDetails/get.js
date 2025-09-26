@@ -3,6 +3,7 @@ import fetch from 'node-fetch'
 import { config } from '../../config.js'
 import { processBankDetails } from '../../common/helpers/utils/process-bank-details.js'
 import Boom from '@hapi/boom'
+import { writeAuditLog } from '../../common/models/audit.js'
 
 const getBankDetails = async (localAuthority, request, h) => {
   try {
@@ -25,6 +26,8 @@ const getBankDetails = async (localAuthority, request, h) => {
     const processedDetails = processBankDetails(bankDetails, role)
     request.logger.info('Processed bank details response:', processedDetails)
 
+    //write audit log with user details
+    writeAuditLog(request.auth.credentials)
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
     request.logger.error('Error fetching bank details:', err)

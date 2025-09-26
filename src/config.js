@@ -49,6 +49,14 @@ const config = convict({
     default: 'local',
     env: 'ENVIRONMENT'
   },
+  // audit: {
+  //   isEnabled: {
+  //     doc: 'Is auditing enabled',
+  //     format: Boolean,
+  //     default: true,
+  //     env: 'AUDIT_ENABLED'
+  //   }
+  // },
   log: {
     isEnabled: {
       doc: 'Is logging enabled',
