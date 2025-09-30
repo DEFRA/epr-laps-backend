@@ -67,7 +67,7 @@ describe('getBankDetails', () => {
     })
   })
 
-  it('should write to audit log with expected details', async () => {
+  it('should write to audit log with expected details when role is CEO', async () => {
     vi.mock('node-fetch', () => ({
       default: vi.fn(() =>
         Promise.resolve({
@@ -79,6 +79,64 @@ describe('getBankDetails', () => {
       auth: {
         credentials: {
           role: 'Chief Executive Officer'
+        }
+      },
+      logger: mockLogger
+    }
+    const mockedH = {
+      response: (data) => ({
+        code: (status) => ({ data, status })
+      })
+    }
+    await getBankDetails('test', mockedRequest, mockedH)
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockedRequest,
+      'FullBankDetailsViewed',
+      'Success'
+    )
+  })
+
+  it('should write to audit log with expected details when role is waste officer', async () => {
+    vi.mock('node-fetch', () => ({
+      default: vi.fn(() =>
+        Promise.resolve({
+          json: () => Promise.resolve({ some: 'data' })
+        })
+      )
+    }))
+    const mockedRequest = {
+      auth: {
+        credentials: {
+          role: 'Waste Officer'
+        }
+      },
+      logger: mockLogger
+    }
+    const mockedH = {
+      response: (data) => ({
+        code: (status) => ({ data, status })
+      })
+    }
+    await getBankDetails('test', mockedRequest, mockedH)
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockedRequest,
+      'MaskedBankDetailsViewed',
+      'Success'
+    )
+  })
+
+  it('should write to audit log with expected details when role is HOF', async () => {
+    vi.mock('node-fetch', () => ({
+      default: vi.fn(() =>
+        Promise.resolve({
+          json: () => Promise.resolve({ some: 'data' })
+        })
+      )
+    }))
+    const mockedRequest = {
+      auth: {
+        credentials: {
+          role: 'Head of Finance'
         }
       },
       logger: mockLogger
