@@ -49,14 +49,6 @@ const config = convict({
     default: 'local',
     env: 'ENVIRONMENT'
   },
-  // audit: {
-  //   isEnabled: {
-  //     doc: 'Is auditing enabled',
-  //     format: Boolean,
-  //     default: true,
-  //     env: 'AUDIT_ENABLED'
-  //   }
-  // },
   log: {
     isEnabled: {
       doc: 'Is logging enabled',
@@ -141,17 +133,16 @@ const config = convict({
     discoveryUrl: {
       doc: 'URI for fetching Metadata document for the signup signin policy',
       format: String,
-      default: '',
-      env: 'DEFRA_ID_DISCOVERY_URL',
-      sensitive: true
+      default:
+        'http://localhost:3200/cdp-defra-id-stub/.well-known/openid-configuration',
+      env: 'DEFRA_ID_DISCOVERY_URL'
     }
   },
   fssApiUrl: {
     doc: 'FSS URL to get the bank details',
     format: String,
-    default: '',
-    env: 'FSS_API_URL',
-    sensitive: true
+    default: 'https://laps-api-mock-bank-details.dev.cdp-int.defra.cloud',
+    env: 'FSS_API_URL'
   }
 })
 

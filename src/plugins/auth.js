@@ -3,6 +3,8 @@ import jwkToPem from 'jwk-to-pem'
 import Wreck from '@hapi/wreck'
 import Boom from '@hapi/boom'
 import { config } from './../config.js'
+const ORG_NAME_INDEX = 2 // index of organisation name in the relationship string
+const RELATIONSHIP_PARTS_MIN = 3 // minimum number of parts in a relationship string
 
 let cachedDiscovery = null
 
@@ -36,6 +38,7 @@ export const getKey = async (_header) => {
 // Custom JWT validation
 export const jwtValidate = (decoded, _request, _h) => {
   const { sub: userId, roles } = decoded
+  const currentOrganisation = extractCurrentLocalAuthority(decoded)
 
   if (!roles) {
     return { isValid: false }
@@ -53,9 +56,28 @@ export const jwtValidate = (decoded, _request, _h) => {
     credentials: {
       userId,
       role,
+      currentOrganisation,
       ...decoded
     }
   }
+}
+
+export const extractCurrentLocalAuthority = (token) => {
+  let organisationName = ''
+  if (Array.isArray(token.relationships) && token.currentRelationshipId) {
+    const matched = token.relationships.find((rel) => {
+      const parts = rel.split(':')
+      return parts[0] === token.currentRelationshipId
+    })
+
+    if (matched) {
+      const parts = matched.split(':')
+      if (parts.length >= RELATIONSHIP_PARTS_MIN) {
+        organisationName = parts[ORG_NAME_INDEX]
+      }
+    }
+  }
+  return organisationName
 }
 
 export const authPlugin = {

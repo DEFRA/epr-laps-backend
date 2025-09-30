@@ -8,7 +8,8 @@ import {
   authPlugin,
   getKey,
   jwtValidate,
-  __setCachedDiscovery
+  __setCachedDiscovery,
+  extractCurrentLocalAuthority
 } from './auth.js'
 
 // ----------------------------
@@ -76,7 +77,10 @@ describe('jwtValidate', () => {
     expect(result.isValid).toBe(true)
     expect(result.credentials).toEqual({
       userId: '123',
-      role: 'CEO'
+      role: 'CEO',
+      currentOrganisation: '',
+      sub: '123',
+      roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3']
     })
   })
 })
@@ -125,5 +129,31 @@ describe('getKey', () => {
     await expect(getKey()).rejects.toThrow(
       'No jwks_uri found in discovery document'
     )
+  })
+})
+
+describe('#extractCurrentLocalAuthority', () => {
+  it('should return the current local authority', () => {
+    const decoded = {
+      relationships: [
+        '666:asdarwq:local-authority:456:Shelbyville Council:2',
+        '3b52415a:56808f0b:Warwickshire County Council:0:Employee:0'
+      ],
+      currentRelationshipId: '3b52415a'
+    }
+    const result = extractCurrentLocalAuthority(decoded)
+    expect(result).toBe('Warwickshire County Council')
+  })
+
+  it('should return the current local authority', () => {
+    const decoded = {
+      relationships: [
+        '666:asdarwq:local-authority:456:Shelbyville Council:2',
+        '3b52415a:56808f0b:Warwickshire County Council:0:Employee:0'
+      ],
+      currentRelationshipId: '3b52415a'
+    }
+    const result = extractCurrentLocalAuthority(decoded)
+    expect(result).toBe('Warwickshire County Council')
   })
 })
