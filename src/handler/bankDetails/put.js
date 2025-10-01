@@ -22,7 +22,7 @@ const putBankDetails = async (request, h) => {
     const response = await fetch(url, {
       method: 'put',
       headers: {
-        'x-api-key': 'some-api-key',
+        'x-api-key': config.get('fssAPIKey'),
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
@@ -31,7 +31,7 @@ const putBankDetails = async (request, h) => {
     // Optionally, handle the response if you want to return it
     const data = await response.json()
 
-    request.logger.info('Bank details confirmed successfully:', data)
+    request.logger.debug('Bank details confirmed successfully:', data)
 
     writeConfirmBankDetailsAuditLog(userRole, request, Outcome.Success)
     return h.response(data).code(response.status)
@@ -46,8 +46,6 @@ export { putBankDetails }
 
 export const writeConfirmBankDetailsAuditLog = (role, request, outcome) => {
   if (role === roles.HOF) {
-    writeAuditLog(request, ActionKind.FullBankDetailsViewed, outcome)
-    return
+    writeAuditLog(request, ActionKind.BankDetailsConfirmed, outcome)
   }
-  writeAuditLog(request, ActionKind.MaskedBankDetailsViewed, outcome)
 }
