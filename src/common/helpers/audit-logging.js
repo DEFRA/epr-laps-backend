@@ -26,6 +26,6 @@ export const writeAuditLog = (request, action, outcome) => {
     action_kind: action,
     outcome
   }
-  request.logger.debug(auditLogData)
+  request.logger.debug(`Audit log: ${auditLogData}`)
   audit(auditLogData)
 }
