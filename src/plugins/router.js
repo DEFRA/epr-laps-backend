@@ -34,12 +34,8 @@ const router = {
               }),
               payload: Joi.object({
                 accountName: Joi.string().trim().max(100).required(),
-                sortCode: Joi.string()
-                  .pattern(/^\d{2}-\d{2}-\d{2}$/)
-                  .required(),
-                accountNumber: Joi.string()
-                  .pattern(/^\d{8}$/)
-                  .required(),
+                sortCode: Joi.string().required(),
+                accountNumber: Joi.string().required(),
                 confirmed: Joi.boolean().valid(true).required()
               }).options({ stripUnknown: true })
             }
