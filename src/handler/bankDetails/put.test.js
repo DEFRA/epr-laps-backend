@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { putBankDetails } from './put.js'
 import fetch from 'node-fetch'
 import { config } from '../../config.js'
+import Boom from '@hapi/boom'
 
 vi.mock('node-fetch', () => ({
   default: vi.fn()
@@ -17,8 +18,13 @@ describe('putBankDetails', () => {
     localAuthority = 'Some Local Authority'
     payload = { accountNumber: '12345678', sortcode: '12-34-56' }
     request = {
-      auth: { credentials: { localAuthority } },
-      payload
+      auth: { credentials: { localAuthority, role: 'HOF' } },
+      payload,
+      logger: {
+        error: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn()
+      }
     }
     mockResponse = {
       json: vi.fn().mockResolvedValue({ success: true }),
@@ -66,5 +72,27 @@ describe('putBankDetails', () => {
       'http://api.example.com/bank-details/A%20B%26C',
       expect.any(Object)
     )
+  })
+
+  it('logs error and throws Boom.internal when fetch rejects', async () => {
+    const networkError = new Error('Network down')
+    fetch.mockRejectedValueOnce(networkError)
+
+    await expect(putBankDetails(request, h)).rejects.toThrow(
+      Boom.internal('Failed to confirm bank details')
+    )
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error confirming bank details:',
+      networkError
+    )
+  })
+
+  it('logs error and throws Boom.internal when response.json fails', async () => {
+    mockResponse.json.mockRejectedValueOnce(new Error('Bad JSON'))
+
+    await expect(putBankDetails(request, h)).rejects.toThrow(
+      Boom.internal('Failed to confirm bank details')
+    )
+    expect(request.logger.error).toHaveBeenCalled()
   })
 })
