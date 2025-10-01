@@ -13,6 +13,14 @@ const putBankDetails = async (request, h) => {
   try {
     const { localAuthority, role } = request.auth.credentials
     userRole = role
+
+    if (role !== roles.HOF) {
+      request.logger.warn(
+        `User with role ${role} tried to confirm bank details`
+      )
+      throw Boom.forbidden('Only HOF users can confirm bank details')
+    }
+
     const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority.trim())}`
 
