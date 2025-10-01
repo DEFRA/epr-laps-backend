@@ -143,6 +143,12 @@ const config = convict({
     format: String,
     default: 'https://laps-api-mock-bank-details.dev.cdp-int.defra.cloud',
     env: 'FSS_API_URL'
+  },
+  fssAPIKey: {
+    doc: 'API key to be passed to FSS',
+    format: String,
+    default: 'some-api-key',
+    env: 'FSS_API_KEY'
   }
 })
 

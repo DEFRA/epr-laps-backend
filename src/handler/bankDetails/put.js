@@ -7,6 +7,7 @@ import {
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
 import { roles } from '../../common/constants/constants.js'
+import Joi from 'joi'
 
 const putBankDetails = async (request, h) => {
   let userRole = ''
@@ -14,10 +15,23 @@ const putBankDetails = async (request, h) => {
     const { localAuthority, role } = request.auth.credentials
     userRole = role
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
+    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority.trim())}`
 
     // The payload should contain the updated bank details
-    const payload = request.payload
+
+    // Sanitize payload
+    const schema = Joi.object({
+      accountNumber: Joi.string().trim().required(),
+      sortcode: Joi.string()
+        .pattern(/^\d{2}-\d{2}-\d{2}$/)
+        .required()
+    })
+
+    const { value: payload, error } = schema.validate(request.payload)
+    if (error) {
+      request.logger.error('Invalid bank details payload:', error.message)
+      throw Boom.badRequest('Invalid bank details payload')
+    }
 
     const response = await fetch(url, {
       method: 'put',
