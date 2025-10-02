@@ -43,7 +43,7 @@ describe('getDocumentMetadata', () => {
 
     expect(fetch).toHaveBeenCalled()
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/file/Newcastle%20City%20Council'),
+      expect.stringContaining('/file/metadata/Newcastle%20City%20Council'),
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({
