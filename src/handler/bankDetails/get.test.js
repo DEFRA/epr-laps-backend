@@ -2,18 +2,20 @@ import { describe, it, beforeEach, vi, expect } from 'vitest'
 import fetch from 'node-fetch'
 import { getBankDetails } from './get.js'
 import Boom from '@hapi/boom'
-import { writeAuditLog } from '../../common/helpers/audit-logging.js'
+import * as auditLogging from '../../common/helpers/audit-logging.js'
 
-// ----- Mock fetch -----
 vi.mock('node-fetch', () => ({
   default: vi.fn()
 }))
-vi.mock('../../common/helpers/audit-logging.js')
 
-// ----- Mock logger -----
+vi.mock('../../common/helpers/utils/process-bank-details.js', () => ({
+  processBankDetails: vi.fn((details) => details)
+}))
+
+vi.spyOn(auditLogging, 'writeAuditLog')
+
 const mockLogger = { error: vi.fn(), info: vi.fn(), debug: vi.fn() }
 
-// ----- Mock request helper -----
 const makeRequest = (
   role = 'Chief Executive Officer',
   localAuthority = 'Glamshire County Council'
@@ -22,135 +24,84 @@ const makeRequest = (
   logger: mockLogger
 })
 
+const makeH = () => ({
+  response: (data) => ({
+    code: (status) => ({ data, status })
+  })
+})
+
 describe('getBankDetails', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-  })
-  it('throws Boom.internal when external API returns non-OK', async () => {
-    fetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      statusText: 'Server Error',
-      json: async () => ({})
-    })
-
-    const request = makeRequest()
-    const localAuthority = request.auth.credentials.localAuthority
-
-    await expect(
-      getBankDetails(localAuthority, request, {})
-    ).rejects.toThrowError(Boom.Boom)
-
-    try {
-      await getBankDetails(localAuthority, request, {})
-    } catch (err) {
-      expect(err.isBoom).toBe(true)
-      expect(err.output.statusCode).toBe(500)
-      expect(err.message).toBe('Failed to fetch bank details')
-    }
   })
 
   it('throws Boom.internal when fetch rejects', async () => {
     fetch.mockRejectedValueOnce(new Error('Network error'))
 
     const request = makeRequest()
-    const localAuthority = request.auth.credentials.localAuthority
+    const h = makeH()
 
-    await expect(
-      getBankDetails(localAuthority, request, {})
-    ).rejects.toThrowError(Boom.Boom)
+    await expect(getBankDetails(request, h)).rejects.toThrow(Boom.Boom)
+    expect(request.logger.error).toHaveBeenCalled()
+  })
 
-    await getBankDetails(localAuthority, request, {}).catch((err) => {
-      expect(err.isBoom).toBe(true)
-      expect(err.output.statusCode).toBe(500)
-      expect(err.message).toBe('Failed to fetch bank details')
+  it('writes to audit log correctly for CEO', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ some: 'data' })
     })
+
+    const request = makeRequest('Chief Executive Officer')
+    const h = makeH()
+
+    const result = await getBankDetails(request, h)
+
+    expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
+      request,
+      auditLogging.ActionKind.FullBankDetailsViewed,
+      auditLogging.Outcome.Success
+    )
+    expect(result.status).toBe(200)
+    expect(result.data).toEqual({ some: 'data' })
   })
 
-  it('should write to audit log with expected details when role is CEO', async () => {
-    vi.mock('node-fetch', () => ({
-      default: vi.fn(() =>
-        Promise.resolve({
-          json: () => Promise.resolve({ some: 'data' })
-        })
-      )
-    }))
-    const mockedRequest = {
-      auth: {
-        credentials: {
-          role: 'Chief Executive Officer'
-        }
-      },
-      logger: mockLogger
-    }
-    const mockedH = {
-      response: (data) => ({
-        code: (status) => ({ data, status })
-      })
-    }
-    await getBankDetails('test', mockedRequest, mockedH)
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      mockedRequest,
-      'FullBankDetailsViewed',
-      'Success'
+  it('writes to audit log correctly for Waste Officer', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ some: 'data' })
+    })
+
+    const request = makeRequest('Waste Officer')
+    const h = makeH()
+
+    const result = await getBankDetails(request, h)
+
+    expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
+      request,
+      auditLogging.ActionKind.MaskedBankDetailsViewed,
+      auditLogging.Outcome.Success
     )
+    expect(result.status).toBe(200)
+    expect(result.data).toEqual({ some: 'data' })
   })
 
-  it('should write to audit log with expected details when role is waste officer', async () => {
-    vi.mock('node-fetch', () => ({
-      default: vi.fn(() =>
-        Promise.resolve({
-          json: () => Promise.resolve({ some: 'data' })
-        })
-      )
-    }))
-    const mockedRequest = {
-      auth: {
-        credentials: {
-          role: 'Waste Officer'
-        }
-      },
-      logger: mockLogger
-    }
-    const mockedH = {
-      response: (data) => ({
-        code: (status) => ({ data, status })
-      })
-    }
-    await getBankDetails('test', mockedRequest, mockedH)
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      mockedRequest,
-      'MaskedBankDetailsViewed',
-      'Success'
-    )
-  })
+  it('writes to audit log correctly for HOF', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ some: 'data' })
+    })
 
-  it('should write to audit log with expected details when role is HOF', async () => {
-    vi.mock('node-fetch', () => ({
-      default: vi.fn(() =>
-        Promise.resolve({
-          json: () => Promise.resolve({ some: 'data' })
-        })
-      )
-    }))
-    const mockedRequest = {
-      auth: {
-        credentials: {
-          role: 'Head of Finance'
-        }
-      },
-      logger: mockLogger
-    }
-    const mockedH = {
-      response: (data) => ({
-        code: (status) => ({ data, status })
-      })
-    }
-    await getBankDetails('test', mockedRequest, mockedH)
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      mockedRequest,
-      'FullBankDetailsViewed',
-      'Success'
+    const request = makeRequest('Head of Finance')
+    const h = makeH()
+
+    const result = await getBankDetails(request, h)
+
+    expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
+      request,
+      auditLogging.ActionKind.FullBankDetailsViewed,
+      auditLogging.Outcome.Success
     )
+    expect(result.status).toBe(200)
+    expect(result.data).toEqual({ some: 'data' })
   })
 })

@@ -10,10 +10,10 @@ import {
 } from '../../common/helpers/audit-logging.js'
 import { roles } from '../../common/constants/constants.js'
 
-const getBankDetails = async (localAuthority, request, h) => {
+const getBankDetails = async (request, h) => {
   let userRole = ''
   try {
-    const { role } = request.auth.credentials
+    const { localAuthority, role } = request.auth.credentials
     userRole = role
 
     const BASE_URL = config.get('fssApiUrl')
