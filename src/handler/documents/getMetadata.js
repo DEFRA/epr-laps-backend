@@ -5,7 +5,7 @@ const getDocumentMetadata = async (request, h) => {
   try {
     const { localAuthority } = request.params
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/file/${encodeURIComponent(localAuthority)}`
+    const url = `${BASE_URL}/file/metadata/${encodeURIComponent(localAuthority)}`
 
     const response = await fetch(url, {
       method: 'GET',
