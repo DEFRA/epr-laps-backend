@@ -82,13 +82,13 @@ describe('getDocumentMetadata', () => {
 
   it('should handle fetch errors', async () => {
     fetch.mockRejectedValueOnce(new Error('Network error'))
-  
+
     const request = { params: { localAuthority: 'Newcastle City Council' } }
     const codeMock = vi.fn()
     const h = { response: vi.fn().mockReturnValue({ code: codeMock }) }
-  
+
     await getDocumentMetadata(request, h)
-  
+
     expect(h.response).toHaveBeenCalledWith({ error: 'Internal Server Error' })
     expect(codeMock).toHaveBeenCalledWith(500)
   })
