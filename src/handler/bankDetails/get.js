@@ -11,11 +11,9 @@ import {
 import { roles } from '../../common/constants/constants.js'
 
 const getBankDetails = async (request, h) => {
-  let userRole = ''
+  const localAuthority = request.params
+  const { role } = request.auth.credentials
   try {
-    const { localAuthority, role } = request.auth.credentials
-    userRole = role
-
     const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
     const response = await fetch(url, {
@@ -33,11 +31,11 @@ const getBankDetails = async (request, h) => {
     const processedDetails = processBankDetails(bankDetails, role)
     request.logger.info('Processed bank details response:', processedDetails)
 
-    writeBankDetailsAuditLog(userRole, request, Outcome.Success)
+    writeBankDetailsAuditLog(role, request, Outcome.Success)
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
     request.logger.error('Error fetching bank details:', err)
-    writeBankDetailsAuditLog(userRole, request, Outcome.Failure)
+    writeBankDetailsAuditLog(role, request, Outcome.Failure)
     throw Boom.internal('Failed to fetch bank details')
   }
 }

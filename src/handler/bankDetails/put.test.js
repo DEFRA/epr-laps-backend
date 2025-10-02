@@ -19,8 +19,8 @@ vi.mock('../../config.js', () => ({
 vi.mock('../../common/helpers/audit-logging.js', async (importOriginal) => {
   const actual = await importOriginal()
   return {
-    ...actual, // keep all real exports (Outcome, ActionKind)
-    writeAuditLog: vi.fn() // override only writeAuditLog
+    ...actual,
+    writeAuditLog: vi.fn()
   }
 })
 
@@ -32,11 +32,13 @@ describe('putBankDetails', () => {
     payload = { accountNumber: '12345678', sortcode: '12-34-56' }
     request = {
       auth: { credentials: { localAuthority, role: roles.HOF } },
+      params: localAuthority, // <-- add this line
       payload,
       logger: {
         error: vi.fn(),
         info: vi.fn(),
-        debug: vi.fn()
+        debug: vi.fn(),
+        warn: vi.fn()
       }
     }
     mockResponse = {
@@ -82,7 +84,7 @@ describe('putBankDetails', () => {
   })
 
   it('encodes the localAuthority in the URL', async () => {
-    request.auth.credentials.localAuthority = 'A B&C'
+    request.params = 'A B&C'
     await putBankDetails(request, h)
     expect(fetch).toHaveBeenCalledWith(
       'http://api.example.com/bank-details/A%20B%26C',

@@ -9,11 +9,9 @@ import {
 import { roles } from '../../common/constants/constants.js'
 
 const putBankDetails = async (request, h) => {
-  let userRole = ''
+  const localAuthority = request.params
+  const { role } = request.auth.credentials
   try {
-    const { localAuthority, role } = request.auth.credentials
-    userRole = role
-
     if (role !== roles.HOF) {
       request.logger.warn(
         `User with role ${role} tried to confirm bank details`
@@ -41,11 +39,11 @@ const putBankDetails = async (request, h) => {
 
     request.logger.debug('Bank details confirmed successfully:', data)
 
-    writeConfirmBankDetailsAuditLog(userRole, request, Outcome.Success)
+    writeConfirmBankDetailsAuditLog(role, request, Outcome.Success)
     return h.response(data).code(response.status)
   } catch (err) {
     request.logger.error('Error confirming bank details:', err)
-    writeConfirmBankDetailsAuditLog(userRole, request, Outcome.Failure)
+    writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure)
     throw Boom.internal('Failed to confirm bank details')
   }
 }
