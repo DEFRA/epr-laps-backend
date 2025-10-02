@@ -1,12 +1,47 @@
 import { health } from '../routes/health.js'
 import { example } from '../routes/example.js'
-import { bankDetailsRoutes } from '../routes/bankDetails.js'
+import { getBankDetails } from '../handler/bankDetails/get.js'
+import { putBankDetails } from '../handler/bankDetails/put.js'
+import Joi from 'joi'
 
 const router = {
   plugin: {
     name: 'router',
     register: (server, _options) => {
-      server.route([health, bankDetailsRoutes].concat(example))
+      server.route([health].concat(example))
+      // Bank details routes
+      server.route([
+        {
+          method: 'GET',
+          path: '/bank-details/{localAuthority}',
+          handler: getBankDetails,
+          options: {
+            validate: {
+              params: Joi.object({
+                localAuthority: Joi.string().trim().required()
+              })
+            }
+          }
+        },
+        {
+          method: 'PUT',
+          path: '/bank-details/{localAuthority}',
+          handler: putBankDetails,
+          options: {
+            validate: {
+              params: Joi.object({
+                localAuthority: Joi.string().trim().required()
+              }),
+              payload: Joi.object({
+                accountName: Joi.string().trim().max(100).required(),
+                sortCode: Joi.string().required(),
+                accountNumber: Joi.string().required(),
+                confirmed: Joi.boolean().valid(true).required()
+              }).options({ stripUnknown: true })
+            }
+          }
+        }
+      ])
     }
   }
 }
