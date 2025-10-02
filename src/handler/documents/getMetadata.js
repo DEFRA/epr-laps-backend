@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import { config } from '../../config.js'
+import { statusCodes } from '../../common/constants/status-codes.js'
 
 const getDocumentMetadata = async (request, h) => {
   try {
@@ -21,10 +22,12 @@ const getDocumentMetadata = async (request, h) => {
     }
 
     const data = await response.json()
-    return h.response(data).code(200)
+    return h.response(data).code(statusCodes.ok)
   } catch (error) {
     console.error('Error fetching file metadata:', error)
-    return h.response({ error: 'Internal Server Error' }).code(500)
+    return h
+      .response({ error: 'Internal Server Error' })
+      .code(statusCodes.internalServerError)
   }
 }
 
