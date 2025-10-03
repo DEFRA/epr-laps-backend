@@ -10,7 +10,7 @@ import {
 } from '../../common/helpers/audit-logging.js'
 
 const getBankDetails = async (request, h) => {
-  const localAuthority = request.params
+  const { localAuthority } = request.params
   try {
     const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
