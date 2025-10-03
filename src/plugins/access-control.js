@@ -15,7 +15,7 @@ const rolesMap = {
 
 const accessControl = {
   name: 'access-control',
-  register: (server, options) => {
+  register: (server, _options) => {
     server.ext('onRequest', (request, h) => {
       const ignoredRoutes = ['/health']
       if (ignoredRoutes.includes(request.path)) {
@@ -36,7 +36,7 @@ const accessControl = {
       if (!permissionKey) {
         return h.continue
       }
-      const hasPermission = allowedRoles && allowedRoles.includes(userRole)
+      const hasPermission = allowedRoles.includes(userRole)
       request.logger.debug(
         `Access control check for ${rawRole} on ${permissionKey}:  ${key} permission granted: ${hasPermission}`
       )
