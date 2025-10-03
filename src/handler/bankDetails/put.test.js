@@ -31,7 +31,10 @@ describe('putBankDetails', () => {
     localAuthority = 'Some Local Authority'
     payload = { accountNumber: '12345678', sortcode: '12-34-56' }
     request = {
-      auth: { credentials: { localAuthority, role: roles.HOF } },
+      auth: {
+        credentials: { localAuthority, role: roles.HOF },
+        isAuthorized: true
+      },
       params: localAuthority, // <-- add this line
       payload,
       logger: {
@@ -142,5 +145,15 @@ describe('putBankDetails', () => {
       ActionKind.BankDetailsConfirmed,
       Outcome.Failure
     )
+  })
+
+  it('should return forbidden if user is not authorized', async () => {
+    request.auth.isAuthorized = false
+    request.auth.credentials.role = roles.CEO
+
+    const response = await putBankDetails(request, h)
+
+    expect(response.isBoom).toBe(true)
+    expect(response.output.statusCode).toBe(403)
   })
 })

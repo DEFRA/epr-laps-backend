@@ -141,7 +141,7 @@ const config = convict({
   fssApiUrl: {
     doc: 'FSS URL to get the bank details',
     format: String,
-    default: 'https://laps-api-mock-bank-details.dev.cdp-int.defra.cloud',
+    default: 'http://localhost:3003',
     env: 'FSS_API_URL'
   },
   fssAPIKey: {
@@ -149,6 +149,32 @@ const config = convict({
     format: String,
     default: 'some-api-key',
     env: 'FSS_API_KEY'
+  },
+  authorization: {
+    viewFullBankDetails: {
+      doc: 'Permission roles allowed to view full bank details',
+      format: Array,
+      env: 'VIEW_FULL_BANK_DETAILS',
+      default: ['CEO']
+    },
+    confirmBankDetails: {
+      doc: 'Permission roles allowed to confirm bank details',
+      format: Array,
+      env: 'CONFIRM_BANK_DETAILS',
+      default: ['CEO', 'WO']
+    },
+    listFinanceDocuments: {
+      doc: 'API key to be passed to list finance documents',
+      format: Array,
+      env: 'LIST_FINANCE_DOCUMENTS',
+      default: ['CEO']
+    },
+    accessFinanceDocument: {
+      doc: 'API key to be passed to FSS',
+      format: Array,
+      env: 'ACCESS_FINANCE_DOCUMENT',
+      default: ['CEO']
+    }
   }
 })
 

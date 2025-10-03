@@ -18,9 +18,9 @@ const mockLogger = { error: vi.fn(), info: vi.fn(), debug: vi.fn() }
 
 const makeRequest = (
   role = 'Chief Executive Officer',
-  localAuthority = 'Glamshire County Council'
+  isAuthorized = false
 ) => ({
-  auth: { credentials: { role, localAuthority } },
+  auth: { credentials: { role }, isAuthorized },
   logger: mockLogger
 })
 
@@ -51,7 +51,7 @@ describe('getBankDetails', () => {
       json: async () => ({ some: 'data' })
     })
 
-    const request = makeRequest('Chief Executive Officer')
+    const request = makeRequest('Chief Executive Officer', true)
     const h = makeH()
 
     const result = await getBankDetails(request, h)
@@ -71,7 +71,7 @@ describe('getBankDetails', () => {
       json: async () => ({ some: 'data' })
     })
 
-    const request = makeRequest('Waste Officer')
+    const request = makeRequest('Waste Officer', false)
     const h = makeH()
 
     const result = await getBankDetails(request, h)
@@ -91,7 +91,7 @@ describe('getBankDetails', () => {
       json: async () => ({ some: 'data' })
     })
 
-    const request = makeRequest('Head of Finance')
+    const request = makeRequest('Head of Finance', true)
     const h = makeH()
 
     const result = await getBankDetails(request, h)

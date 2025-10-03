@@ -1,16 +1,15 @@
-import { roles } from '../../constants/constants.js'
 /**
- * Masks sortcode if role is not CEO and adds UI flags.
+ * Masks sortcode if user is not allowed to view full bank details.
  * @param {object} bankDetails
- * @param {string} role
+ * @param {boolean} isAuthorized
  * @returns {object} Processed bank details with UI flags
  */
 
-export function processBankDetails(bankDetails, role) {
+export function processBankDetails(bankDetails, isAuthorized) {
   let maskedBankDetails = { ...bankDetails }
 
-  // Mask sortcode for non-CEO roles
-  if (role !== roles.CEO && role !== roles.HOF && maskedBankDetails?.sortCode) {
+  // Mask sortcode for unathorized users
+  if (!isAuthorized) {
     const LAST_DIGITS_COUNT = 2
     const lastTwoDigits = maskedBankDetails.sortCode.slice(-LAST_DIGITS_COUNT)
     maskedBankDetails = {

@@ -12,15 +12,15 @@ const putBankDetails = async (request, h) => {
   const localAuthority = request.params
   const { role } = request.auth.credentials
   try {
-    if (role !== roles.HOF) {
+    if (!request.auth.isAuthorized) {
       request.logger.warn(
         `User with role ${role} tried to confirm bank details`
       )
-      throw Boom.forbidden('Only HOF users can confirm bank details')
+      return Boom.forbidden(`${role} not allowed to confirm bank details`)
     }
 
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority.trim())}`
+    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
 
     // The payload should contain the updated bank details
     const payload = request.payload
