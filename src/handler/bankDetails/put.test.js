@@ -32,8 +32,8 @@ describe('putBankDetails', () => {
     payload = { accountNumber: '12345678', sortcode: '12-34-56' }
 
     request = {
-      auth: { credentials: { role: roles.HOF } }, // role stays in credentials
-      params: { localAuthority }, // params must be an object
+      auth: { credentials: { role: roles.HOF } },
+      params: { localAuthority },
       payload,
       logger: {
         error: vi.fn(),
