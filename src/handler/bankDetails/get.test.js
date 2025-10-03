@@ -19,9 +19,10 @@ const mockLogger = { error: vi.fn(), info: vi.fn(), debug: vi.fn() }
 // Fixed makeRequest: localAuthority now in params, role in credentials
 const makeRequest = (
   role = 'Chief Executive Officer',
-  localAuthority = 'Glamshire County Council'
+  localAuthority = 'Some Local Authority',
+  isAuthorized = false
 ) => ({
-  auth: { credentials: { role } },
+  auth: { credentials: { role }, isAuthorized },
   params: { localAuthority },
   logger: mockLogger
 })
@@ -53,7 +54,14 @@ describe('getBankDetails', () => {
       json: async () => ({ some: 'data' })
     })
 
-    const request = makeRequest('Chief Executive Officer')
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
     const h = makeH()
 
     const result = await getBankDetails(request, h)
@@ -73,7 +81,11 @@ describe('getBankDetails', () => {
       json: async () => ({ some: 'data' })
     })
 
-    const request = makeRequest('Waste Officer')
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      logger: mockLogger,
+      auth: { credentials: { role: 'Head of Finance' }, isAuthorized: false }
+    }
     const h = makeH()
 
     const result = await getBankDetails(request, h)
@@ -93,7 +105,11 @@ describe('getBankDetails', () => {
       json: async () => ({ some: 'data' })
     })
 
-    const request = makeRequest('Head of Finance')
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      logger: mockLogger,
+      auth: { credentials: { role: 'Head of Finance' }, isAuthorized: true }
+    }
     const h = makeH()
 
     const result = await getBankDetails(request, h)

@@ -25,14 +25,14 @@ vi.mock('../../common/helpers/audit-logging.js', async (importOriginal) => {
 })
 
 describe('putBankDetails', () => {
-  let request, h, mockResponse, localAuthority, payload
+  let request, h, mockResponse, payload
 
   beforeEach(() => {
-    localAuthority = 'Some Local Authority'
+    const localAuthority = 'Some Local Authority'
     payload = { accountNumber: '12345678', sortcode: '12-34-56' }
 
     request = {
-      auth: { credentials: { role: roles.HOF } },
+      auth: { credentials: { role: roles.HOF }, isAuthorized: true },
       params: { localAuthority },
       payload,
       logger: {
@@ -144,5 +144,15 @@ describe('putBankDetails', () => {
       ActionKind.BankDetailsConfirmed,
       Outcome.Failure
     )
+  })
+
+  it('should return forbidden if user is not authorized', async () => {
+    request.auth.isAuthorized = false
+    request.auth.credentials.role = roles.CEO
+
+    const response = await putBankDetails(request, h)
+
+    expect(response.isBoom).toBe(true)
+    expect(response.output.statusCode).toBe(403)
   })
 })
