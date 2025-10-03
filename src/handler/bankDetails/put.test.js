@@ -33,7 +33,7 @@ describe('putBankDetails', () => {
 
     request = {
       auth: { credentials: { role: roles.HOF }, isAuthorized: true },
-      params: { localAuthority: localAuthority },
+      params: { localAuthority },
       payload,
       logger: {
         error: vi.fn(),
