@@ -11,7 +11,7 @@ import {
 import { roles } from '../../common/constants/constants.js'
 
 const getBankDetails = async (request, h) => {
-  const localAuthority = request.params
+  const { localAuthority } = request.params
   const { role } = request.auth.credentials
   try {
     const BASE_URL = config.get('fssApiUrl')
