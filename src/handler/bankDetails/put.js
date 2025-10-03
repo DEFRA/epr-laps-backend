@@ -9,7 +9,7 @@ import {
 import { roles } from '../../common/constants/constants.js'
 
 const putBankDetails = async (request, h) => {
-  const localAuthority = request.params
+  const { localAuthority } = request.params
   const { role } = request.auth.credentials
   try {
     if (role !== roles.HOF) {

@@ -16,11 +16,13 @@ vi.spyOn(auditLogging, 'writeAuditLog')
 
 const mockLogger = { error: vi.fn(), info: vi.fn(), debug: vi.fn() }
 
+// Fixed makeRequest: localAuthority now in params, role in credentials
 const makeRequest = (
   role = 'Chief Executive Officer',
   localAuthority = 'Glamshire County Council'
 ) => ({
-  auth: { credentials: { role, localAuthority } },
+  auth: { credentials: { role } },
+  params: { localAuthority },
   logger: mockLogger
 })
 
