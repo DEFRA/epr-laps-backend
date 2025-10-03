@@ -59,7 +59,7 @@ const config = convict({
     level: {
       doc: 'Logging level',
       format: ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'],
-      default: 'info',
+      default: 'debug',
       env: 'LOG_LEVEL'
     },
     format: {
@@ -141,7 +141,7 @@ const config = convict({
   fssApiUrl: {
     doc: 'FSS URL to get the bank details',
     format: String,
-    default: 'http://localhost:3003',
+    default: 'https://laps-api-mock-bank-details.dev.cdp-int.defra.cloud',
     env: 'FSS_API_URL'
   },
   fssAPIKey: {
