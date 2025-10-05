@@ -1,19 +1,23 @@
+// src/routes/document.test.js
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Hapi from '@hapi/hapi'
-import { createFileRoutes } from './documents.js'
+import { fileRoutes } from './documents.js'
+import * as getModule from '../handler/documents/getMetadata.js'
 
-const getDocumentMetadata = vi.fn().mockResolvedValue([
-  {
-    id: '1',
-    fileName: 'test.pdf',
-    localAuthority: 'Westshire',
-    financialYear: '2025',
-    quarter: 'Q1',
-    creationDate: '2025-10-02',
-    documentType: 'report',
-    language: 'en'
-  }
-])
+vi.mock('../handler/documents/getMetadata.js', () => ({
+  getDocumentMetadata: vi.fn().mockResolvedValue([
+    {
+      id: '1',
+      fileName: 'test.pdf',
+      localAuthority: 'Westshire',
+      financialYear: '2025',
+      quarter: 'Q1',
+      creationDate: '2025-10-02',
+      documentType: 'report',
+      language: 'en'
+    }
+  ])
+}))
 
 describe('fileRoutes routes', () => {
   let server
@@ -21,7 +25,6 @@ describe('fileRoutes routes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     server = Hapi.server()
-    const fileRoutes = createFileRoutes({ getDocumentMetadata })
     server.route(fileRoutes)
   })
 
@@ -31,8 +34,8 @@ describe('fileRoutes routes', () => {
       url: '/file/metadata/Westshire'
     })
 
-    expect(getDocumentMetadata).toHaveBeenCalledTimes(1)
-    expect(getDocumentMetadata).toHaveBeenCalledWith(
+    expect(getModule.getDocumentMetadata).toHaveBeenCalledTimes(1)
+    expect(getModule.getDocumentMetadata).toHaveBeenCalledWith(
       expect.objectContaining({ params: { localAuthority: 'Westshire' } }),
       expect.any(Object)
     )

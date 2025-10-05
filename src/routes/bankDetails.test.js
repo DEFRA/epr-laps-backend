@@ -1,10 +1,13 @@
 // src/routes/bankDetails.test.js
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Hapi from '@hapi/hapi'
-import { createBankDetailsRoutes } from './bankDetails.js'
+import { bankDetailsRoutes } from './bankDetails.js'
+import * as getModule from '../handler/bankDetails/get.js'
+import * as putModule from '../handler/bankDetails/put.js'
 
-const getBankDetails = vi.fn()
-const putBankDetails = vi.fn()
+// Mock the handler modules
+vi.mock('../handler/bankDetails/get.js')
+vi.mock('../handler/bankDetails/put.js')
 
 describe('bankDetails routes', () => {
   let server
@@ -12,12 +15,7 @@ describe('bankDetails routes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     server = Hapi.server()
-    // Inject mocks
-    const bankDetails = createBankDetailsRoutes({
-      getBankDetails,
-      putBankDetails
-    })
-    server.route(bankDetails)
+    server.route(bankDetailsRoutes)
   })
 
   it('GET /bank-details/{localAuthority} calls getBankDetails', async () => {
@@ -26,8 +24,8 @@ describe('bankDetails routes', () => {
       url: '/bank-details/Westshire'
     })
 
-    expect(getBankDetails).toHaveBeenCalledTimes(1)
-    expect(getBankDetails).toHaveBeenCalledWith(
+    expect(getModule.getBankDetails).toHaveBeenCalledTimes(1)
+    expect(getModule.getBankDetails).toHaveBeenCalledWith(
       expect.objectContaining({ params: { localAuthority: 'Westshire' } }),
       expect.any(Object)
     )
@@ -47,8 +45,8 @@ describe('bankDetails routes', () => {
       payload
     })
 
-    expect(putBankDetails).toHaveBeenCalledTimes(1)
-    expect(putBankDetails).toHaveBeenCalledWith(
+    expect(putModule.putBankDetails).toHaveBeenCalledTimes(1)
+    expect(putModule.putBankDetails).toHaveBeenCalledWith(
       expect.objectContaining({
         params: { localAuthority: 'Westshire' },
         payload
@@ -59,10 +57,10 @@ describe('bankDetails routes', () => {
 
   it('PUT rejects invalid payload', async () => {
     const badPayload = {
-      accountName: '', // invalid
-      sortCode: '123', // invalid
-      accountNumber: '', // invalid
-      confirmed: false // invalid
+      accountName: '',
+      sortCode: '123',
+      accountNumber: '',
+      confirmed: false
     }
 
     const res = await server.inject({
@@ -71,8 +69,7 @@ describe('bankDetails routes', () => {
       payload: badPayload
     })
 
-    // Joi should catch invalid payload
     expect(res.statusCode).toBe(400)
-    expect(putBankDetails).not.toHaveBeenCalled()
+    expect(putModule.putBankDetails).not.toHaveBeenCalled()
   })
 })

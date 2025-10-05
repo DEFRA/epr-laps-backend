@@ -1,6 +1,8 @@
 import Joi from 'joi'
+import { getBankDetails } from '../handler/bankDetails/get.js'
+import { putBankDetails } from '../handler/bankDetails/put.js'
 
-export const createBankDetailsRoutes = ({ getBankDetails, putBankDetails }) => [
+export const bankDetailsRoutes = [
   {
     method: 'GET',
     path: '/bank-details/{localAuthority}',

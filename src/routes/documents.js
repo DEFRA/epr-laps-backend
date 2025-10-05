@@ -1,7 +1,8 @@
 // src/routes/documents.js
 import Joi from 'joi'
+import { getDocumentMetadata } from '../handler/documents/getMetadata.js'
 
-export const createFileRoutes = ({ getDocumentMetadata }) => [
+export const fileRoutes = [
   {
     method: 'GET',
     path: '/file/metadata/{localAuthority}',
