@@ -13,6 +13,7 @@ export function processBankDetails(bankDetails, role) {
   if (role !== roles.CEO && role !== roles.HOF && maskedBankDetails?.sortCode) {
     const LAST_TWO_DIGITS_COUNT = 2
     const LAST_THREE_DIGITS_COUNT = 3
+    const ENDING_WITH_PREFIX = 'ending with '
     const sortCodeLastTwoDigits = maskedBankDetails.sortCode.slice(
       -LAST_TWO_DIGITS_COUNT
     )
@@ -21,8 +22,8 @@ export function processBankDetails(bankDetails, role) {
     )
     maskedBankDetails = {
       ...maskedBankDetails,
-      sortCode: 'ending with ' + sortCodeLastTwoDigits,
-      accountNumber: 'ending with ' + accountNumberLastThreeDigits
+      sortCode: ENDING_WITH_PREFIX + sortCodeLastTwoDigits,
+      accountNumber: ENDING_WITH_PREFIX + accountNumberLastThreeDigits
     }
   }
   return { ...maskedBankDetails }
