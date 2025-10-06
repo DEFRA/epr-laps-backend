@@ -33,7 +33,7 @@ describe('processBankDetails', () => {
     }
     const output = processBankDetails(input, 'Staff')
     expect(output.sortCode).toBe('ending with 56')
-    expect(output.accountNumber).toBe('ending with 44')
+    expect(output.accountNumber).toBe('ending with 444')
   })
 
   it('handles masking when account number is short', () => {

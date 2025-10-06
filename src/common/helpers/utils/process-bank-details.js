@@ -11,15 +11,18 @@ export function processBankDetails(bankDetails, role) {
 
   // Mask sortcode for non-CEO roles
   if (role !== roles.CEO && role !== roles.HOF && maskedBankDetails?.sortCode) {
-    const LAST_DIGITS_COUNT = 2
-    const sortCodelastTwoDigits =
-      maskedBankDetails.sortCode.slice(-LAST_DIGITS_COUNT)
-    const accountNumberlastTwoDigits =
-      maskedBankDetails.accountNumber.slice(-LAST_DIGITS_COUNT)
+    const LAST_TWO_DIGITS_COUNT = 2
+    const LAST_THREE_DIGITS_COUNT = 3
+    const sortCodeLastTwoDigits = maskedBankDetails.sortCode.slice(
+      -LAST_TWO_DIGITS_COUNT
+    )
+    const accountNumberLastThreeDigits = maskedBankDetails.accountNumber.slice(
+      -LAST_THREE_DIGITS_COUNT
+    )
     maskedBankDetails = {
       ...maskedBankDetails,
-      sortCode: 'ending with ' + sortCodelastTwoDigits,
-      accountNumber: 'ending with ' + accountNumberlastTwoDigits
+      sortCode: 'ending with ' + sortCodeLastTwoDigits,
+      accountNumber: 'ending with ' + accountNumberLastThreeDigits
     }
   }
   return { ...maskedBankDetails }
