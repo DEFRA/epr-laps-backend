@@ -10,11 +10,19 @@ export function processBankDetails(bankDetails, isAuthorized) {
 
   // Mask sortcode for unathorized users
   if (!isAuthorized) {
-    const LAST_DIGITS_COUNT = 2
-    const lastTwoDigits = maskedBankDetails.sortCode.slice(-LAST_DIGITS_COUNT)
+    const LAST_TWO_DIGITS_COUNT = 2
+    const LAST_THREE_DIGITS_COUNT = 3
+    const ENDING_WITH_PREFIX = 'ending with '
+    const sortCodeLastTwoDigits = maskedBankDetails.sortCode.slice(
+      -LAST_TWO_DIGITS_COUNT
+    )
+    const accountNumberLastThreeDigits = maskedBankDetails.accountNumber.slice(
+      -LAST_THREE_DIGITS_COUNT
+    )
     maskedBankDetails = {
       ...maskedBankDetails,
-      sortCode: 'ending with ' + lastTwoDigits
+      sortCode: ENDING_WITH_PREFIX + sortCodeLastTwoDigits,
+      accountNumber: ENDING_WITH_PREFIX + accountNumberLastThreeDigits
     }
   }
   return { ...maskedBankDetails }
