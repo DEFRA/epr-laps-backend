@@ -1,6 +1,6 @@
 import { roles } from '../../constants/constants.js'
 /**
- * Masks sortcode if role is not CEO and adds UI flags.
+ * Masks sortcode and account number if role is not CEO and adds UI flags.
  * @param {object} bankDetails
  * @param {string} role
  * @returns {object} Processed bank details with UI flags
@@ -11,11 +11,19 @@ export function processBankDetails(bankDetails, role) {
 
   // Mask sortcode for non-CEO roles
   if (role !== roles.CEO && role !== roles.HOF && maskedBankDetails?.sortCode) {
-    const LAST_DIGITS_COUNT = 2
-    const lastTwoDigits = maskedBankDetails.sortCode.slice(-LAST_DIGITS_COUNT)
+    const LAST_TWO_DIGITS_COUNT = 2
+    const LAST_THREE_DIGITS_COUNT = 3
+    const ENDING_WITH_PREFIX = 'ending with '
+    const sortCodeLastTwoDigits = maskedBankDetails.sortCode.slice(
+      -LAST_TWO_DIGITS_COUNT
+    )
+    const accountNumberLastThreeDigits = maskedBankDetails.accountNumber.slice(
+      -LAST_THREE_DIGITS_COUNT
+    )
     maskedBankDetails = {
       ...maskedBankDetails,
-      sortCode: 'ending with ' + lastTwoDigits
+      sortCode: ENDING_WITH_PREFIX + sortCodeLastTwoDigits,
+      accountNumber: ENDING_WITH_PREFIX + accountNumberLastThreeDigits
     }
   }
   return { ...maskedBankDetails }
