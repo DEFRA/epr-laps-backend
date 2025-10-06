@@ -1,12 +1,13 @@
 import fetch from 'node-fetch'
 import { config } from '../../config.js'
 import { statusCodes } from '../../common/constants/status-codes.js'
+import Boom from '@hapi/boom'
 
 const getDocumentMetadata = async (request, h) => {
   try {
     const { localAuthority } = request.params
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/file/metadata/${encodeURIComponent(localAuthority)}`
+    const url = `${BASE_URL}/file/metadata/${localAuthority}`
 
     const response = await fetch(url, {
       method: 'GET',
@@ -18,16 +19,14 @@ const getDocumentMetadata = async (request, h) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      return h.response({ error: errorText }).code(response.status)
+      throw Boom.internal('Error fetching file metadata', errorText)
     }
 
     const data = await response.json()
     return h.response(data).code(statusCodes.ok)
   } catch (error) {
-    console.error('Error fetching file metadata:', error)
-    return h
-      .response({ error: 'Internal Server Error' })
-      .code(statusCodes.internalServerError)
+    request.logger.error('Error fetching file metadata:', error)
+    throw Boom.internal('Error fetching file metadata')
   }
 }
 

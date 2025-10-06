@@ -36,14 +36,18 @@ describe('getDocumentMetadata', () => {
   })
 
   it('should call the external API with correct URL', async () => {
-    const request = { params: { localAuthority: 'Newcastle City Council' } }
-    const h = { response: vi.fn().mockReturnValue({ code: vi.fn() }) }
+    const request = {
+      params: { localAuthority: 'Newcastle City Council' },
+      logger: { error: vi.fn() }
+    }
+
+    const codeMock = vi.fn().mockReturnValue('finalResponse')
+    const h = { response: vi.fn().mockReturnValue({ code: codeMock }) }
 
     await getDocumentMetadata(request, h)
 
-    expect(fetch).toHaveBeenCalled()
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/file/metadata/Newcastle%20City%20Council'),
+      expect.stringContaining('/file/metadata/Newcastle City Council'),
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({
@@ -55,41 +59,61 @@ describe('getDocumentMetadata', () => {
   })
 
   it('should return data from the external API', async () => {
-    const request = { params: { localAuthority: 'Newcastle City Council' } }
-    const codeMock = vi.fn()
-    const responseMock = { code: codeMock }
-    const h = { response: vi.fn().mockReturnValue(responseMock) }
+    const request = {
+      params: { localAuthority: 'Newcastle City Council' },
+      logger: { error: vi.fn() }
+    }
 
-    await getDocumentMetadata(request, h)
+    const codeMock = vi.fn().mockReturnValue('finalResponse')
+    const h = { response: vi.fn().mockReturnValue({ code: codeMock }) }
+
+    const result = await getDocumentMetadata(request, h)
 
     expect(h.response).toHaveBeenCalledWith(await mockResponse.json())
     expect(codeMock).toHaveBeenCalledWith(200)
+    expect(result).toBe('finalResponse')
   })
 
-  it('should handle non-OK responses', async () => {
+  it('should throw Boom.internal on non-OK responses', async () => {
     mockResponse.ok = false
     mockResponse.text = vi.fn().mockResolvedValue('Not Found')
 
-    const request = { params: { localAuthority: 'Unknown Council' } }
-    const codeMock = vi.fn()
-    const h = { response: vi.fn().mockReturnValue({ code: codeMock }) }
+    const request = {
+      params: { localAuthority: 'Unknown Council' },
+      logger: { error: vi.fn() }
+    }
 
-    await getDocumentMetadata(request, h)
+    const h = {}
 
-    expect(h.response).toHaveBeenCalledWith({ error: 'Not Found' })
-    expect(codeMock).toHaveBeenCalledWith(mockResponse.status)
+    await expect(getDocumentMetadata(request, h)).rejects.toMatchObject({
+      isBoom: true,
+      isServer: true
+    })
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error fetching file metadata:',
+      expect.any(Error)
+    )
   })
 
-  it('should handle fetch errors', async () => {
+  it('should throw Boom.internal on fetch errors', async () => {
     fetch.mockRejectedValueOnce(new Error('Network error'))
 
-    const request = { params: { localAuthority: 'Newcastle City Council' } }
-    const codeMock = vi.fn()
-    const h = { response: vi.fn().mockReturnValue({ code: codeMock }) }
+    const request = {
+      params: { localAuthority: 'Newcastle City Council' },
+      logger: { error: vi.fn() }
+    }
 
-    await getDocumentMetadata(request, h)
+    const h = {}
 
-    expect(h.response).toHaveBeenCalledWith({ error: 'Internal Server Error' })
-    expect(codeMock).toHaveBeenCalledWith(500)
+    await expect(getDocumentMetadata(request, h)).rejects.toMatchObject({
+      isBoom: true,
+      isServer: true
+    })
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error fetching file metadata:',
+      expect.any(Error)
+    )
   })
 })
