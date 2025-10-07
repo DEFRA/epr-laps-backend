@@ -1,6 +1,7 @@
 // src/routes/documents.js
 import Joi from 'joi'
 import { getDocumentMetadata } from '../handler/documents/getMetadata.js'
+import { getDocument } from '../handler/documents/getDocument.js'
 
 export const fileRoutes = [
   {
@@ -26,6 +27,21 @@ export const fileRoutes = [
             language: Joi.string().required()
           })
         )
+      }
+    }
+  },
+  {
+    method: 'GET',
+    path: '/file/{id}',
+    handler: getDocument,
+    options: {
+      validate: {
+        params: Joi.object({
+          id: Joi.string().trim().required()
+        })
+      },
+      response: {
+        failAction: 'log'
       }
     }
   }
