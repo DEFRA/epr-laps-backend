@@ -3,12 +3,13 @@ import { example } from '../routes/example.js'
 import { getBankDetails } from '../handler/bankDetails/get.js'
 import { putBankDetails } from '../handler/bankDetails/put.js'
 import Joi from 'joi'
+import { accessControl } from '../routes/access-control.js'
 
 const router = {
   plugin: {
     name: 'router',
     register: (server, _options) => {
-      server.route([health].concat(example))
+      server.route([health].concat(example).concat(accessControl))
       // Bank details routes
       server.route([
         {
