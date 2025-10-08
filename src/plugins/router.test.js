@@ -10,7 +10,7 @@ describe('router plugin', () => {
     await server.register(router)
   })
 
-  it('registers routes without throwing', () => {
+  it('registers routes without throwing error', () => {
     // This just ensures the router plugin loads correctly
     expect(() => server.table()).not.toThrow()
     const routes = server.table().map((r) => r.path)
