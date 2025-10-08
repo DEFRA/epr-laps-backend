@@ -4,6 +4,10 @@ import { getDocumentMetadata } from './getMetadata.js'
 
 vi.mock('node-fetch', () => ({ default: vi.fn() }))
 
+vi.mock('../../common/helpers/utils/process-document-details.js', () => ({
+  processDocumentDetails: vi.fn().mockReturnValue('processedData')
+}))
+
 describe('getDocumentMetadata', () => {
   let mockResponse
 
@@ -12,6 +16,7 @@ describe('getDocumentMetadata', () => {
 
     mockResponse = {
       ok: true,
+      status: 200,
       json: vi.fn().mockResolvedValue([
         {
           id: '12345-abcde-67890-fghij',
@@ -24,8 +29,7 @@ describe('getDocumentMetadata', () => {
           language: 'EN'
         }
       ]),
-      text: vi.fn().mockResolvedValue('Not Found'),
-      status: 404
+      text: vi.fn().mockResolvedValue('Not Found')
     }
 
     fetch.mockResolvedValue(mockResponse)
@@ -38,7 +42,7 @@ describe('getDocumentMetadata', () => {
   it('should call the external API with correct URL', async () => {
     const request = {
       params: { localAuthority: 'Newcastle City Council' },
-      logger: { error: vi.fn() }
+      logger: { info: vi.fn(), error: vi.fn() }
     }
 
     const codeMock = vi.fn().mockReturnValue('finalResponse')
@@ -61,7 +65,7 @@ describe('getDocumentMetadata', () => {
   it('should return data from the external API', async () => {
     const request = {
       params: { localAuthority: 'Newcastle City Council' },
-      logger: { error: vi.fn() }
+      logger: { info: vi.fn(), error: vi.fn() }
     }
 
     const codeMock = vi.fn().mockReturnValue('finalResponse')
@@ -76,11 +80,12 @@ describe('getDocumentMetadata', () => {
 
   it('should throw Boom.internal on non-OK responses', async () => {
     mockResponse.ok = false
+    mockResponse.status = 404
     mockResponse.text = vi.fn().mockResolvedValue('Not Found')
 
     const request = {
       params: { localAuthority: 'Unknown Council' },
-      logger: { error: vi.fn() }
+      logger: { info: vi.fn(), error: vi.fn() }
     }
 
     const h = {}
@@ -101,7 +106,7 @@ describe('getDocumentMetadata', () => {
 
     const request = {
       params: { localAuthority: 'Newcastle City Council' },
-      logger: { error: vi.fn() }
+      logger: { info: vi.fn(), error: vi.fn() }
     }
 
     const h = {}
