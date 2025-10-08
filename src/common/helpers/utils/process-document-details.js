@@ -23,7 +23,7 @@ export function processDocumentDetails(documentDetails = []) {
   const documentTypeMap = {
     grant: 'Grant letter',
     remittance: 'Remittance letter',
-    assessment: 'Notice of assessment'
+    notice_of_assessment: 'Notice of assessment'
   }
 
   const formattedDocDetails = documentDetails.map((doc) => {

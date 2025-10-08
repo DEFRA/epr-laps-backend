@@ -34,7 +34,7 @@ describe('processDocumentDetails', () => {
 
   it('should map documentType "assessment" to "Notice of assessment"', () => {
     const result = processDocumentDetails([
-      { ...baseDoc, documentType: 'assessment' }
+      { ...baseDoc, documentType: 'notice_of_assessment' }
     ])
     expect(result[0].documentName).toBe('Notice of assessment Q2')
   })
