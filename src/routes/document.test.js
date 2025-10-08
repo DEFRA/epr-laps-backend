@@ -28,10 +28,10 @@ describe('fileRoutes routes', () => {
     server.route(fileRoutes)
   })
 
-  it('GET /file/metadata/{localAuthority} calls getDocumentMetadata', async () => {
+  it('GET /documents/{localAuthority} calls getDocumentMetadata', async () => {
     await server.inject({
       method: 'GET',
-      url: '/file/metadata/Westshire'
+      url: '/documents/Westshire'
     })
 
     expect(getModule.getDocumentMetadata).toHaveBeenCalledTimes(1)
