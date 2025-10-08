@@ -25,14 +25,15 @@ vi.mock('../../common/helpers/audit-logging.js', async (importOriginal) => {
 })
 
 describe('putBankDetails', () => {
-  let request, h, mockResponse, localAuthority, payload
+  let request, h, mockResponse, payload
 
   beforeEach(() => {
-    localAuthority = 'Some Local Authority'
+    const localAuthority = 'Some Local Authority'
     payload = { accountNumber: '12345678', sortcode: '12-34-56' }
+
     request = {
-      auth: { credentials: { localAuthority, role: roles.HOF } },
-      params: localAuthority, // <-- add this line
+      auth: { credentials: { role: roles.HOF }, isAuthorized: true },
+      params: { localAuthority },
       payload,
       logger: {
         error: vi.fn(),
@@ -41,6 +42,7 @@ describe('putBankDetails', () => {
         warn: vi.fn()
       }
     }
+
     mockResponse = {
       json: vi.fn().mockResolvedValue({ success: true }),
       status: 200
@@ -84,7 +86,7 @@ describe('putBankDetails', () => {
   })
 
   it('encodes the localAuthority in the URL', async () => {
-    request.params = 'A B&C'
+    request.params = { localAuthority: 'A B&C' }
     await putBankDetails(request, h)
     expect(fetch).toHaveBeenCalledWith(
       'http://api.example.com/bank-details/A%20B%26C',
@@ -142,5 +144,15 @@ describe('putBankDetails', () => {
       ActionKind.BankDetailsConfirmed,
       Outcome.Failure
     )
+  })
+
+  it('should return forbidden if user is not authorized', async () => {
+    request.auth.isAuthorized = false
+    request.auth.credentials.role = roles.CEO
+
+    const response = await putBankDetails(request, h)
+
+    expect(response.isBoom).toBe(true)
+    expect(response.output.statusCode).toBe(403)
   })
 })

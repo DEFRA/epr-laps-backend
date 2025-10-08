@@ -2,31 +2,43 @@ import { describe, it, expect } from 'vitest'
 import { processBankDetails } from './process-bank-details.js'
 
 describe('processBankDetails', () => {
-  it('returns unmasked sortcode for CEO role', () => {
-    const input = { sortCode: '654321', confirmed: false }
-    const role = 'Chief Executive Officer'
-    const output = processBankDetails(input, role)
+  it('returns unmasked sortcode and account number for roles authorized to view bank details', () => {
+    const input = {
+      sortCode: '654321',
+      accountNumber: '11112222',
+      confirmed: false
+    }
+    const output = processBankDetails(input, true)
     expect(output.sortCode).toBe('654321')
+    expect(output.accountNumber).toBe('11112222')
   })
 
-  it('masks sortcode for non-CEO roles', () => {
-    const input = { sortCode: '123456', confirmed: true }
-    const role = 'Staff'
-    const output = processBankDetails(input, role)
+  it('masks sortcode and account number for roles unauthorized to view bank details', () => {
+    const input = {
+      sortCode: '123456',
+      accountNumber: '33334444',
+      confirmed: true
+    }
+    const output = processBankDetails(input, false)
     expect(output.sortCode).toBe('ending with 56')
+    expect(output.accountNumber).toBe('ending with 444')
   })
 
-  it('returns unmasked sortcode for Head of Finance role', () => {
-    const input = { sortCode: '987654', confirmed: true }
-    const role = 'Head of Finance'
-    const output = processBankDetails(input, role)
-    expect(output.sortCode).toBe('987654')
+  it('handles masking when account number is short', () => {
+    const input = { sortCode: '9876', accountNumber: '12', confirmed: true }
+    const output = processBankDetails(input, false)
+    expect(output.sortCode).toBe('ending with 76')
+    expect(output.accountNumber).toBe('ending with 12')
   })
 
-  it('masks sortcode for non-CEO and non-HOF roles', () => {
-    const input = { sortCode: '123456', confirmed: true }
-    const role = 'Staff'
-    const output = processBankDetails(input, role)
-    expect(output.sortCode).toBe('ending with 56')
+  it('returns masked fields as strings (sanity check)', () => {
+    const input = {
+      sortCode: '111111',
+      accountNumber: '99999999',
+      confirmed: true
+    }
+    const output = processBankDetails(input, false)
+    expect(typeof output.sortCode).toBe('string')
+    expect(typeof output.accountNumber).toBe('string')
   })
 })
