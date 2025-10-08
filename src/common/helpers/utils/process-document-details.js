@@ -6,9 +6,13 @@
 
 export function processDocumentDetails(documentDetails = []) {
   const formatIsoToShort = (iso) => {
-    if (!iso) return undefined
+    if (!iso) {
+      return undefined
+    }
     const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return undefined
+    if (Number.isNaN(d.getTime())) {
+      return undefined
+    }
     return d.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
