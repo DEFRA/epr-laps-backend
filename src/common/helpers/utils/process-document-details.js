@@ -1,6 +1,8 @@
 export function processDocumentsByFinancialYear(documentDetails = []) {
   const formatIsoToShort = (iso) => {
-    if (!iso) return undefined
+    if (!iso) {
+      return undefined
+    }
 
     let date
     if (iso.includes('/')) {
@@ -10,7 +12,9 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
       date = new Date(iso)
     }
 
-    if (isNaN(date.getTime())) return undefined
+    if (isNaN(date.getTime())) {
+      return undefined
+    }
 
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
@@ -26,7 +30,9 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
   }
 
   const getFinancialYear = (dateString) => {
-    if (!dateString) return 'Unknown'
+    if (!dateString) {
+      return 'Unknown'
+    }
     let date
     if (dateString.includes('/')) {
       const [day, month, year] = dateString.split('/').map(Number)
@@ -35,7 +41,9 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
       date = new Date(dateString)
     }
 
-    if (isNaN(date)) return 'Unknown'
+    if (isNaN(date)) {
+      return 'Unknown'
+    }
 
     const year = date.getFullYear()
     const month = date.getMonth() + 1
