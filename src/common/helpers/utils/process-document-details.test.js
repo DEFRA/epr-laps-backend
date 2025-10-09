@@ -46,7 +46,7 @@ describe('processDocumentsByFinancialYear', () => {
       }
     ]
     const result = processDocumentsByFinancialYear(docs)
-    expect(result['2025 to 2026'][0].documentName).toBe('undefined Q3')
+    expect(result['2025 to 2026'][0].documentName).toBe('unknown Q3')
   })
 
   it('handles missing creationDate', () => {

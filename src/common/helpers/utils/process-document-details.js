@@ -1,22 +1,18 @@
 export function processDocumentsByFinancialYear(documentDetails = []) {
   const formatIsoToShort = (iso) => {
-    if (!iso) {
-      return undefined
-    }
+    if (!iso) return undefined
+    let parsedDate
 
-    let date
     if (iso.includes('/')) {
-      const [day, month, year] = iso.split('/').map(Number)
-      date = new Date(year, month - 1, day)
+      const [d, m, y] = iso.split('/').map(Number)
+      parsedDate = new Date(y, m - 1, d)
     } else {
-      date = new Date(iso)
+      parsedDate = new Date(iso)
     }
 
-    if (isNaN(date.getTime())) {
-      return undefined
-    }
+    if (isNaN(parsedDate.getTime())) return undefined
 
-    return date.toLocaleDateString('en-GB', {
+    return parsedDate.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -29,47 +25,46 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
     notice_of_assessment: 'Notice of assessment'
   }
 
-  const getFinancialYear = (dateString) => {
-    if (!dateString) {
-      return 'Unknown'
-    }
-    let date
+  const getFinancialYearRange = (dateString) => {
+    if (!dateString) return 'Unknown'
+
+    let parsedDate
     if (dateString.includes('/')) {
-      const [day, month, year] = dateString.split('/').map(Number)
-      date = new Date(year, month - 1, day)
+      const [d, m, y] = dateString.split('/').map(Number)
+      parsedDate = new Date(y, m - 1, d)
     } else {
-      date = new Date(dateString)
+      parsedDate = new Date(dateString)
     }
 
-    if (isNaN(date)) {
-      return 'Unknown'
-    }
+    if (isNaN(parsedDate.getTime())) return 'Unknown'
 
-    const year = date.getFullYear()
-    const month = date.getMonth() + 1
+    const year = parsedDate.getFullYear()
+    const month = parsedDate.getMonth() + 1
 
-    return month >= 4 ? `${year} to ${year + 1}` : `${year - 1} to ${year}`
+    // UK FY runs April–March
+    const start = month < 4 ? year - 1 : year
+    const end = start + 1
+
+    return `${start} to ${end}`
   }
 
-  const documentsByFinancialYear = {}
+  return documentDetails.reduce((acc, doc) => {
+    const formattedDate = formatIsoToShort(doc.creationDate)
+    const financialYearRange = getFinancialYearRange(doc.creationDate)
+    const typeLabel =
+      documentTypeMap[doc.documentType] || doc.documentType || 'Unknown'
+    const documentName = `${typeLabel} ${doc.quarter || ''}`.trim()
 
-  documentDetails.forEach((doc) => {
-    const financialYearKey = getFinancialYear(doc.creationDate)
-    const documentName =
-      documentTypeMap[doc.documentType?.toLowerCase()] + ' ' + doc.quarter
-
-    if (!documentsByFinancialYear[financialYearKey]) {
-      documentsByFinancialYear[financialYearKey] = []
-    }
-
-    documentsByFinancialYear[financialYearKey].push({
+    const processedDoc = {
       id: doc.id,
       fileName: doc.fileName,
       financialYear: doc.financialYear,
-      creationDate: formatIsoToShort(doc.creationDate),
+      creationDate: formattedDate,
       documentName
-    })
-  })
+    }
 
-  return documentsByFinancialYear
+    acc[financialYearRange] = acc[financialYearRange] || []
+    acc[financialYearRange].push(processedDoc)
+    return acc
+  }, {})
 }
