@@ -2,6 +2,11 @@ import fetch from 'node-fetch'
 import { config } from '../../config.js'
 import { statusCodes } from '../../common/constants/status-codes.js'
 import Boom from '@hapi/boom'
+import {
+  ActionKind,
+  Outcome,
+  writeAuditLog
+} from '../../common/helpers/audit-logging.js'
 
 const getDocument = async (request, h) => {
   try {
@@ -23,7 +28,11 @@ const getDocument = async (request, h) => {
 
     // Get the PDF as a buffer
     const fileBuffer = await response.arrayBuffer()
-
+    writeDocumentAccessedAuditLog(
+      request.auth.isAuthorized,
+      request,
+      Outcome.Success
+    )
     return h
       .response(Buffer.from(fileBuffer))
       .type('application/pdf')
@@ -31,8 +40,25 @@ const getDocument = async (request, h) => {
       .code(statusCodes.ok)
   } catch (error) {
     request.logger?.error('Error fetching file:', error)
+    writeDocumentAccessedAuditLog(
+      request.auth.isAuthorized,
+      request,
+      Outcome.Failure
+    )
     throw Boom.internal('Error fetching file')
   }
 }
 
 export { getDocument }
+
+export const writeDocumentAccessedAuditLog = (
+  canListDocuments,
+  request,
+  outcome
+) => {
+  if (canListDocuments) {
+    writeAuditLog(request, ActionKind.DocumentAccessed, outcome)
+    return
+  }
+  writeAuditLog(request, ActionKind.DocumentAccessed, outcome)
+}

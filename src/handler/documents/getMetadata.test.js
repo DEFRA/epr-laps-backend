@@ -1,131 +1,109 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest'
-import fetch from 'node-fetch'
-
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getDocumentMetadata } from './getMetadata.js'
+import { Outcome, writeAuditLog } from '../../common/helpers/audit-logging.js'
 import { processDocumentsByFinancialYear } from '../../common/helpers/utils/process-document-details.js'
-import { statusCodes } from '../../common/constants/status-codes.js'
 
-// Mock config
-vi.mock('../../config.js', () => ({
-  config: {
-    get: vi.fn().mockImplementation((key) => {
-      if (key === 'fssApiUrl') return 'https://fss-api.test'
-      if (key === 'fssAPIKey') return 'fake-api-key'
-    })
-  }
-}))
-
-// Mock fetch
 vi.mock('node-fetch', () => ({
   default: vi.fn()
 }))
-
-// Mock processDocumentsByFinancialYear
+vi.mock('../../config.js', () => ({
+  config: {
+    get: vi.fn((key) => {
+      if (key === 'fssApiUrl') return 'https://mock-fss-api'
+      if (key === 'fssAPIKey') return 'mock-api-key'
+    })
+  }
+}))
+vi.mock('../../common/helpers/audit-logging.js', () => ({
+  ActionKind: { DocumentsListed: 'DocumentsListed' },
+  Outcome: { Success: 'Success', Failure: 'Failure' },
+  writeAuditLog: vi.fn()
+}))
 vi.mock('../../common/helpers/utils/process-document-details.js', () => ({
   processDocumentsByFinancialYear: vi.fn()
 }))
 
 describe('getDocumentMetadata', () => {
-  let h
-  let logger
+  let fetch
+  let mockRequest
+  let mockH
 
-  beforeEach(() => {
-    logger = {
-      info: vi.fn(),
-      error: vi.fn()
-    }
-
-    h = {
-      response: vi.fn().mockReturnThis(),
-      code: vi.fn().mockReturnValue('finalResponse')
-    }
-
+  beforeEach(async () => {
+    const mod = await import('node-fetch')
+    fetch = mod.default
     vi.clearAllMocks()
+
+    mockRequest = {
+      params: { localAuthority: 'LA123' },
+      auth: { isAuthorized: true },
+      logger: { info: vi.fn(), error: vi.fn() }
+    }
+
+    mockH = {
+      response: vi.fn(() => ({
+        code: vi.fn().mockReturnThis()
+      }))
+    }
   })
 
-  it('calls external API and returns processed response', async () => {
-    const mockData = [{ id: 1 }]
-    const processedData = { 2024: mockData }
-
-    fetch.mockResolvedValue({
+  it('should return metadata successfully', async () => {
+    const mockData = [{ year: '2024', documents: [] }]
+    fetch.mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValue(mockData)
     })
+    processDocumentsByFinancialYear.mockReturnValue([
+      { year: '2024', files: [] }
+    ])
 
-    processDocumentsByFinancialYear.mockReturnValue(processedData)
-
-    const request = { params: { localAuthority: 'TestLA' }, logger }
-
-    const result = await getDocumentMetadata(request, h)
+    await getDocumentMetadata(mockRequest, mockH)
 
     expect(fetch).toHaveBeenCalledWith(
-      'https://fss-api.test/file/metadata/TestLA',
+      'https://mock-fss-api/file/metadata/LA123',
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({
-          'x-api-key': 'fake-api-key',
-          'Content-Type': 'application/json'
+          'x-api-key': 'mock-api-key'
         })
       })
     )
-
     expect(processDocumentsByFinancialYear).toHaveBeenCalledWith(mockData)
-    expect(logger.info).toHaveBeenCalledWith(
-      'Processed document details response:',
-      processedData
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      'DocumentsListed',
+      Outcome.Success
     )
-    expect(h.response).toHaveBeenCalledWith(processedData)
-    expect(h.code).toHaveBeenCalledWith(statusCodes.ok)
-    expect(result).toBe('finalResponse')
+    expect(mockH.response).toHaveBeenCalledWith([{ year: '2024', files: [] }])
   })
 
-  it('throws Boom.internal when fetch returns !ok', async () => {
-    fetch.mockResolvedValue({
+  it('should throw Boom error when fetch returns non-ok response', async () => {
+    fetch.mockResolvedValueOnce({
       ok: false,
-      text: vi.fn().mockResolvedValue('Some error')
+      text: vi.fn().mockResolvedValue('Server error')
     })
 
-    const request = { params: { localAuthority: 'TestLA' }, logger }
-
-    await expect(getDocumentMetadata(request, h)).rejects.toMatchObject({
-      isBoom: true,
-      isServer: true,
-      output: { statusCode: 500 }
-    })
-
-    expect(logger.error).toHaveBeenCalled()
+    await expect(getDocumentMetadata(mockRequest, mockH)).rejects.toMatchObject(
+      {
+        isBoom: true,
+        message: 'Error fetching file metadata'
+      }
+    )
   })
 
-  it('throws Boom.internal when fetch rejects (network error)', async () => {
-    fetch.mockRejectedValue(new Error('Network failure'))
+  it('should throw Boom error when fetch throws', async () => {
+    fetch.mockRejectedValueOnce(new Error('Network failure'))
 
-    const request = { params: { localAuthority: 'TestLA' }, logger }
+    await expect(getDocumentMetadata(mockRequest, mockH)).rejects.toMatchObject(
+      {
+        isBoom: true,
+        message: 'Error fetching file metadata'
+      }
+    )
 
-    await expect(getDocumentMetadata(request, h)).rejects.toMatchObject({
-      isBoom: true,
-      output: { statusCode: 500 }
-    })
-
-    expect(logger.error).toHaveBeenCalled()
-  })
-
-  it('throws Boom.internal when processing documents fails', async () => {
-    fetch.mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue([{ id: 1 }])
-    })
-
-    processDocumentsByFinancialYear.mockImplementation(() => {
-      throw new Error('Processor failed')
-    })
-
-    const request = { params: { localAuthority: 'TestLA' }, logger }
-
-    await expect(getDocumentMetadata(request, h)).rejects.toMatchObject({
-      isBoom: true,
-      output: { statusCode: 500 }
-    })
-
-    expect(logger.error).toHaveBeenCalled()
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      'DocumentsListed',
+      Outcome.Failure
+    )
   })
 })

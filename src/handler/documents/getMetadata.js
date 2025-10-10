@@ -3,6 +3,11 @@ import { config } from '../../config.js'
 import { statusCodes } from '../../common/constants/status-codes.js'
 import { processDocumentsByFinancialYear } from '../../common/helpers/utils/process-document-details.js'
 import Boom from '@hapi/boom'
+import {
+  ActionKind,
+  Outcome,
+  writeAuditLog
+} from '../../common/helpers/audit-logging.js'
 
 const getDocumentMetadata = async (request, h) => {
   try {
@@ -31,11 +36,33 @@ const getDocumentMetadata = async (request, h) => {
       processedDetails
     )
 
+    writeDocumentListedAuditLog(
+      request.auth.isAuthorized,
+      request,
+      Outcome.Success
+    )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (error) {
     request.logger.error('Error fetching file metadata:', error)
+    writeDocumentListedAuditLog(
+      request.auth.isAuthorized,
+      request,
+      Outcome.Failure
+    )
     throw Boom.internal('Error fetching file metadata')
   }
 }
 
 export { getDocumentMetadata }
+
+export const writeDocumentListedAuditLog = (
+  canListDocuments,
+  request,
+  outcome
+) => {
+  if (canListDocuments) {
+    writeAuditLog(request, ActionKind.DocumentsListed, outcome)
+    return
+  }
+  writeAuditLog(request, ActionKind.DocumentsListed, outcome)
+}
