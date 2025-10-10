@@ -3,8 +3,13 @@ import { processDocumentsByFinancialYear } from './process-document-details.js'
 
 describe('processDocumentsByFinancialYear', () => {
   it('returns empty object when no documents provided', () => {
-    expect(processDocumentsByFinancialYear()).toEqual({})
-    expect(processDocumentsByFinancialYear([])).toEqual({})
+    const result = processDocumentsByFinancialYear()
+    expect(result).toHaveProperty('currentFiscalYear')
+    expect(Object.keys(result)).toHaveLength(1)
+
+    const resultEmpty = processDocumentsByFinancialYear([])
+    expect(resultEmpty).toHaveProperty('currentFiscalYear')
+    expect(Object.keys(resultEmpty)).toHaveLength(1)
   })
 
   it('formats ISO date correctly', () => {
@@ -91,7 +96,10 @@ describe('processDocumentsByFinancialYear', () => {
       }
     ]
     const result = processDocumentsByFinancialYear(docs)
-    expect(Object.keys(result)).toHaveLength(2)
+
+    // Only consider keys that are actual financial years
+    const fyKeys = Object.keys(result).filter((k) => k !== 'currentFiscalYear')
+    expect(fyKeys).toHaveLength(2)
     expect(result['2025 to 2026']).toHaveLength(1)
     expect(result['2024 to 2025']).toHaveLength(1)
   })

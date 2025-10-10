@@ -56,9 +56,20 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
     return `${start} to ${end}`
   }
 
-  return documentDetails.reduce((acc, doc) => {
+  const getCurrentFiscalYear = () => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = today.getMonth() + 1
+    const start = month < 4 ? year - 1 : year
+    const end = start + 1
+    return `${start} to ${end}`
+  }
+
+  const currentFiscalYear = getCurrentFiscalYear()
+  const groupedDocuments = documentDetails.reduce((acc, doc) => {
     const formattedDate = formatIsoToShort(doc.creationDate)
     const financialYearRange = getFinancialYearRange(doc.creationDate)
+
     const typeLabel =
       documentTypeMap[doc.documentType] || doc.documentType || 'Unknown'
     const documentName = `${typeLabel} ${doc.quarter || ''}`.trim()
@@ -75,4 +86,9 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
     acc[financialYearRange].push(processedDoc)
     return acc
   }, {})
+
+  return {
+    ...groupedDocuments,
+    currentFiscalYear
+  }
 }
