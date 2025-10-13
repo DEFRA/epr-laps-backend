@@ -10,7 +10,9 @@ function formatIsoToShort(iso) {
     parsedDate = new Date(iso)
   }
 
-  if (isNaN(parsedDate.getTime())) return undefined
+  if (isNaN(parsedDate.getTime())) {
+    return undefined
+  }
 
   return parsedDate.toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -19,9 +21,11 @@ function formatIsoToShort(iso) {
   })
 }
 
-// Get financial year range from a date string
+// Get financial year range from a date string (FY: 6 April - 5 April)
 function getFinancialYearRange(dateString) {
-  if (!dateString) return 'Unknown'
+  if (!dateString) {
+    return 'Unknown'
+  }
 
   let parsedDate
   if (dateString.includes('/')) {
@@ -31,22 +35,31 @@ function getFinancialYearRange(dateString) {
     parsedDate = new Date(dateString)
   }
 
-  if (isNaN(parsedDate.getTime())) return 'Unknown'
+  if (isNaN(parsedDate.getTime())) {
+    return 'Unknown'
+  }
 
   const year = parsedDate.getFullYear()
   const month = parsedDate.getMonth() + 1
-  const start = month < 4 ? year - 1 : year
+  const day = parsedDate.getDate()
+
+  // FY starts on 6 April
+  const start = month > 4 || (month === 4 && day >= 6) ? year : year - 1
   const end = start + 1
+
   return `${start} to ${end}`
 }
 
-// Get current financial year
+// Get current financial year (FY: 6 April - 5 April)
 function getCurrentFiscalYear() {
   const today = new Date()
   const year = today.getFullYear()
   const month = today.getMonth() + 1
-  const start = month < 4 ? year - 1 : year
+  const day = today.getDate()
+
+  const start = month > 4 || (month === 4 && day >= 6) ? year : year - 1
   const end = start + 1
+
   return `${start} to ${end}`
 }
 
@@ -62,6 +75,7 @@ function getDocumentName(doc) {
   return `${typeLabel} ${doc.quarter || ''}`.trim()
 }
 
+// Process and group documents by financial year
 export function processDocumentsByFinancialYear(documentDetails = []) {
   const currentFiscalYear = getCurrentFiscalYear()
 
