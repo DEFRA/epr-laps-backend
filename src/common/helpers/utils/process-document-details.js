@@ -1,6 +1,11 @@
 // Format ISO or DD/MM/YYYY date to "d MMM yyyy"
+const FY_START_MONTH = 4
+const FY_START_DAY = 6
+
 function formatIsoToShort(iso) {
-  if (!iso) return undefined
+  if (!iso) {
+    return undefined
+  }
 
   let parsedDate
   if (iso.includes('/')) {
@@ -44,7 +49,10 @@ export function getFinancialYearRange(dateString) {
   const day = parsedDate.getDate()
 
   // FY starts on 6 April
-  const start = month > 4 || (month === 4 && day >= 6) ? year : year - 1
+  const start =
+    month > FY_START_MONTH || (month === FY_START_MONTH && day >= FY_START_DAY)
+      ? year
+      : year - 1
   const end = start + 1
 
   return `${start} to ${end}`
@@ -57,7 +65,10 @@ function getCurrentFiscalYear() {
   const month = today.getMonth() + 1
   const day = today.getDate()
 
-  const start = month > 4 || (month === 4 && day >= 6) ? year : year - 1
+  const start =
+    month > FY_START_MONTH || (month === FY_START_MONTH && day >= FY_START_DAY)
+      ? year
+      : year - 1
   const end = start + 1
 
   return `${start} to ${end}`
