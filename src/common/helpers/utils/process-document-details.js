@@ -22,7 +22,7 @@ function formatIsoToShort(iso) {
 }
 
 // Get financial year range from a date string (FY: 6 April - 5 April)
-function getFinancialYearRange(dateString) {
+export function getFinancialYearRange(dateString) {
   if (!dateString) {
     return 'Unknown'
   }
