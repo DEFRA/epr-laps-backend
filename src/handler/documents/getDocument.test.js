@@ -84,10 +84,6 @@ describe('getDocument', () => {
 
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
     expect(mockH.type).toHaveBeenCalledWith('application/pdf')
-    expect(mockH.header).toHaveBeenCalledWith(
-      'Content-Disposition',
-      'attachment; filename="file-123.pdf"'
-    )
     expect(mockH.code).toHaveBeenCalledWith(statusCodes.ok)
     expect(result).toBe(mockH)
   })

@@ -18,7 +18,7 @@ export const fileRoutes = [
   },
   {
     method: 'GET',
-    path: '/file/{id}',
+    path: '/document/{id}',
     handler: getDocument,
     options: {
       validate: {

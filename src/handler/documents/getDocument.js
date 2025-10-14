@@ -36,7 +36,6 @@ const getDocument = async (request, h) => {
     return h
       .response(Buffer.from(fileBuffer))
       .type('application/pdf')
-      .header('Content-Disposition', `attachment; filename="${id}.pdf"`)
       .code(statusCodes.ok)
   } catch (error) {
     request.logger?.error('Error fetching file:', error)
