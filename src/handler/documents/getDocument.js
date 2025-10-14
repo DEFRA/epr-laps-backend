@@ -21,6 +21,7 @@ const getDocument = async (request, h) => {
 
     if (!response.ok) {
       const errorText = await response.text()
+      request.logger?.error(errorText, 'Error fetching file:')
       return Boom.internal(errorText, 'Error fetching file:')
     }
 
