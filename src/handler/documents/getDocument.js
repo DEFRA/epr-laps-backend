@@ -4,7 +4,7 @@ import { statusCodes } from '../../common/constants/status-codes.js'
 import Boom from '@hapi/boom'
 
 const getDocument = async (request, h) => {
-  console.log('in get doc')
+  const errorMsg = 'Error fetching file:'
   try {
     const { id } = request.params
     const BASE_URL = config.get('fssApiUrl')
@@ -21,8 +21,8 @@ const getDocument = async (request, h) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      request.logger?.error(errorText, 'Error fetching file:')
-      return Boom.internal(errorText, 'Error fetching file:')
+      request.logger?.error(errorText, errorMsg)
+      return Boom.internal(errorText, errorMsg)
     }
 
     // Get the PDF as a buffer
@@ -33,7 +33,7 @@ const getDocument = async (request, h) => {
       .type('application/pdf')
       .code(statusCodes.ok)
   } catch (error) {
-    request.logger?.error(error, 'Error fetching file:')
+    request.logger?.error(error, errorMsg)
     throw Boom.internal('Error fetching file')
   }
 }
