@@ -17,7 +17,7 @@ vi.mock('../../config.js', () => ({
 describe('getDocument', () => {
   const mockRequest = {
     params: { id: '123' },
-    logger: { error: vi.fn() }
+    logger: { error: vi.fn(), debug: vi.fn() }
   }
 
   const mockH = {
@@ -59,7 +59,7 @@ describe('getDocument', () => {
   it('should throw Boom.internal if fetch fails', async () => {
     const mockRequest = {
       params: { id: '12345' },
-      logger: { error: vi.fn() }
+      logger: { error: vi.fn(), debug: vi.fn() }
     }
 
     const mockH = {}
@@ -71,15 +71,15 @@ describe('getDocument', () => {
     })
 
     expect(mockRequest.logger.error).toHaveBeenCalledWith(
-      'Error fetching file:',
-      expect.any(Error)
+      expect.any(Error),
+      'Error fetching file:'
     )
   })
 
   it('should throw Boom.internal on unexpected error', async () => {
     const mockRequest = {
       params: { id: '12345' },
-      logger: { error: vi.fn() }
+      logger: { error: vi.fn(), debug: vi.fn() }
     }
 
     const mockH = {}
@@ -91,8 +91,8 @@ describe('getDocument', () => {
     })
 
     expect(mockRequest.logger.error).toHaveBeenCalledWith(
-      'Error fetching file:',
-      expect.any(Error)
+      expect.any(Error),
+      'Error fetching file:'
     )
   })
 })

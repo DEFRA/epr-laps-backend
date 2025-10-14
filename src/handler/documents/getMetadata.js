@@ -20,7 +20,7 @@ const getDocumentMetadata = async (request, h) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw Boom.internal('Error fetching file metadata', errorText)
+      return Boom.internal(errorText, 'Error fetching file metadata')
     }
 
     const data = await response.json()

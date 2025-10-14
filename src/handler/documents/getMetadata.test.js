@@ -1,11 +1,9 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import fetch from 'node-fetch'
-
 import { getDocumentMetadata } from './getMetadata.js'
 import { processDocumentsByFinancialYear } from '../../common/helpers/utils/process-document-details.js'
 import { statusCodes } from '../../common/constants/status-codes.js'
 
-// Mock config
 vi.mock('../../config.js', () => ({
   config: {
     get: vi.fn().mockImplementation((key) => {
@@ -15,12 +13,10 @@ vi.mock('../../config.js', () => ({
   }
 }))
 
-// Mock fetch
 vi.mock('node-fetch', () => ({
   default: vi.fn()
 }))
 
-// Mock processDocumentsByFinancialYear
 vi.mock('../../common/helpers/utils/process-document-details.js', () => ({
   processDocumentsByFinancialYear: vi.fn()
 }))
@@ -30,10 +26,7 @@ describe('getDocumentMetadata', () => {
   let logger
 
   beforeEach(() => {
-    logger = {
-      info: vi.fn(),
-      error: vi.fn()
-    }
+    logger = { info: vi.fn(), error: vi.fn() }
 
     h = {
       response: vi.fn().mockReturnThis(),
@@ -51,7 +44,6 @@ describe('getDocumentMetadata', () => {
       ok: true,
       json: vi.fn().mockResolvedValue(mockData)
     })
-
     processDocumentsByFinancialYear.mockReturnValue(processedData)
 
     const request = { params: { localAuthority: 'TestLA' }, logger }
@@ -79,7 +71,7 @@ describe('getDocumentMetadata', () => {
     expect(result).toBe('finalResponse')
   })
 
-  it('throws Boom.internal when fetch returns !ok', async () => {
+  it('returns Boom.internal when fetch returns !ok', async () => {
     fetch.mockResolvedValue({
       ok: false,
       text: vi.fn().mockResolvedValue('Some error')
@@ -87,13 +79,12 @@ describe('getDocumentMetadata', () => {
 
     const request = { params: { localAuthority: 'TestLA' }, logger }
 
-    await expect(getDocumentMetadata(request, h)).rejects.toMatchObject({
-      isBoom: true,
-      isServer: true,
-      output: { statusCode: 500 }
-    })
+    const result = await getDocumentMetadata(request, h)
 
-    expect(logger.error).toHaveBeenCalled()
+    expect(result.isBoom).toBe(true)
+    expect(result.isServer).toBe(true)
+    expect(result.output.statusCode).toBe(500)
+    expect(logger.error).not.toHaveBeenCalled()
   })
 
   it('throws Boom.internal when fetch rejects (network error)', async () => {
@@ -106,7 +97,10 @@ describe('getDocumentMetadata', () => {
       output: { statusCode: 500 }
     })
 
-    expect(logger.error).toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith(
+      'Error fetching file metadata:',
+      expect.any(Error)
+    )
   })
 
   it('throws Boom.internal when processing documents fails', async () => {
@@ -126,6 +120,9 @@ describe('getDocumentMetadata', () => {
       output: { statusCode: 500 }
     })
 
-    expect(logger.error).toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith(
+      'Error fetching file metadata:',
+      expect.any(Error)
+    )
   })
 })
