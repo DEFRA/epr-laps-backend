@@ -9,6 +9,7 @@ import {
 } from '../../common/helpers/audit-logging.js'
 
 const getDocument = async (request, h) => {
+  const errorMsg = 'Error fetching file:'
   try {
     const { id } = request.params
     const BASE_URL = config.get('fssApiUrl')
@@ -21,9 +22,12 @@ const getDocument = async (request, h) => {
       }
     })
 
+    request.logger.debug('Document received:', response)
+
     if (!response.ok) {
       const errorText = await response.text()
-      throw Boom.internal('Error fetching file', errorText)
+      request.logger?.error(errorText, errorMsg)
+      return Boom.internal(errorText, errorMsg)
     }
 
     // Get the PDF as a buffer
@@ -38,7 +42,7 @@ const getDocument = async (request, h) => {
       .type('application/pdf')
       .code(statusCodes.ok)
   } catch (error) {
-    request.logger?.error('Error fetching file:', error)
+    request.logger?.error(error, errorMsg)
     writeDocumentAccessedAuditLog(
       request.auth.isAuthorized,
       request,

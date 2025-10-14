@@ -96,8 +96,8 @@ describe('getDocument', () => {
     )
 
     expect(mockRequest.logger.error).toHaveBeenCalledWith(
-      'Error fetching file:',
-      expect.any(Error)
+      expect.any(Error),
+      'Error fetching file:'
     )
 
     expect(writeAuditLog).toHaveBeenCalledWith(
