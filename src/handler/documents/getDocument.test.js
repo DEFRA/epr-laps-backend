@@ -41,7 +41,7 @@ describe('getDocument', () => {
   beforeEach(() => {
     mockRequest = {
       params: { id: 'file-123' },
-      logger: { error: vi.fn() },
+      logger: { error: vi.fn(), debug: vi.fn() }, // added debug
       auth: { isAuthorized: true }
     }
 
@@ -63,7 +63,9 @@ describe('getDocument', () => {
   it('should fetch a PDF successfully and return proper response', async () => {
     fetch.mockResolvedValue({
       ok: true,
-      arrayBuffer: async () => mockBuffer
+      status: 200,
+      arrayBuffer: async () => mockBuffer,
+      text: async () => ''
     })
 
     const result = await getDocument(mockRequest, mockH)

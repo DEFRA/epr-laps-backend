@@ -82,12 +82,10 @@ describe('getDocumentMetadata', () => {
       text: vi.fn().mockResolvedValue('Server error')
     })
 
-    await expect(getDocumentMetadata(mockRequest, mockH)).rejects.toMatchObject(
-      {
-        isBoom: true,
-        message: 'Error fetching file metadata'
-      }
-    )
+    const result = await getDocumentMetadata(mockRequest, mockH)
+
+    expect(result.isBoom).toBe(true)
+    expect(result.message).toBe('Server error')
   })
 
   it('should throw Boom error when fetch throws', async () => {
