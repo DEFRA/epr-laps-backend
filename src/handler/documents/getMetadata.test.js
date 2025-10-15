@@ -6,6 +6,7 @@ import { processDocumentsByFinancialYear } from '../../common/helpers/utils/proc
 vi.mock('node-fetch', () => ({
   default: vi.fn()
 }))
+
 vi.mock('../../config.js', () => ({
   config: {
     get: vi.fn((key) => {
@@ -14,11 +15,13 @@ vi.mock('../../config.js', () => ({
     })
   }
 }))
+
 vi.mock('../../common/helpers/audit-logging.js', () => ({
   ActionKind: { DocumentsListed: 'DocumentsListed' },
   Outcome: { Success: 'Success', Failure: 'Failure' },
   writeAuditLog: vi.fn()
 }))
+
 vi.mock('../../common/helpers/utils/process-document-details.js', () => ({
   processDocumentsByFinancialYear: vi.fn()
 }))
@@ -36,7 +39,7 @@ describe('getDocumentMetadata', () => {
     mockRequest = {
       params: { localAuthority: 'LA123' },
       auth: { isAuthorized: true, credentials: { role: 'admin' } },
-      logger: { info: vi.fn(), error: vi.fn() }
+      logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() } // added warn for unauthorized case
     }
 
     mockH = {
@@ -62,9 +65,7 @@ describe('getDocumentMetadata', () => {
       'https://mock-fss-api/file/metadata/LA123',
       expect.objectContaining({
         method: 'GET',
-        headers: expect.objectContaining({
-          'x-api-key': 'mock-api-key'
-        })
+        headers: expect.objectContaining({ 'x-api-key': 'mock-api-key' })
       })
     )
     expect(processDocumentsByFinancialYear).toHaveBeenCalledWith(mockData)
@@ -103,5 +104,20 @@ describe('getDocumentMetadata', () => {
       'DocumentsListed',
       Outcome.Failure
     )
+  })
+
+  it('should return Boom.forbidden if user is not authorized', async () => {
+    mockRequest.auth.isAuthorized = false
+    mockRequest.auth.credentials.role = 'viewer'
+
+    const result = await getDocumentMetadata(mockRequest, mockH)
+
+    expect(result.isBoom).toBe(true)
+    expect(result.output.statusCode).toBe(403)
+    expect(result.message).toBe('viewer not allowed to get document list')
+    expect(mockRequest.logger.warn).toHaveBeenCalledWith(
+      'User with role viewer tried to get document list'
+    )
+    expect(writeAuditLog).not.toHaveBeenCalled()
   })
 })
