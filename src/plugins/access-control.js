@@ -2,7 +2,9 @@ import { config } from '../config.js'
 
 const routePermissionMap = {
   'GET /bank-details/{localAuthority}': 'viewFullBankDetails',
-  'PUT /bank-details/{localAuthority}': 'confirmBankDetails'
+  'PUT /bank-details/{localAuthority}': 'confirmBankDetails',
+  'GET /documents/{localAuthority}': 'listFinanceDocuments',
+  'GET /document/{id}': 'accessFinanceDocument'
 }
 
 const rolesMap = {
