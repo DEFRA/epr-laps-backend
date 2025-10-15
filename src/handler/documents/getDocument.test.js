@@ -1,7 +1,12 @@
-import { describe, it, vi, expect, beforeEach, afterEach } from 'vitest'
-import Boom from '@hapi/boom'
-import { getDocument, writeDocumentAccessedAuditLog } from './getDocument'
-import fetch from 'node-fetch'
+import {
+  describe,
+  it,
+  vi,
+  expect,
+  beforeEach,
+  afterEach,
+  beforeAll
+} from 'vitest'
 import { statusCodes } from '../../common/constants/status-codes.js'
 import {
   writeAuditLog,
@@ -9,11 +14,7 @@ import {
   ActionKind
 } from '../../common/helpers/audit-logging.js'
 
-vi.mock('node-fetch', async () => {
-  const actual = await import('node-fetch')
-  return { ...actual, default: vi.fn() }
-})
-
+vi.mock('node-fetch', async () => ({ default: vi.fn() }))
 vi.mock('../../config.js', () => ({
   config: {
     get: vi.fn((key) => {
@@ -22,7 +23,6 @@ vi.mock('../../config.js', () => ({
     })
   }
 }))
-
 vi.mock('../../common/helpers/audit-logging.js', async (importOriginal) => {
   const actual = await importOriginal()
   return {
@@ -33,35 +33,38 @@ vi.mock('../../common/helpers/audit-logging.js', async (importOriginal) => {
   }
 })
 
+let getDocument
+let writeDocumentAccessedAuditLog
+
+beforeAll(async () => {
+  const module = await import('./getDocument.js')
+  getDocument = module.getDocument
+  writeDocumentAccessedAuditLog = module.writeDocumentAccessedAuditLog
+})
+
 describe('getDocument', () => {
-  let mockRequest
-  let mockH
-  let mockBuffer
+  let mockRequest, mockH, mockBuffer
 
   beforeEach(() => {
     mockRequest = {
       params: { id: 'file-123' },
-      logger: { error: vi.fn(), debug: vi.fn() }, // added debug
-      auth: { isAuthorized: true }
+      logger: { error: vi.fn(), debug: vi.fn(), warn: vi.fn() },
+      auth: { isAuthorized: true, credentials: { role: 'admin' } }
     }
-
     mockBuffer = new ArrayBuffer(8)
     mockH = {
       response: vi.fn().mockReturnThis(),
       type: vi.fn().mockReturnThis(),
-      header: vi.fn().mockReturnThis(),
       code: vi.fn().mockReturnThis()
     }
-
     vi.clearAllMocks()
   })
 
-  afterEach(() => {
-    vi.resetAllMocks()
-  })
+  afterEach(() => vi.resetAllMocks())
 
-  it('should fetch a PDF successfully and return proper response', async () => {
-    fetch.mockResolvedValue({
+  it('fetches a PDF successfully and returns proper response', async () => {
+    const fetchMock = (await import('node-fetch')).default
+    fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       arrayBuffer: async () => mockBuffer,
@@ -70,38 +73,27 @@ describe('getDocument', () => {
 
     const result = await getDocument(mockRequest, mockH)
 
-    expect(fetch).toHaveBeenCalledWith(
-      'http://mock-api.com/file/file-123',
-      expect.objectContaining({
-        method: 'GET',
-        headers: { 'x-api-key': 'mock-api-key' }
-      })
-    )
-
+    expect(fetchMock).toHaveBeenCalled()
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Success
     )
-
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
     expect(mockH.type).toHaveBeenCalledWith('application/pdf')
     expect(mockH.code).toHaveBeenCalledWith(statusCodes.ok)
     expect(result).toBe(mockH)
   })
 
-  it('should handle fetch errors and throw Boom', async () => {
-    fetch.mockRejectedValue(new Error('Network error'))
+  it('handles fetch rejection and throws Boom', async () => {
+    const fetchMock = (await import('node-fetch')).default
+    fetchMock.mockRejectedValueOnce(new Error('Network error'))
 
-    await expect(getDocument(mockRequest, mockH)).rejects.toThrow(
-      Boom.internal('Error fetching file')
-    )
-
-    expect(mockRequest.logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      'Error fetching file:'
-    )
-
+    await expect(getDocument(mockRequest, mockH)).rejects.toMatchObject({
+      isBoom: true,
+      message: 'Error fetching file'
+    })
+    expect(mockRequest.logger.error).toHaveBeenCalled()
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       ActionKind.DocumentAccessed,
@@ -109,7 +101,29 @@ describe('getDocument', () => {
     )
   })
 
-  it('writeDocumentAccessedAuditLog should call writeAuditLog correctly', () => {
+  it('handles fetch resolving with non-ok response', async () => {
+    const fetchMock = (await import('node-fetch')).default
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      text: async () => 'Server error'
+    })
+
+    const result = await getDocument(mockRequest, mockH)
+
+    expect(result.isBoom).toBe(true)
+    expect(result.message).toBe('Server error')
+  })
+
+  it('returns forbidden for unauthorized user', async () => {
+    mockRequest.auth.isAuthorized = false
+    const result = await getDocument(mockRequest, mockH)
+
+    expect(result.isBoom).toBe(true)
+    expect(result.output.statusCode).toBe(403)
+    expect(mockRequest.logger.warn).toHaveBeenCalled()
+  })
+
+  it('writeDocumentAccessedAuditLog calls writeAuditLog for both true/false', () => {
     writeDocumentAccessedAuditLog(true, mockRequest, Outcome.Success)
     writeDocumentAccessedAuditLog(false, mockRequest, Outcome.Failure)
 

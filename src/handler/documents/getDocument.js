@@ -12,6 +12,11 @@ const getDocument = async (request, h) => {
   const errorMsg = 'Error fetching file:'
   try {
     const { id } = request.params
+    const { role } = request.auth.credentials
+    if (!request.auth.isAuthorized) {
+      request.logger.warn(`User with role ${role} tried to access the document`)
+      return Boom.forbidden(`${role} not allowed to access the document`)
+    }
     const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/file/${id}`
 

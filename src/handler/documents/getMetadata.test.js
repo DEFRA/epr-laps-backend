@@ -35,7 +35,7 @@ describe('getDocumentMetadata', () => {
 
     mockRequest = {
       params: { localAuthority: 'LA123' },
-      auth: { isAuthorized: true },
+      auth: { isAuthorized: true, credentials: { role: 'admin' } },
       logger: { info: vi.fn(), error: vi.fn() }
     }
 
@@ -76,7 +76,7 @@ describe('getDocumentMetadata', () => {
     expect(mockH.response).toHaveBeenCalledWith([{ year: '2024', files: [] }])
   })
 
-  it('should throw Boom error when fetch returns non-ok response', async () => {
+  it('should return Boom error when fetch returns non-ok response', async () => {
     fetch.mockResolvedValueOnce({
       ok: false,
       text: vi.fn().mockResolvedValue('Server error')

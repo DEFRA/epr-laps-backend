@@ -12,6 +12,11 @@ import {
 const getDocumentMetadata = async (request, h) => {
   try {
     const { localAuthority } = request.params
+    const { role } = request.auth.credentials
+    if (!request.auth.isAuthorized) {
+      request.logger.warn(`User with role ${role} tried to get document list`)
+      return Boom.forbidden(`${role} not allowed to get document list`)
+    }
     const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/file/metadata/${localAuthority}`
 
