@@ -150,6 +150,12 @@ const config = convict({
     default: 'some-api-key',
     env: 'FSS_API_KEY'
   },
+  currentFiscalYear: {
+    doc: 'Fiscal year range to pass to frontend',
+    format: String,
+    default: '2025 to 2026',
+    env: 'CURRENT_FISCAL_YEAR'
+  },
   authorization: {
     viewFullBankDetails: {
       doc: 'Permission roles allowed to view full bank details',

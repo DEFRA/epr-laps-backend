@@ -1,3 +1,5 @@
+import { config } from '../../../config'
+
 // Format ISO or DD/MM/YYYY date to "d MMM yyyy"
 const FY_START_MONTH = 4
 const FY_START_DAY = 6
@@ -51,22 +53,6 @@ export function getFinancialYearRange(dateString) {
   return `${start} to ${end}`
 }
 
-// Get current financial year (FY: 6 April - 5 April)
-function getCurrentFiscalYear() {
-  const today = new Date()
-  const year = today.getFullYear()
-  const month = today.getMonth() + 1
-  const day = today.getDate()
-
-  const start =
-    month > FY_START_MONTH || (month === FY_START_MONTH && day >= FY_START_DAY)
-      ? year
-      : year - 1
-  const end = start + 1
-
-  return `${start} to ${end}`
-}
-
 // Map document type to readable label
 function getDocumentName(doc) {
   const documentTypeMap = {
@@ -81,7 +67,7 @@ function getDocumentName(doc) {
 
 // Process and group documents by financial year
 export function processDocumentsByFinancialYear(documentDetails = []) {
-  const currentFiscalYear = getCurrentFiscalYear()
+  const currentFiscalYear = config.get('currentFiscalYear')
   const RECENT_DOC_DAYS_LIMIT = 30
   const today = new Date()
 
