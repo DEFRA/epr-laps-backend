@@ -154,7 +154,7 @@ const config = convict({
     doc: 'Fiscal year range to pass to frontend',
     format: String,
     default: '2025 to 2026',
-    env: 'CURRENT_FISCAL_YEAR'
+    env: 'SINGLE_PAYMENT_DOC_WARNING_YEAR'
   },
   authorization: {
     viewFullBankDetails: {
