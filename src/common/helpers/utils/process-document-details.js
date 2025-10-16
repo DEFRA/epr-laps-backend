@@ -3,7 +3,9 @@ const FY_START_MONTH = 4
 const FY_START_DAY = 6
 
 function parseDateString(dateString) {
-  if (!dateString) return undefined
+  if (!dateString) {
+    return undefined
+  }
 
   let parsedDate
   if (dateString.includes('/')) {
@@ -18,7 +20,9 @@ function parseDateString(dateString) {
 
 function formatIsoToShort(iso) {
   const parsedDate = parseDateString(iso)
-  if (!parsedDate) return undefined
+  if (!parsedDate) {
+    return undefined
+  }
 
   return parsedDate.toLocaleDateString('en-GB', {
     day: 'numeric',
