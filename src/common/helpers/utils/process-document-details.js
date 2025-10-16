@@ -34,7 +34,9 @@ function formatIsoToShort(iso) {
 // Get financial year range from a date string (FY: 6 April - 5 April)
 export function getFinancialYearRange(dateString) {
   const parsedDate = parseDateString(dateString)
-  if (!parsedDate) return 'Unknown'
+  if (!parsedDate) {
+    return 'Unknown'
+  }
 
   const year = parsedDate.getFullYear()
   const month = parsedDate.getMonth() + 1
