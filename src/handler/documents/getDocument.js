@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 import { config } from '../../config.js'
 import { statusCodes } from '../../common/constants/status-codes.js'
 import Boom from '@hapi/boom'
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import {
   ActionKind,
   Outcome,
@@ -38,35 +38,94 @@ const getDocument = async (request, h) => {
     const uint8Array = new Uint8Array(arrayBuffer)
 
     const pdfDoc = await pdfjsLib.getDocument({ data: uint8Array }).promise
-    let html = '<html><body>'
+
+    // Start HTML with GOV.UK layout wrappers and stylesheet
+    let html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Document Preview</title>
+        <link href="/public/stylesheets/application.css" rel="stylesheet">
+        <style>
+          .pdf-page { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #ccc; }
+        </style>
+      </head>
+      <body class="govuk-template__body">
+        <div class="govuk-width-container">
+          <main class="govuk-main-wrapper" id="main-content" role="main">
+    `
 
     for (let i = 1; i <= pdfDoc.numPages; i++) {
       const page = await pdfDoc.getPage(i)
       const textContent = await page.getTextContent()
-      const pageText = textContent.items.map(item => item.str).join(' ')
-      html += `<div class="pdf-page" id="page-${i}"><p>${pageText}</p></div>`
+      const lines = textContent.items
+        .map((item) => item.str.trim())
+        .filter(Boolean)
+
+      let pageHtml = ''
+      let inList = false
+      for (let idx = 0; idx < lines.length; idx++) {
+        const line = lines[idx]
+        // Bullet point handling: treat "•" as the start of a list item and the next line as the content
+        if (line === '•') {
+          if (!inList) {
+            pageHtml += '<ul class="govuk-list govuk-list--bullet">'
+            inList = true
+          }
+          const nextLine = lines[idx + 1] || ''
+          pageHtml += `<li>${nextLine}</li>`
+          idx++ // skip the next line, as it's part of this list item
+        } else {
+          if (inList) {
+            pageHtml += '</ul>'
+            inList = false
+          }
+          if (line.length > 0 && line === line.toUpperCase()) {
+            pageHtml += `<h2 class="govuk-heading-m">${line}</h2>`
+          } else {
+            pageHtml += `<p class="govuk-body">${line}</p>`
+          }
+        }
+      }
+      if (inList) {
+        pageHtml += '</ul>'
+        inList = false
+      }
+      html += `<div class="pdf-page govuk-section" id="page-${i}">${pageHtml}</div>`
     }
 
-    html += '</body></html>'
+    html += `
+          </main>
+        </div>
+      </body>
+      </html>
+    `
 
-    console.log('THE HTML::', html)
+    writeDocumentAccessedAuditLog(
+      request.auth.isAuthorized,
+      request,
+      Outcome.Success
+    )
 
-    writeDocumentAccessedAuditLog(request.auth.isAuthorized, request, Outcome.Success)
-
-    return h
-      .response(html)
-      .type('text/html')
-      .code(statusCodes.ok)
-
+    return h.response(html).type('text/html').code(statusCodes.ok)
   } catch (error) {
     request.logger?.error(error, errorMsg)
-    writeDocumentAccessedAuditLog(request.auth.isAuthorized, request, Outcome.Failure)
+    writeDocumentAccessedAuditLog(
+      request.auth.isAuthorized,
+      request,
+      Outcome.Failure
+    )
     throw Boom.internal('Error fetching file')
   }
 }
 
 export { getDocument }
 
-export const writeDocumentAccessedAuditLog = (canListDocuments, request, outcome) => {
+export const writeDocumentAccessedAuditLog = (
+  canListDocuments,
+  request,
+  outcome
+) => {
   writeAuditLog(request, ActionKind.DocumentAccessed, outcome)
 }
