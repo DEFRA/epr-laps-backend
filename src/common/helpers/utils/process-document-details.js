@@ -1,4 +1,4 @@
-import { config } from '../../../config'
+import { config } from '../../../config.js'
 
 // Format ISO or DD/MM/YYYY date to "d MMM yyyy"
 const FY_START_MONTH = 4
