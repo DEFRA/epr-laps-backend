@@ -9,6 +9,26 @@ import {
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
 
+/**
+ * Groups PDF.js text items into lines using Y coordinate (transform[5]).
+ * Items with very close Y are considered part of the same line.
+ */
+function groupItemsByLine(items, tolerance = 2) {
+  const lines = []
+  items.forEach((item) => {
+    const y = item.transform[5]
+    let line = lines.find((l) => Math.abs(l.y - y) < tolerance)
+    if (!line) {
+      line = { y, str: [] }
+      lines.push(line)
+    }
+    line.str.push(item.str)
+  })
+  // Sort lines top-down (PDF coordinate system: higher Y is higher up)
+  lines.sort((a, b) => b.y - a.y)
+  return lines.map((l) => l.str.join(' ').trim())
+}
+
 const getDocument = async (request, h) => {
   const errorMsg = 'Error fetching file:'
   try {
@@ -59,9 +79,8 @@ const getDocument = async (request, h) => {
     for (let i = 1; i <= pdfDoc.numPages; i++) {
       const page = await pdfDoc.getPage(i)
       const textContent = await page.getTextContent()
-      const lines = textContent.items
-        .map((item) => item.str.trim())
-        .filter(Boolean)
+      // Use the grouping helper instead of treating each item as a line
+      const lines = groupItemsByLine(textContent.items).filter(Boolean)
 
       let pageHtml = ''
       let inList = false
