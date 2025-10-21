@@ -38,7 +38,7 @@ const getDocumentMetadata = async (request, h) => {
 
     request.logger.info(
       { processedDetails },
-      'Processed document details response'
+      'Processed document details response:'
     )
     writeDocumentListedAuditLog(
       request.auth.isAuthorized,
