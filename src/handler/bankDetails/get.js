@@ -32,8 +32,7 @@ const getBankDetails = async (request, h) => {
       request.auth.isAuthorized
     )
     request.logger.info(
-      { processedDetails },
-      'Processed bank details response:'
+      `Processed Bank details response:': ${JSON.stringify(processedDetails)}`
     )
 
     writeBankDetailsAuditLog(
