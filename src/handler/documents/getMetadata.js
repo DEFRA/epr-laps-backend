@@ -37,8 +37,8 @@ const getDocumentMetadata = async (request, h) => {
     const processedDetails = processDocumentsByFinancialYear(data)
 
     request.logger.info(
-      processedDetails,
-      'Processed document details response:'
+      { processedDetails },
+      'Processed document details response'
     )
     writeDocumentListedAuditLog(
       request.auth.isAuthorized,

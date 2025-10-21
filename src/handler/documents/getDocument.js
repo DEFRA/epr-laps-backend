@@ -17,7 +17,7 @@ const getDocument = async (request, h) => {
       request.logger.warn(`User with role ${role} tried to access the document`)
       return Boom.forbidden(`${role} not allowed to access the document`)
     }
-    const BASE_URL = 'http://localhost:3002'
+    const BASE_URL = config.get('fssApiUrl')
     const url = `${BASE_URL}/file/${id}`
 
     const response = await fetch(url, {
