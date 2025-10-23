@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { processDocumentsByFinancialYear, getFinancialYearRange } from './process-document-details.js'
+import {
+  processDocumentsByFinancialYear,
+  getFinancialYearRange
+} from './process-document-details.js'
 
 describe('processDocumentsByFinancialYear', () => {
   it('returns empty object when no documents provided', () => {
