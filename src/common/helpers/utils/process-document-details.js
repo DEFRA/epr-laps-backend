@@ -66,6 +66,43 @@ function getDocumentName(doc) {
 }
 
 // Process and group documents by financial year
+// export function processDocumentsByFinancialYear(documentDetails = []) {
+//   const currentFiscalYear = config.get('currentFiscalYear')
+//   const RECENT_DOC_DAYS_LIMIT = 30
+//   const today = new Date()
+
+//   const groupedDocuments = documentDetails.reduce((acc, doc) => {
+//     const parsedDate = parseDateString(doc.creationDate)
+//     const formattedDate = formatIsoToShort(doc.creationDate)
+//     const financialYearRange = getFinancialYearRange(doc.creationDate)
+//     const documentName = getDocumentName(doc)
+
+//     // Check if document is within the last 30 days
+//     const diffDays = parsedDate
+//       ? (today - parsedDate) / (1000 * 60 * 60 * 24)
+//       : Infinity
+//     const isLatest = diffDays <= RECENT_DOC_DAYS_LIMIT
+
+//     const processedDoc = {
+//       id: doc.id,
+//       fileName: doc.fileName,
+//       financialYear: doc.financialYear,
+//       creationDate: formattedDate,
+//       documentName,
+//       isLatest
+//     }
+
+//     acc[financialYearRange] = acc[financialYearRange] || []
+//     acc[financialYearRange].push(processedDoc)
+//     return acc
+//   }, {})
+
+//   return {
+//     ...groupedDocuments,
+//     currentFiscalYear
+//   }
+// }
+
 export function processDocumentsByFinancialYear(documentDetails = []) {
   const currentFiscalYear = config.get('currentFiscalYear')
   const RECENT_DOC_DAYS_LIMIT = 30
@@ -76,6 +113,7 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
     const formattedDate = formatIsoToShort(doc.creationDate)
     const financialYearRange = getFinancialYearRange(doc.creationDate)
     const documentName = getDocumentName(doc)
+    const language = doc.language || 'EN'
 
     // Check if document is within the last 30 days
     const diffDays = parsedDate
@@ -92,8 +130,15 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
       isLatest
     }
 
-    acc[financialYearRange] = acc[financialYearRange] || []
-    acc[financialYearRange].push(processedDoc)
+    // Initialize grouping if needed
+    if (!acc[financialYearRange]) {
+      acc[financialYearRange] = {}
+    }
+    if (!acc[financialYearRange][language]) {
+      acc[financialYearRange][language] = []
+    }
+
+    acc[financialYearRange][language].push(processedDoc)
     return acc
   }, {})
 
