@@ -26,7 +26,8 @@ describe('processDocumentsByFinancialYear', () => {
       }
     ]
     const result = processDocumentsByFinancialYear(docs)
-    expect(result['2025 to 2026'][0].creationDate).toMatch(/15 May 2025/)
+    const fyDocs = result['2025 to 2026']['EN']
+    expect(fyDocs[0].creationDate).toMatch(/15 May 2025/)
   })
 
   it('formats DD/MM/YYYY date correctly', () => {
@@ -40,7 +41,8 @@ describe('processDocumentsByFinancialYear', () => {
       }
     ]
     const result = processDocumentsByFinancialYear(docs)
-    expect(result['2024 to 2025'][0].creationDate).toMatch(/15 Mar 2025/)
+    const fyDocs = result['2024 to 2025']['EN']
+    expect(fyDocs[0].creationDate).toMatch(/15 Mar 2025/)
   })
 
   it('handles unknown documentType gracefully', () => {
@@ -54,7 +56,8 @@ describe('processDocumentsByFinancialYear', () => {
       }
     ]
     const result = processDocumentsByFinancialYear(docs)
-    expect(result['2025 to 2026'][0].documentName).toBe('unknown Q3')
+    const fyDocs = result['2025 to 2026']['EN']
+    expect(fyDocs[0].documentName).toBe('unknown Q3')
   })
 
   it('handles missing creationDate', () => {
@@ -62,8 +65,9 @@ describe('processDocumentsByFinancialYear', () => {
       { id: 4, fileName: 'file4.pdf', documentType: 'grant', quarter: 'Q4' }
     ]
     const result = processDocumentsByFinancialYear(docs)
-    expect(result['Unknown'][0].creationDate).toBeUndefined()
-    expect(result['Unknown'][0].documentName).toBe('Grant letter Q4')
+    const fyDocs = result['Unknown']['EN']
+    expect(fyDocs[0].creationDate).toBeUndefined()
+    expect(fyDocs[0].documentName).toBe('Grant letter Q4')
   })
 
   it('handles invalid date string', () => {
@@ -77,8 +81,9 @@ describe('processDocumentsByFinancialYear', () => {
       }
     ]
     const result = processDocumentsByFinancialYear(docs)
-    expect(result['Unknown'][0].creationDate).toBeUndefined()
-    expect(result['Unknown'][0].documentName).toBe('Notice of assessment Q1')
+    const fyDocs = result['Unknown']['EN']
+    expect(fyDocs[0].creationDate).toBeUndefined()
+    expect(fyDocs[0].documentName).toBe('Notice of assessment Q1')
   })
 
   it('groups multiple documents by financial year', () => {
@@ -100,11 +105,11 @@ describe('processDocumentsByFinancialYear', () => {
     ]
     const result = processDocumentsByFinancialYear(docs)
 
-    // Only consider keys that are actual financial years
     const fyKeys = Object.keys(result).filter((k) => k !== 'currentFiscalYear')
     expect(fyKeys).toHaveLength(2)
-    expect(result['2025 to 2026']).toHaveLength(1)
-    expect(result['2024 to 2025']).toHaveLength(1)
+
+    expect(result['2025 to 2026']['EN']).toHaveLength(1)
+    expect(result['2024 to 2025']['EN']).toHaveLength(1)
   })
 })
 
