@@ -1,6 +1,7 @@
 import Joi from 'joi'
 import { getBankDetails } from '../handler/bankDetails/get.js'
 import { putBankDetails } from '../handler/bankDetails/put.js'
+import { postBankDetails } from '../handler/bankDetails/post.js'
 
 export const bankDetailsRoutes = [
   {
@@ -29,6 +30,22 @@ export const bankDetailsRoutes = [
           sortCode: Joi.string().required(),
           accountNumber: Joi.string().required(),
           confirmed: Joi.boolean().valid(true).required()
+        }).options({ stripUnknown: true })
+      }
+    }
+  },
+  {
+    method: 'POST',
+    path: '/bank-details',
+    handler: postBankDetails,
+    options: {
+      validate: {
+        payload: Joi.object({
+          localAuthority: Joi.string().trim().required(),
+          accountName: Joi.string().trim().max(100).required(),
+          sortCode: Joi.string().required(),
+          accountNumber: Joi.string().required(),
+          requesterName: Joi.string().trim().max(100).required()
         }).options({ stripUnknown: true })
       }
     }
