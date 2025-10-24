@@ -10,7 +10,6 @@ import {
   ActionKind
 } from '../../common/helpers/audit-logging.js'
 
-// --- Mock dependencies --- //
 vi.mock('node-fetch', () => ({
   default: vi.fn()
 }))
@@ -27,7 +26,6 @@ vi.mock('../../common/helpers/audit-logging.js', async (importOriginal) => {
   }
 })
 
-// --- Tests --- //
 describe('postBankDetails', () => {
   let request, h, mockResponse, payload
 
@@ -154,5 +152,25 @@ describe('postBankDetails', () => {
 
     expect(response.isBoom).toBe(true)
     expect(response.output.statusCode).toBe(403)
+  })
+
+  it('logs error and returns Boom.badRequest when response.ok is false', async () => {
+    const failedData = { message: 'Invalid payload' }
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      statusText: 'Bad Request',
+      json: async () => failedData
+    })
+
+    const result = await postBankDetails(request, h)
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      `Failed to create bank details: 400 Bad Request`,
+      failedData
+    )
+    expect(result.isBoom).toBe(true)
+    expect(result.output.statusCode).toBe(400)
+    expect(result.output.payload.message).toBe('Invalid payload')
   })
 })
