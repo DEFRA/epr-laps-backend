@@ -42,10 +42,10 @@ const postBankDetails = async (request, h) => {
         request,
         Outcome.Failure
       )
-      return Boom.badRequest(data?.message || 'Failed to create bank details')
+      return Boom.internal('Failed to create bank details')
     }
 
-    request.logger.debug('Bank details created successfully:', data)
+    request.logger.debug(data, 'Bank details created successfully:')
 
     writeCreateBankDetailsAuditLog(
       request.auth.isAuthorized,
