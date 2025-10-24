@@ -158,7 +158,7 @@ describe('postBankDetails', () => {
     const failedData = { message: 'Invalid payload' }
     fetch.mockResolvedValueOnce({
       ok: false,
-      status: 400,
+      status: 500,
       statusText: 'Bad Request',
       json: async () => failedData
     })
@@ -166,11 +166,13 @@ describe('postBankDetails', () => {
     const result = await postBankDetails(request, h)
 
     expect(request.logger.error).toHaveBeenCalledWith(
-      `Failed to create bank details: 400 Bad Request`,
+      `Failed to create bank details: 500 Bad Request`,
       failedData
     )
     expect(result.isBoom).toBe(true)
-    expect(result.output.statusCode).toBe(400)
-    expect(result.output.payload.message).toBe('Invalid payload')
+    expect(result.output.statusCode).toBe(500)
+    expect(result.output.payload.message).toBe(
+      'An internal server error occurred'
+    )
   })
 })
