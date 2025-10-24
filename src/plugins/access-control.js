@@ -4,7 +4,8 @@ const routePermissionMap = {
   'GET /bank-details/{localAuthority}': 'viewFullBankDetails',
   'PUT /bank-details/{localAuthority}': 'confirmBankDetails',
   'GET /documents/{localAuthority}': 'listFinanceDocuments',
-  'GET /document/{id}': 'accessFinanceDocument'
+  'GET /document/{id}': 'accessFinanceDocument',
+  'POST /bank-details': 'createBankDetails'
 }
 
 const rolesMap = {

@@ -11,7 +11,8 @@ export const ActionKind = {
   DocumentAccessed: 'DocumentAccessed',
   DocumentsListed: 'DocumentsListed',
   FullBankDetailsViewed: 'FullBankDetailsViewed',
-  MaskedBankDetailsViewed: 'MaskedBankDetailsViewed'
+  MaskedBankDetailsViewed: 'MaskedBankDetailsViewed',
+  BankDetailsCreated: 'BankDetailsCreated'
 }
 
 export const writeAuditLog = (request, action, outcome) => {
