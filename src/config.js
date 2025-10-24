@@ -174,6 +174,7 @@ const config = convict({
       format: Array,
       env: 'CHANGE_BANK_DETAILS_INFO',
       default: ['CEO', 'HOF']
+    },
     createBankDetails: {
       doc: 'Permission roles allowed to create bank details',
       format: Array,
