@@ -169,6 +169,12 @@ const config = convict({
       env: 'CONFIRM_BANK_DETAILS',
       default: ['CEO', 'WO']
     },
+    changeBankDetailsInfo: {
+      doc: 'Permission roles allowed to view the change bank details information',
+      format: Array,
+      env: 'CHANGE_BANK_DETAILS_INFO',
+      default: ['CEO', 'HOF']
+    },
     listFinanceDocuments: {
       doc: 'API key to be passed to list finance documents',
       format: Array,
