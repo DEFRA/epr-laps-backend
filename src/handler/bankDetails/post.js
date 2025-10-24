@@ -6,7 +6,7 @@ import {
   Outcome,
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
-import { roles } from '../../common/constants/constants.js'
+import { statusCodes } from '../../common/constants/status-codes.js'
 
 const postBankDetails = async (request, h) => {
   const { role } = request.auth.credentials
@@ -37,14 +37,22 @@ const postBankDetails = async (request, h) => {
         `Failed to create bank details: ${response.status} ${response.statusText}`,
         data
       )
-      writeCreateBankDetailsAuditLog(role, request, Outcome.Failure)
+      writeCreateBankDetailsAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Failure
+      )
       return Boom.badRequest(data?.message || 'Failed to create bank details')
     }
 
     request.logger.debug('Bank details created successfully:', data)
 
-    writeCreateBankDetailsAuditLog(role, request, Outcome.Success)
-    return h.response(data).code(201)
+    writeCreateBankDetailsAuditLog(
+      request.auth.isAuthorized,
+      request,
+      Outcome.Success
+    )
+    return h.response(data).code(statusCodes.created)
   } catch (err) {
     request.logger.error('Error creating bank details:', err)
     writeCreateBankDetailsAuditLog(role, request, Outcome.Failure)
@@ -54,8 +62,12 @@ const postBankDetails = async (request, h) => {
 
 export { postBankDetails }
 
-export const writeCreateBankDetailsAuditLog = (role, request, outcome) => {
-  if (role === roles.HOF) {
+export const writeCreateBankDetailsAuditLog = (
+  canCreateBankDetails,
+  request,
+  outcome
+) => {
+  if (canCreateBankDetails) {
     writeAuditLog(request, ActionKind.BankDetailsCreated, outcome)
   }
 }
