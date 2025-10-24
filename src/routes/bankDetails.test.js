@@ -4,10 +4,12 @@ import Hapi from '@hapi/hapi'
 import { bankDetailsRoutes } from './bankDetails.js'
 import * as getModule from '../handler/bankDetails/get.js'
 import * as putModule from '../handler/bankDetails/put.js'
+import * as postModule from '../handler/bankDetails/post.js'
 
 // Mock the handler modules
 vi.mock('../handler/bankDetails/get.js')
 vi.mock('../handler/bankDetails/put.js')
+vi.mock('../handler/bankDetails/post.js')
 
 describe('bankDetails routes', () => {
   let server
@@ -71,5 +73,46 @@ describe('bankDetails routes', () => {
 
     expect(res.statusCode).toBe(400)
     expect(putModule.putBankDetails).not.toHaveBeenCalled()
+  })
+
+  it('POST /bank-details calls postBankDetails with valid payload', async () => {
+    const payload = {
+      localAuthority: 'Westshire',
+      accountName: 'John Doe',
+      sortCode: '12-34-56',
+      accountNumber: '12345678',
+      requesterName: 'Jane Smith'
+    }
+
+    await server.inject({
+      method: 'POST',
+      url: '/bank-details',
+      payload
+    })
+
+    expect(postModule.postBankDetails).toHaveBeenCalledTimes(1)
+    expect(postModule.postBankDetails).toHaveBeenCalledWith(
+      expect.objectContaining({ payload }),
+      expect.any(Object)
+    )
+  })
+
+  it('POST rejects invalid payload', async () => {
+    const badPayload = {
+      localAuthority: '',
+      accountName: '',
+      sortCode: '',
+      accountNumber: '',
+      requesterName: ''
+    }
+
+    const res = await server.inject({
+      method: 'POST',
+      url: '/bank-details',
+      payload: badPayload
+    })
+
+    expect(res.statusCode).toBe(400)
+    expect(postModule.postBankDetails).not.toHaveBeenCalled()
   })
 })
