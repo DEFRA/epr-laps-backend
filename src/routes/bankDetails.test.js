@@ -79,7 +79,7 @@ describe('bankDetails routes', () => {
     const payload = {
       localAuthority: 'Westshire',
       accountName: 'John Doe',
-      sortCode: '12-34-56',
+      sortCode: '123456',
       accountNumber: '12345678',
       requesterName: 'Jane Smith'
     }
@@ -95,6 +95,31 @@ describe('bankDetails routes', () => {
       expect.objectContaining({ payload }),
       expect.any(Object)
     )
+  })
+
+  it('POST /bank-details returns validation error for sortCode with hyphens or spaces', async () => {
+    const payloads = [
+      { sortCode: '12-34-56' },
+      { sortCode: '12 34 56' },
+      { sortCode: '12 - 34' }
+    ]
+
+    for (const payload of payloads) {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/bank-details',
+        payload: {
+          localAuthority: 'Westshire',
+          accountName: 'John Doe',
+          sortCode: payload.sortCode,
+          accountNumber: '12345678',
+          requesterName: 'Jane Smith'
+        }
+      })
+
+      expect(response.statusCode).toBe(400)
+      expect(response.result.message).toBe('Invalid request payload input')
+    }
   })
 
   it('POST rejects invalid payload', async () => {
