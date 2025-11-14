@@ -43,10 +43,7 @@ export const bankDetailsRoutes = [
         payload: Joi.object({
           localAuthority: Joi.string().trim().required(),
           accountName: Joi.string().trim().max(100).required(),
-          sortCode: Joi.string().pattern(/^\d+$/).required().messages({
-            'string.pattern.base':
-              'Sort code must contain only digits with no spaces or hyphens'
-          }),
+          sortCode: Joi.string().replace(/[-\s]/g, '').required(),
           accountNumber: Joi.string().required(),
           requesterName: Joi.string().trim().max(100).required()
         }).options({ stripUnknown: true })

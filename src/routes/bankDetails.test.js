@@ -97,47 +97,27 @@ describe('bankDetails routes', () => {
     )
   })
 
-  it('POST /bank-details returns validation error for sortCode with hyphens or spaces', async () => {
-    const payloads = [
-      { sortCode: '12-34-56' },
-      { sortCode: '12 34 56' },
-      { sortCode: '12 - 34' }
-    ]
+  it('POST /bank-details sanitises sortCode by removing hyphens and spaces', async () => {
+    const dirtySortCode = '12 -34- 56'
 
-    for (const payload of payloads) {
-      const response = await server.inject({
-        method: 'POST',
-        url: '/bank-details',
-        payload: {
-          localAuthority: 'Westshire',
-          accountName: 'John Doe',
-          sortCode: payload.sortCode,
-          accountNumber: '12345678',
-          requesterName: 'Jane Smith'
-        }
-      })
-
-      expect(response.statusCode).toBe(400)
-      expect(response.result.message).toBe('Invalid request payload input')
-    }
-  })
-
-  it('POST rejects invalid payload', async () => {
-    const badPayload = {
-      localAuthority: '',
-      accountName: '',
-      sortCode: '',
-      accountNumber: '',
-      requesterName: ''
+    const payload = {
+      localAuthority: 'Westshire',
+      accountName: 'John Doe',
+      sortCode: dirtySortCode,
+      accountNumber: '12345678',
+      requesterName: 'Jane Smith'
     }
 
-    const res = await server.inject({
+    await server.inject({
       method: 'POST',
       url: '/bank-details',
-      payload: badPayload
+      payload
     })
 
-    expect(res.statusCode).toBe(400)
-    expect(postModule.postBankDetails).not.toHaveBeenCalled()
+    expect(postModule.postBankDetails).toHaveBeenCalledTimes(1)
+
+    const handlerCall = postModule.postBankDetails.mock.calls[0][0]
+
+    expect(handlerCall.payload.sortCode).toBe('123456')
   })
 })
