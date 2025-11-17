@@ -79,7 +79,7 @@ describe('bankDetails routes', () => {
     const payload = {
       localAuthority: 'Westshire',
       accountName: 'John Doe',
-      sortCode: '12-34-56',
+      sortCode: '123456',
       accountNumber: '12345678',
       requesterName: 'Jane Smith'
     }
@@ -97,22 +97,27 @@ describe('bankDetails routes', () => {
     )
   })
 
-  it('POST rejects invalid payload', async () => {
-    const badPayload = {
-      localAuthority: '',
-      accountName: '',
-      sortCode: '',
-      accountNumber: '',
-      requesterName: ''
+  it('POST /bank-details sanitises sortCode by removing hyphens and spaces', async () => {
+    const dirtySortCode = '12 -34- 56'
+
+    const payload = {
+      localAuthority: 'Westshire',
+      accountName: 'John Doe',
+      sortCode: dirtySortCode,
+      accountNumber: '12345678',
+      requesterName: 'Jane Smith'
     }
 
-    const res = await server.inject({
+    await server.inject({
       method: 'POST',
       url: '/bank-details',
-      payload: badPayload
+      payload
     })
 
-    expect(res.statusCode).toBe(400)
-    expect(postModule.postBankDetails).not.toHaveBeenCalled()
+    expect(postModule.postBankDetails).toHaveBeenCalledTimes(1)
+
+    const handlerCall = postModule.postBankDetails.mock.calls[0][0]
+
+    expect(handlerCall.payload.sortCode).toBe('123456')
   })
 })
