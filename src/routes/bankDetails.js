@@ -47,7 +47,7 @@ export const bankDetailsRoutes = [
             return value.replaceAll('-', '').replaceAll(' ', '')
           }),
           accountNumber: Joi.string().required(),
-          requesterName: Joi.string().trim().max(100).required()
+          requesterEmail: Joi.string().trim().max(100).required()
         }).options({ stripUnknown: true })
       }
     }

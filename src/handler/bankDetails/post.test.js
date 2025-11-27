@@ -35,7 +35,7 @@ describe('postBankDetails', () => {
       accountName: 'John Doe',
       sortCode: '12-34-56',
       accountNumber: '12345678',
-      requesterName: 'Jane Smith'
+      requesterEmail: 'jane.smith@test.com'
     }
 
     request = {
