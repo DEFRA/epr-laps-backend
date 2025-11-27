@@ -29,7 +29,8 @@ export const bankDetailsRoutes = [
           accountName: Joi.string().trim().max(100).required(),
           sortCode: Joi.string().required(),
           accountNumber: Joi.string().required(),
-          confirmed: Joi.boolean().valid(true).required()
+          confirmed: Joi.boolean().valid(true).required(),
+          requesterEmail: Joi.string().trim().max(100).required()
         }).options({ stripUnknown: true })
       }
     }
