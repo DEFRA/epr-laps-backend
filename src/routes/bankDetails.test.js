@@ -38,7 +38,8 @@ describe('bankDetails routes', () => {
       accountName: 'John Doe',
       sortCode: '12-34-56',
       accountNumber: '12345678',
-      confirmed: true
+      confirmed: true,
+      requesterEmail: 'john.doe@test.com'
     }
 
     await server.inject({
