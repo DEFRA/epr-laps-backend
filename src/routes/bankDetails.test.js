@@ -38,7 +38,8 @@ describe('bankDetails routes', () => {
       accountName: 'John Doe',
       sortCode: '12-34-56',
       accountNumber: '12345678',
-      confirmed: true
+      confirmed: true,
+      requesterEmail: 'john.doe@test.com'
     }
 
     await server.inject({
@@ -81,7 +82,7 @@ describe('bankDetails routes', () => {
       accountName: 'John Doe',
       sortCode: '123456',
       accountNumber: '12345678',
-      requesterName: 'Jane Smith'
+      requesterEmail: 'jane.smith@test.com'
     }
 
     await server.inject({
@@ -105,7 +106,7 @@ describe('bankDetails routes', () => {
       accountName: 'John Doe',
       sortCode: dirtySortCode,
       accountNumber: '12345678',
-      requesterName: 'Jane Smith'
+      requesterEmail: 'jane.smith@test.com'
     }
 
     await server.inject({
