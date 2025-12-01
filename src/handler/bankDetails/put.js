@@ -44,7 +44,9 @@ const putBankDetails = async (request, h) => {
     writeConfirmBankDetailsAuditLog(role, request, Outcome.Success)
     return h.response(data).code(response.status)
   } catch (err) {
-    request.logger.error('Error confirming bank details:', err)
+    request.logger.error(
+      `Error confirming bank details: ${JSON.stringify(err)}`
+    )
     writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure)
     throw Boom.internal('Failed to confirm bank details')
   }

@@ -24,9 +24,7 @@ const getBankDetails = async (request, h) => {
     })
 
     const bankDetails = await response.json()
-    request.logger.debug(
-      `Raw bank details received:', ${JSON.stringify(bankDetails)}`
-    )
+    request.logger.debug('Raw bank details received:', bankDetails)
 
     // Use utility function
     const processedDetails = processBankDetails(
@@ -44,7 +42,7 @@ const getBankDetails = async (request, h) => {
     )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
-    request.logger.error('Error fetching bank details:', err)
+    request.logger.error(`Error fetching bank details: ${JSON.stringify(err)}`)
     writeBankDetailsAuditLog(
       request.auth.isAuthorized,
       request,
