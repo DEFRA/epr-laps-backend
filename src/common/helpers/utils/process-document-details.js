@@ -105,8 +105,14 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
     return acc
   }, {})
 
+  if (Object.keys(groupedDocuments).length === 0) {
+    return {
+      hasDocuments: false
+    }
+  }
   return {
     ...groupedDocuments,
-    currentFiscalYear
+    currentFiscalYear,
+    hasDocuments: true
   }
 }
