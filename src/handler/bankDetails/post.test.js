@@ -100,8 +100,7 @@ describe('postBankDetails', () => {
       Boom.internal('Failed to create bank details')
     )
     expect(request.logger.error).toHaveBeenCalledWith(
-      'Error creating bank details:',
-      networkError
+      'Error creating bank details: {}'
     )
   })
 
@@ -166,8 +165,7 @@ describe('postBankDetails', () => {
     const result = await postBankDetails(request, h)
 
     expect(request.logger.error).toHaveBeenCalledWith(
-      `Failed to create bank details: 500 Bad Request`,
-      failedData
+      'Failed to create bank details: 500 Bad Request, data: {"message":"Invalid payload"}'
     )
     expect(result.isBoom).toBe(true)
     expect(result.output.statusCode).toBe(500)
