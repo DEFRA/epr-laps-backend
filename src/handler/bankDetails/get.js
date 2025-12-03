@@ -24,7 +24,9 @@ const getBankDetails = async (request, h) => {
     })
 
     const bankDetails = await response.json()
-    request.logger.debug('Raw bank details received:', bankDetails)
+    request.logger.debug(
+      `Raw bank details received:', ${JSON.stringify(bankDetails)}`
+    )
 
     // Use utility function
     const processedDetails = processBankDetails(
