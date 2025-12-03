@@ -25,6 +25,10 @@ const putBankDetails = async (request, h) => {
     // The payload should contain the updated bank details
     const payload = request.payload
 
+    request.logger.debug(
+      `Bank details confirmation requested with data: ${JSON.stringify(payload)}`
+    )
+
     const response = await fetch(url, {
       method: 'put',
       headers: {
