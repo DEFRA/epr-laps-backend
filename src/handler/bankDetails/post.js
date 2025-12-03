@@ -45,7 +45,7 @@ const postBankDetails = async (request, h) => {
     }
 
     request.logger.debug(
-      `Bank details created successfully:', ${JSON.stringify(data)})`
+      `Bank details created successfully:', ${JSON.stringify(data)}`
     )
 
     writeCreateBankDetailsAuditLog(
