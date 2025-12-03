@@ -37,12 +37,16 @@ const putBankDetails = async (request, h) => {
     // Optionally, handle the response if you want to return it
     const data = await response.json()
 
-    request.logger.debug('Bank details confirmed successfully:', data)
+    request.logger.debug(
+      `Bank details confirmed successfully: ${JSON.stringify(data)}`
+    )
 
     writeConfirmBankDetailsAuditLog(role, request, Outcome.Success)
     return h.response(data).code(response.status)
   } catch (err) {
-    request.logger.error('Error confirming bank details:', err)
+    request.logger.error(
+      `Error confirming bank details: ${JSON.stringify(err)}`
+    )
     writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure)
     throw Boom.internal('Failed to confirm bank details')
   }

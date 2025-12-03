@@ -102,8 +102,7 @@ describe('putBankDetails', () => {
       Boom.internal('Failed to confirm bank details')
     )
     expect(request.logger.error).toHaveBeenCalledWith(
-      'Error confirming bank details:',
-      networkError
+      'Error confirming bank details: {}'
     )
   })
 
