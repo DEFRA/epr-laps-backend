@@ -27,7 +27,9 @@ export const bankDetailsRoutes = [
         }),
         payload: Joi.object({
           accountName: Joi.string().trim().max(100).required(),
-          sortCode: Joi.string().required(),
+          sortCode: Joi.string().custom((value) => {
+            return value.replaceAll('-', '').replaceAll(' ', '')
+          }),
           accountNumber: Joi.string().required(),
           confirmed: Joi.boolean().valid(true).required(),
           requesterEmail: Joi.string().trim().max(100).required()

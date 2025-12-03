@@ -27,7 +27,7 @@ const getDocument = async (request, h) => {
       }
     })
 
-    request.logger.debug('Document received:', response)
+    request.logger.debug(`Document received:, ${JSON.stringify(response)}`)
 
     if (!response.ok) {
       const errorText = await response.text()

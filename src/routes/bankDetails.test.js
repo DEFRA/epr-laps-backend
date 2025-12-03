@@ -52,7 +52,10 @@ describe('bankDetails routes', () => {
     expect(putModule.putBankDetails).toHaveBeenCalledWith(
       expect.objectContaining({
         params: { localAuthority: 'Westshire' },
-        payload
+        payload: {
+          ...payload,
+          sortCode: payload.sortCode.replace(/[-\s]/g, '')
+        }
       }),
       expect.any(Object)
     )
