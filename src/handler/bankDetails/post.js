@@ -21,6 +21,9 @@ const postBankDetails = async (request, h) => {
 
     const payload = request.payload
 
+    request.logger.debug(
+      `Bank details creation requested with data: ${JSON.stringify(payload)}`
+    )
     const response = await fetch(url, {
       method: 'post',
       headers: {
