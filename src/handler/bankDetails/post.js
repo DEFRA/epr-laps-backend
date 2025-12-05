@@ -28,6 +28,7 @@ const postBankDetails = async (request, h) => {
       method: 'post',
       headers: {
         'x-sn-apikey': config.get('fssAPIKey'),
+        'x-api-key': config.get('fssMockAPIKey'),
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)

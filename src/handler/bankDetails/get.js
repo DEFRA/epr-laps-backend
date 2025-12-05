@@ -19,6 +19,7 @@ const getBankDetails = async (request, h) => {
       method: 'get',
       headers: {
         'x-sn-apikey': config.get('fssAPIKey'),
+        'x-api-key': config.get('fssMockAPIKey'),
         'Content-Type': 'application/json'
       }
     })

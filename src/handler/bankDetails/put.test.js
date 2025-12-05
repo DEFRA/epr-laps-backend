@@ -72,6 +72,7 @@ describe('putBankDetails', () => {
         method: 'put',
         headers: {
           'x-sn-apikey': 'some-api-key',
+          'x-api-key': config.get('fssMockAPIKey'),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)

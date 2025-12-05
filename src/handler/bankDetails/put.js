@@ -33,6 +33,7 @@ const putBankDetails = async (request, h) => {
       method: 'put',
       headers: {
         'x-sn-apikey': config.get('fssAPIKey'),
+        'x-api-key': config.get('fssMockAPIKey'),
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)

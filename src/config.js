@@ -150,6 +150,12 @@ const config = convict({
     default: 'some-api-key',
     env: 'FSS_API_KEY'
   },
+  fssMockAPIKey: {
+    doc: 'API key to be passed to Mock FSS',
+    format: String,
+    default: 'some-api-key',
+    env: 'FSS_API_KEY'
+  },
   currentFiscalYear: {
     doc: 'Fiscal year range to pass to frontend',
     format: String,
