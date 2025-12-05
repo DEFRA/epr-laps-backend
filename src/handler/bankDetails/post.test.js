@@ -78,7 +78,7 @@ describe('postBankDetails', () => {
       expect.objectContaining({
         method: 'post',
         headers: {
-          'x-api-key': 'some-api-key',
+          'x-sn-apikey': 'some-api-key',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)

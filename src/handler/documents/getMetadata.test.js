@@ -65,7 +65,7 @@ describe('getDocumentMetadata', () => {
       'https://mock-fss-api/file/metadata/LA123',
       expect.objectContaining({
         method: 'GET',
-        headers: expect.objectContaining({ 'x-api-key': 'mock-api-key' })
+        headers: expect.objectContaining({ 'x-sn-apikey': 'mock-api-key' })
       })
     )
     expect(processDocumentsByFinancialYear).toHaveBeenCalledWith(mockData)

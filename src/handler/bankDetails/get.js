@@ -18,7 +18,7 @@ const getBankDetails = async (request, h) => {
     const response = await fetch(url, {
       method: 'get',
       headers: {
-        'x-api-key': config.get('fssAPIKey'),
+        'x-sn-apikey': config.get('fssAPIKey'),
         'Content-Type': 'application/json'
       }
     })

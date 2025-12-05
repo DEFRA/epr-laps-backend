@@ -27,7 +27,7 @@ const postBankDetails = async (request, h) => {
     const response = await fetch(url, {
       method: 'post',
       headers: {
-        'x-api-key': config.get('fssAPIKey'),
+        'x-sn-apikey': config.get('fssAPIKey'),
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
