@@ -23,7 +23,8 @@ const getDocument = async (request, h) => {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'x-sn-apikey': config.get('fssAPIKey')
+        'x-sn-apikey': config.get('fssAPIKey'),
+        'x-api-key': config.get('fssMockAPIKey')
       }
     })
 
