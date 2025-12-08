@@ -167,31 +167,31 @@ const config = convict({
       doc: 'Permission roles allowed to view full bank details',
       format: Array,
       env: 'VIEW_FULL_BANK_DETAILS',
-      default: ['CEO', 'HOF']
+      default: ['CEO']
     },
     confirmBankDetails: {
       doc: 'Permission roles allowed to confirm bank details',
       format: Array,
       env: 'CONFIRM_BANK_DETAILS',
-      default: ['CEO', 'WO', 'HOF']
+      default: ['CEO', 'WO']
     },
     createBankDetails: {
       doc: 'Permission roles allowed to create bank details',
       format: Array,
       env: 'CREATE_BANK_DETAILS',
-      default: ['CEO', 'HOF']
+      default: ['CEO']
     },
     listFinanceDocuments: {
       doc: 'API key to be passed to list finance documents',
       format: Array,
       env: 'LIST_FINANCE_DOCUMENTS',
-      default: ['CEO', 'HOF']
+      default: ['CEO']
     },
     accessFinanceDocument: {
       doc: 'API key to be passed to FSS',
       format: Array,
       env: 'ACCESS_FINANCE_DOCUMENT',
-      default: ['CEO', 'HOF']
+      default: ['CEO']
     }
   }
 })
