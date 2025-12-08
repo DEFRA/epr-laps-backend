@@ -136,6 +136,13 @@ const config = convict({
       default:
         'http://localhost:3200/cdp-defra-id-stub/.well-known/openid-configuration',
       env: 'DEFRA_ID_DISCOVERY_URL'
+    },
+    issuer: {
+      doc: 'The expected issuer for JWT validation',
+      format: String,
+      default:
+        'https://cdp-defra-id-stub.dev.cdp-int.defra.cloud/cdp-defra-id-stub',
+      env: 'DEFRA_ID_ISSUER'
     }
   },
   fssApiUrl: {

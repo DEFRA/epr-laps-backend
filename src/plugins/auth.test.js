@@ -64,7 +64,12 @@ describe('auth plugin', () => {
 describe('jwtValidate', () => {
   it('should return isValid false if roles is missing', () => {
     const decoded = { sub: '123' }
-    const result = jwtValidate(decoded, {}, {})
+    const request = {
+      logger: {
+        debug: vi.fn()
+      }
+    }
+    const result = jwtValidate(decoded, request, {})
     expect(result.isValid).toBe(false)
   })
 
@@ -73,7 +78,12 @@ describe('jwtValidate', () => {
       sub: '123',
       roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3']
     }
-    const result = jwtValidate(decoded, {}, {})
+    const request = {
+      logger: {
+        debug: vi.fn()
+      }
+    }
+    const result = jwtValidate(decoded, request, {})
     expect(result.isValid).toBe(true)
     expect(result.credentials).toEqual({
       userId: '123',
