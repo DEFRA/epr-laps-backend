@@ -39,7 +39,7 @@ export const getKey = async (_header) => {
 // Custom JWT validation
 export const jwtValidate = (decoded, request, _h) => {
   const { sub: userId, roles } = decoded
-  request.logger.debug(`DecodedJWT is ${decoded}`)
+  request.logger.debug(`DecodedJWT is ${JSON.stringify(decoded)}`)
   const currentOrganisation = extractCurrentLocalAuthority(decoded)
 
   request.logger.debug(`currentORG is ${currentOrganisation}`)
