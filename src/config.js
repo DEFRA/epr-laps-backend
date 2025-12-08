@@ -140,7 +140,8 @@ const config = convict({
     issuer: {
       doc: 'The expected issuer for JWT validation',
       format: String,
-      default: 'http://localhost:3200/cdp-defra-id-stub',
+      default:
+        'http://cdp-defra-id-stub.dev.cdp-int.defra.cloud/cdp-defra-id-stub',
       env: 'DEFRA_ID_ISSUER'
     }
   },
