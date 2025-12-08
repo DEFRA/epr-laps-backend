@@ -18,7 +18,7 @@ const getDocumentMetadata = async (request, h) => {
       return Boom.forbidden(`${role} not allowed to get document list`)
     }
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/file/metadata/${localAuthority}`
+    const url = `${BASE_URL}/sn_gsm/laps_documents/${localAuthority}`
 
     const response = await fetch(url, {
       method: 'GET',
@@ -34,7 +34,7 @@ const getDocumentMetadata = async (request, h) => {
     }
 
     const data = await response.json()
-    const processedDetails = processDocumentsByFinancialYear(data)
+    const processedDetails = processDocumentsByFinancialYear(data.result)
 
     request.logger.info(
       `Processed document details response:': ${JSON.stringify(processedDetails)}`
