@@ -104,7 +104,7 @@ export const authPlugin = {
       validate: jwtValidate,
       verifyOptions: {
         algorithms: ['RS256'],
-        issuer: cachedDiscovery.issuer
+        issuer: config.get('auth.issuer')
       }
     })
 
