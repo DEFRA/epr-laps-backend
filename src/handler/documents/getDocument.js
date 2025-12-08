@@ -21,8 +21,6 @@ const getDocument = async (request, h) => {
     // const url = `${BASE_URL}/file/${id}`
     const url = `${BASE_URL}/now/attachment/${id}/file`
 
-    console.log('fileurl', url)
-
     const response = await fetch(url, {
       method: 'GET',
       headers: {
