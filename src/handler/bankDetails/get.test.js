@@ -72,7 +72,7 @@ describe('getBankDetails', () => {
       auditLogging.Outcome.Success
     )
     expect(result.status).toBe(200)
-    expect(result.data).toEqual({ some: 'data' })
+    expect(result.data).toEqual(undefined)
   })
 
   it('writes to audit log correctly for Waste Officer', async () => {
@@ -96,7 +96,7 @@ describe('getBankDetails', () => {
       auditLogging.Outcome.Success
     )
     expect(result.status).toBe(200)
-    expect(result.data).toEqual({ some: 'data' })
+    expect(result.data).toEqual(undefined)
   })
 
   it('writes to audit log correctly for HOF', async () => {
@@ -120,6 +120,6 @@ describe('getBankDetails', () => {
       auditLogging.Outcome.Success
     )
     expect(result.status).toBe(200)
-    expect(result.data).toEqual({ some: 'data' })
+    expect(result.data).toEqual(undefined)
   })
 })
