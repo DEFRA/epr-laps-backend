@@ -85,7 +85,7 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
     const isLatest = diffDays <= RECENT_DOC_DAYS_LIMIT
 
     const processedDoc = {
-      id: doc.sysId,
+      id: doc.id,
       fileName: doc.fileName,
       financialYear: doc.financialYear,
       creationDate: formattedDate,

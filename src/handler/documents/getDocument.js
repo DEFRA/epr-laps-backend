@@ -18,7 +18,7 @@ const getDocument = async (request, h) => {
       return Boom.forbidden(`${role} not allowed to access the document`)
     }
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/now/attachment/${id}/file`
+    const url = `${BASE_URL}/file/${id}`
 
     const response = await fetch(url, {
       method: 'GET',

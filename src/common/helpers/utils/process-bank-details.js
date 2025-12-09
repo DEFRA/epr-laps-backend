@@ -16,8 +16,9 @@ export function processBankDetails(bankDetails, isAuthorized) {
     const sortCodeLastTwoDigits = maskedBankDetails.sortCode.slice(
       -LAST_TWO_DIGITS_COUNT
     )
-    const accountNumberLastThreeDigits =
-      maskedBankDetails?.accountNumber?.slice(-LAST_THREE_DIGITS_COUNT)
+    const accountNumberLastThreeDigits = maskedBankDetails.accountNumber.slice(
+      -LAST_THREE_DIGITS_COUNT
+    )
     maskedBankDetails = {
       ...maskedBankDetails,
       sortCode: ENDING_WITH_PREFIX + sortCodeLastTwoDigits,

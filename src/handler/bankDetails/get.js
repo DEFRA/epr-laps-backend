@@ -13,7 +13,7 @@ const getBankDetails = async (request, h) => {
   const { localAuthority } = request.params
   try {
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/sn_gsm/bank_details/${encodeURIComponent(localAuthority)}`
+    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
     request.logger.info(`Fetching bank details from URL: ${url}`)
     const response = await fetch(url, {
       method: 'get',
@@ -25,12 +25,12 @@ const getBankDetails = async (request, h) => {
 
     const bankDetails = await response.json()
     request.logger.debug(
-      `Raw bank details received:, ${JSON.stringify(bankDetails)}`
+      `Raw bank details received:', ${JSON.stringify(bankDetails)}`
     )
 
     // Use utility function
     const processedDetails = processBankDetails(
-      bankDetails.result,
+      bankDetails,
       request.auth.isAuthorized
     )
     request.logger.info(
