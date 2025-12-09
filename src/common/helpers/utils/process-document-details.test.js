@@ -62,7 +62,7 @@ describe('processDocumentsByFinancialYear', () => {
 
   it('handles missing creationDate', () => {
     const docs = [
-      { id: 4, fileName: 'file4.pdf', documentType: 'grant', quarter: 'Q4' }
+      { id: 4, fileName: 'file4.pdf', documentType: 'Grant', quarter: 'Q4' }
     ]
     const result = processDocumentsByFinancialYear(docs)
     const fyDocs = result['Unknown']['EN']
@@ -75,7 +75,7 @@ describe('processDocumentsByFinancialYear', () => {
       {
         id: 5,
         fileName: 'file5.pdf',
-        documentType: 'notice_of_assessment',
+        documentType: 'Notice',
         quarter: 'Q1',
         creationDate: 'invalid-date'
       }
