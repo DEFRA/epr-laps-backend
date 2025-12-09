@@ -56,9 +56,9 @@ export function getFinancialYearRange(dateString) {
 // Map document type to readable label
 function getDocumentName(doc) {
   const documentTypeMap = {
-    grant: 'Grant letter',
-    remittance: 'Remittance letter',
-    notice_of_assessment: 'Notice of assessment'
+    Grant: 'Grant letter',
+    Remittance: 'Remittance letter',
+    Notice: 'Notice of assessment'
   }
   const typeLabel =
     documentTypeMap[doc.documentType] || doc.documentType || 'Unknown'
