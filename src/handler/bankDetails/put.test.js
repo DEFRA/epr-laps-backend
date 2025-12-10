@@ -67,7 +67,7 @@ describe('putBankDetails', () => {
   it('calls fetch with correct URL and options', async () => {
     await putBankDetails(request, h)
     expect(fetch).toHaveBeenCalledWith(
-      'http://api.example.com/bank-details/Some%20Local%20Authority',
+      'http://api.example.com/sn_gsm/bank_details/Some%20Local%20Authority',
       expect.objectContaining({
         method: 'put',
         headers: {
@@ -89,7 +89,7 @@ describe('putBankDetails', () => {
     request.params = { localAuthority: 'A B&C' }
     await putBankDetails(request, h)
     expect(fetch).toHaveBeenCalledWith(
-      'http://api.example.com/bank-details/A%20B%26C',
+      'http://api.example.com/sn_gsm/bank_details/A%20B%26C',
       expect.any(Object)
     )
   })

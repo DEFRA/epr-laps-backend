@@ -17,7 +17,7 @@ const postBankDetails = async (request, h) => {
     }
 
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/bank-details`
+    const url = `${BASE_URL}/sn_gsm/bank_details`
 
     const payload = request.payload
 

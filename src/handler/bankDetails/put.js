@@ -20,7 +20,7 @@ const putBankDetails = async (request, h) => {
     }
 
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/bank-details/${encodeURIComponent(localAuthority)}`
+    const url = `${BASE_URL}/sn_gsm/bank_details/${encodeURIComponent(localAuthority)}`
 
     // The payload should contain the updated bank details
     const payload = request.payload
