@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build and Publish
         uses: DEFRA/cdp-build-action/build@main
@@ -34,7 +34,7 @@ jobs:
           npm test
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6.0.6 #  (or check latest version on https://github.com/marketplace/actions/official-sonarqube-scan)
+        uses: SonarSource/sonarqube-scan-action@v6.0.0 #  (or check latest version on https://github.com/marketplace/actions/official-sonarqube-scan)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
