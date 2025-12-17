@@ -16,6 +16,12 @@ describe('bankDetails routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Ensure mocked handlers return a resolved value to satisfy Hapi
+    getModule.getBankDetails.mockResolvedValue({ statusCode: 200 })
+    putModule.putBankDetails.mockResolvedValue({ statusCode: 204 })
+    postModule.postBankDetails.mockResolvedValue({ statusCode: 201 })
+
     server = Hapi.server()
     server.route(bankDetailsRoutes)
   })
@@ -103,7 +109,6 @@ describe('bankDetails routes', () => {
 
   it('POST /bank-details sanitises sortCode by removing hyphens and spaces', async () => {
     const dirtySortCode = '12 -34- 56'
-
     const payload = {
       localAuthority: 'Westshire',
       accountName: 'John Doe',
@@ -121,7 +126,6 @@ describe('bankDetails routes', () => {
     expect(postModule.postBankDetails).toHaveBeenCalledTimes(1)
 
     const handlerCall = postModule.postBankDetails.mock.calls[0][0]
-
     expect(handlerCall.payload.sortCode).toBe('123456')
   })
 })
