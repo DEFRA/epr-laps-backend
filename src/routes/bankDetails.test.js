@@ -17,7 +17,6 @@ describe('bankDetails routes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Ensure mocked handlers return a resolved value to satisfy Hapi
     getModule.getBankDetails.mockResolvedValue({ statusCode: 200 })
     putModule.putBankDetails.mockResolvedValue({ statusCode: 204 })
     postModule.postBankDetails.mockResolvedValue({ statusCode: 201 })
