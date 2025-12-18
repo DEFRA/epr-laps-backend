@@ -1,26 +1,23 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { safeDecorate, createIndexes } from './mongodb'
+import { safeDecorate, createIndexes, mongoDb } from './mongodb'
 
 // Mocks
-const clientMock = {
-  db: vi.fn(),
-  close: vi.fn()
-}
-
-const dbMock = {
-  collection: vi.fn()
-}
-
 const lockerMock = {}
+const clientMock = { db: vi.fn(), close: vi.fn() }
+const dbMock = { collection: vi.fn() }
+
+vi.mock('mongo-locks', () => ({
+  LockManager: class {
+    constructor() {
+      return lockerMock
+    }
+  }
+}))
 
 vi.mock('mongodb', () => ({
   MongoClient: {
     connect: vi.fn(() => Promise.resolve(clientMock))
   }
-}))
-
-vi.mock('mongo-locks', () => ({
-  LockManager: vi.fn(() => lockerMock)
 }))
 
 // Mock server creation
@@ -141,5 +138,127 @@ describe('createIndexes', () => {
 
     // Check that createIndex was called with the correct argument
     expect(createIndexMock).toHaveBeenCalledWith({ id: 1 })
+  })
+})
+
+describe('mongoDb.plugin.register', () => {
+  let server
+  let stopHandler
+  const closeMock = vi.fn()
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    server = {
+      decorate: vi.fn(),
+      events: {
+        on: vi.fn((event, fn) => {
+          if (event === 'stop') stopHandler = fn
+        })
+      },
+      logger: { info: vi.fn(), error: vi.fn() }
+    }
+  })
+
+  it('connects to MongoDB and decorates server and request', async () => {
+    const createIndexMock = vi.fn()
+    const clientMock = {
+      db: vi.fn(() => ({
+        collection: vi.fn(() => ({ createIndex: createIndexMock }))
+      })),
+      close: closeMock,
+      topology: { isConnected: () => true }
+    }
+
+    const { MongoClient } = await import('mongodb')
+    MongoClient.connect.mockResolvedValue(clientMock)
+
+    await mongoDb.plugin.register(server, {
+      mongoUrl: 'mongodb://localhost',
+      mongoOptions: { maxPoolSize: 10 }
+    })
+
+    expect(MongoClient.connect).toHaveBeenCalledWith('mongodb://localhost', {
+      maxPoolSize: 10
+    })
+    expect(server.decorate).toHaveBeenCalledWith(
+      'server',
+      'mongoClient',
+      clientMock,
+      {}
+    )
+    expect(server.decorate).toHaveBeenCalledWith(
+      'server',
+      'db',
+      expect.any(Object),
+      {}
+    )
+    expect(server.decorate).toHaveBeenCalledWith(
+      'server',
+      'locker',
+      expect.any(Object),
+      {}
+    )
+    expect(server.decorate).toHaveBeenCalledWith(
+      'request',
+      'db',
+      expect.any(Function),
+      { apply: true }
+    )
+    expect(server.decorate).toHaveBeenCalledWith(
+      'request',
+      'locker',
+      expect.any(Function),
+      { apply: true }
+    )
+    expect(createIndexMock).toHaveBeenCalledWith({ id: 1 })
+  })
+
+  it('calls stop handler and closes client', async () => {
+    const createIndexMock = vi.fn()
+    const collectionMock = vi.fn(() => ({ createIndex: createIndexMock }))
+    const dbMock = { collection: collectionMock }
+    const clientMock = {
+      db: vi.fn(() => dbMock),
+      close: closeMock,
+      topology: { isConnected: () => true }
+    }
+
+    const { MongoClient } = await import('mongodb')
+    MongoClient.connect.mockResolvedValue(clientMock)
+
+    await mongoDb.plugin.register(server, {
+      mongoUrl: 'mongodb://localhost',
+      mongoOptions: {}
+    })
+
+    // Trigger stop event
+    stopHandler && stopHandler()
+
+    expect(closeMock).toHaveBeenCalled()
+  })
+
+  it('handles createIndexes throwing an error', async () => {
+    const error = new Error('Index error')
+    const dbMock = {
+      collection: vi.fn(() => ({
+        createIndex: vi.fn(() => {
+          throw error
+        })
+      }))
+    }
+    const clientMock = {
+      db: vi.fn(() => dbMock),
+      close: vi.fn(),
+      topology: { isConnected: () => true }
+    }
+
+    const { MongoClient } = await import('mongodb')
+    MongoClient.connect.mockResolvedValue(clientMock)
+
+    await expect(
+      mongoDb.plugin.register(server, { mongoUrl: 'mongodb://localhost' })
+    ).rejects.toThrow('Index error')
+
+    expect(server.logger.error).not.toHaveBeenCalled() // Only if register doesn't log
   })
 })
