@@ -32,7 +32,8 @@ export const bankDetailsRoutes = [
           }),
           accountNumber: Joi.string().required(),
           confirmed: Joi.boolean().valid(true).required(),
-          requesterEmail: Joi.string().trim().max(100).required()
+          requesterEmail: Joi.string().trim().max(100).required(),
+          sysId: Joi.string().required()
         }).options({ stripUnknown: true })
       }
     }
@@ -50,7 +51,8 @@ export const bankDetailsRoutes = [
             return value.replaceAll('-', '').replaceAll(' ', '')
           }),
           accountNumber: Joi.string().required(),
-          requesterEmail: Joi.string().trim().max(100).required()
+          requesterEmail: Joi.string().trim().max(100).required(),
+          sysId: Joi.string().required()
         }).options({ stripUnknown: true })
       }
     }
