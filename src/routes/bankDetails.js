@@ -33,7 +33,8 @@ export const bankDetailsRoutes = [
           accountNumber: Joi.string().required(),
           confirmed: Joi.boolean().valid(true).required(),
           requesterEmail: Joi.string().trim().max(100).required(),
-          sysId: Joi.string().required()
+          sysId: Joi.string().required(),
+          jpp: Joi.string().required
         }).options({ stripUnknown: true })
       }
     }
@@ -52,7 +53,8 @@ export const bankDetailsRoutes = [
           }),
           accountNumber: Joi.string().required(),
           requesterEmail: Joi.string().trim().max(100).required(),
-          sysId: Joi.string().required()
+          sysId: Joi.string().required(),
+          jpp: Joi.string().required
         }).options({ stripUnknown: true })
       }
     }
