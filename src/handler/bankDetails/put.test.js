@@ -28,12 +28,10 @@ describe('putBankDetails', () => {
   let request, h, mockResponse, payload
 
   beforeEach(() => {
-    const localAuthority = 'Some Local Authority'
     payload = { accountNumber: '12345678', sortcode: '12-34-56' }
 
     request = {
       auth: { credentials: { role: roles.HOF }, isAuthorized: true },
-      params: { localAuthority },
       payload,
       logger: {
         error: vi.fn(),
@@ -67,7 +65,7 @@ describe('putBankDetails', () => {
   it('calls fetch with correct URL and options', async () => {
     await putBankDetails(request, h)
     expect(fetch).toHaveBeenCalledWith(
-      'http://api.example.com/sn_gsm/bank_details/Some%20Local%20Authority',
+      'http://api.example.com/sn_gsm/bank_details/confirm_bank_details',
       expect.objectContaining({
         method: 'put',
         headers: {
@@ -83,15 +81,6 @@ describe('putBankDetails', () => {
     await putBankDetails(request, h)
     expect(h.response).toHaveBeenCalledWith({ success: true })
     expect(h.code).toHaveBeenCalledWith(200)
-  })
-
-  it('encodes the localAuthority in the URL', async () => {
-    request.params = { localAuthority: 'A B&C' }
-    await putBankDetails(request, h)
-    expect(fetch).toHaveBeenCalledWith(
-      'http://api.example.com/sn_gsm/bank_details/A%20B%26C',
-      expect.any(Object)
-    )
   })
 
   it('logs error and throws Boom.internal when fetch rejects', async () => {

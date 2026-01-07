@@ -18,13 +18,10 @@ export const bankDetailsRoutes = [
   },
   {
     method: 'PUT',
-    path: '/bank-details/{localAuthority}',
+    path: '/bank-details/confirm-bank-details',
     handler: putBankDetails,
     options: {
       validate: {
-        params: Joi.object({
-          localAuthority: Joi.string().trim().required()
-        }),
         payload: Joi.object({
           accountName: Joi.string().trim().max(100).required(),
           sortCode: Joi.string().custom((value) => {
@@ -32,7 +29,10 @@ export const bankDetailsRoutes = [
           }),
           accountNumber: Joi.string().required(),
           confirmed: Joi.boolean().valid(true).required(),
-          requesterEmail: Joi.string().trim().max(100).required()
+          requesterEmail: Joi.string().trim().max(100).required(),
+          sysId: Joi.string().required(),
+          jpp: Joi.string().required(),
+          localAuthority: Joi.string().required()
         }).options({ stripUnknown: true })
       }
     }

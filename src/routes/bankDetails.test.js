@@ -38,25 +38,27 @@ describe('bankDetails routes', () => {
     )
   })
 
-  it('PUT /bank-details/{localAuthority} calls putBankDetails with valid payload', async () => {
+  it('PUT /bank-details/confirm-bank-details calls putBankDetails with valid payload', async () => {
     const payload = {
       accountName: 'John Doe',
       sortCode: '12-34-56',
       accountNumber: '12345678',
       confirmed: true,
-      requesterEmail: 'john.doe@test.com'
+      requesterEmail: 'john.doe@test.com',
+      sysId: 'ab123',
+      jpp: '118',
+      localAuthority: 'test'
     }
 
     await server.inject({
       method: 'PUT',
-      url: '/bank-details/Westshire',
+      url: '/bank-details/confirm-bank-details',
       payload
     })
 
     expect(putModule.putBankDetails).toHaveBeenCalledTimes(1)
     expect(putModule.putBankDetails).toHaveBeenCalledWith(
       expect.objectContaining({
-        params: { localAuthority: 'Westshire' },
         payload: {
           ...payload,
           sortCode: payload.sortCode.replace(/[-\s]/g, '')
@@ -76,7 +78,7 @@ describe('bankDetails routes', () => {
 
     const res = await server.inject({
       method: 'PUT',
-      url: '/bank-details/Westshire',
+      url: '/bank-details/confirm-bank-details',
       payload: badPayload
     })
 
@@ -113,7 +115,8 @@ describe('bankDetails routes', () => {
       accountName: 'John Doe',
       sortCode: dirtySortCode,
       accountNumber: '12345678',
-      requesterEmail: 'jane.smith@test.com'
+      requesterEmail: 'jane.smith@test.com',
+      sysId: 'ab123'
     }
 
     await server.inject({
