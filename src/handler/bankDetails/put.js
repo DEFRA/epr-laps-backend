@@ -9,7 +9,6 @@ import {
 import { roles } from '../../common/constants/constants.js'
 
 const putBankDetails = async (request, h) => {
-  const { localAuthority } = request.params
   const { role } = request.auth.credentials
   try {
     if (!request.auth.isAuthorized) {
@@ -20,7 +19,7 @@ const putBankDetails = async (request, h) => {
     }
 
     const BASE_URL = config.get('fssApiUrl')
-    const url = `${BASE_URL}/sn_gsm/bank_details/${encodeURIComponent(localAuthority)}`
+    const url = `${BASE_URL}/sn_gsm/bank_details/confirm-bank-details`
 
     // The payload should contain the updated bank details
     const payload = request.payload
