@@ -65,7 +65,7 @@ describe('putBankDetails', () => {
   it('calls fetch with correct URL and options', async () => {
     await putBankDetails(request, h)
     expect(fetch).toHaveBeenCalledWith(
-      'http://api.example.com/sn_gsm/bank_details/confirm-bank-details',
+      'http://api.example.com/sn_gsm/bank_details/confirm_bank_details',
       expect.objectContaining({
         method: 'put',
         headers: {
