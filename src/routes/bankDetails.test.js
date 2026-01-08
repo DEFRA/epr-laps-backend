@@ -100,7 +100,7 @@ describe('bankDetails routes', () => {
 
     await server.inject({
       method: 'POST',
-      url: '/bank-details/update-bank-details',
+      url: '/bank-details',
       payload
     })
 
@@ -126,7 +126,7 @@ describe('bankDetails routes', () => {
 
     await server.inject({
       method: 'POST',
-      url: '/bank-details/update-bank-details',
+      url: '/bank-details',
       payload
     })
 

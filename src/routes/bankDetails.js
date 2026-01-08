@@ -39,7 +39,7 @@ export const bankDetailsRoutes = [
   },
   {
     method: 'POST',
-    path: '/bank-details/update-bank-details',
+    path: '/bank-details',
     handler: postBankDetails,
     options: {
       validate: {
