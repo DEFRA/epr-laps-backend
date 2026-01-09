@@ -38,7 +38,7 @@ describe('bankDetails routes', () => {
     )
   })
 
-  it('PUT /bank-details/confirm-bank-details calls putBankDetails with valid payload', async () => {
+  it('PUT /bank-details calls putBankDetails with valid payload', async () => {
     const payload = {
       accountName: 'John Doe',
       sortCode: '12-34-56',
@@ -52,7 +52,7 @@ describe('bankDetails routes', () => {
 
     await server.inject({
       method: 'PUT',
-      url: '/bank-details/confirm-bank-details',
+      url: '/bank-details',
       payload
     })
 
@@ -78,7 +78,7 @@ describe('bankDetails routes', () => {
 
     const res = await server.inject({
       method: 'PUT',
-      url: '/bank-details/confirm-bank-details',
+      url: '/bank-details',
       payload: badPayload
     })
 

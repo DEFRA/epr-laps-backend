@@ -18,7 +18,7 @@ export const bankDetailsRoutes = [
   },
   {
     method: 'PUT',
-    path: '/bank-details/confirm-bank-details',
+    path: '/bank-details',
     handler: putBankDetails,
     options: {
       validate: {
