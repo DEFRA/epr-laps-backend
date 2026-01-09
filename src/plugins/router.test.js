@@ -14,7 +14,7 @@ describe('router plugin', () => {
     // This just ensures the router plugin loads correctly
     expect(() => server.table()).not.toThrow()
     const routes = server.table().map((r) => r.path)
-    expect(routes).toContain('/bank-details/confirm-bank-details')
+    expect(routes).toContain('/bank-details')
     expect(routes).toContain('/documents/{localAuthority}')
     expect(routes).toContain('/example')
     expect(routes).toContain('/example/{exampleId}')
