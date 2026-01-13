@@ -140,15 +140,14 @@ const config = convict({
     issuer: {
       doc: 'The expected issuer for JWT validation',
       format: String,
-      default:
-        'https://cdp-defra-id-stub.dev.cdp-int.defra.cloud/cdp-defra-id-stub',
+      default: 'http://localhost:3200/cdp-defra-id-stub',
       env: 'DEFRA_ID_ISSUER'
     }
   },
   fssApiUrl: {
     doc: 'FSS URL to get the bank details',
     format: String,
-    default: 'https://laps-api-mock-bank-details.dev.cdp-int.defra.cloud',
+    default: 'http://localhost:3003/api',
     env: 'FSS_API_URL'
   },
   fssAPIKey: {
