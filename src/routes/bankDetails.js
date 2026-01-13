@@ -32,7 +32,7 @@ export const bankDetailsRoutes = [
           requesterEmail: Joi.string().trim().required(),
           sysId: Joi.string().required(),
           jpp: Joi.string().required(),
-          localAuthority: Joi.string().required()
+          organizationId: Joi.string().required()
         }).options({ stripUnknown: true })
       }
     }
