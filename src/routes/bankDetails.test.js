@@ -47,7 +47,7 @@ describe('bankDetails routes', () => {
       requesterEmail: 'john.doe@test.com',
       sysId: 'ab123',
       jpp: '118',
-      localAuthority: 'test'
+      organizationId: '123'
     }
 
     await server.inject({
