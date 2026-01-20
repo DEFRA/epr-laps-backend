@@ -40,13 +40,8 @@ describe('bankDetails routes', () => {
 
   it('PUT /bank-details calls putBankDetails with valid payload', async () => {
     const payload = {
-      accountName: 'John Doe',
-      sortCode: '12-34-56',
-      accountNumber: '12345678',
       confirmed: true,
       requesterEmail: 'john.doe@test.com',
-      sysId: 'ab123',
-      jpp: '118',
       organizationId: '123'
     }
 
@@ -60,8 +55,7 @@ describe('bankDetails routes', () => {
     expect(putModule.putBankDetails).toHaveBeenCalledWith(
       expect.objectContaining({
         payload: {
-          ...payload,
-          sortCode: payload.sortCode.replace(/[-\s]/g, '')
+          ...payload
         }
       }),
       expect.any(Object)
@@ -93,7 +87,6 @@ describe('bankDetails routes', () => {
       sortCode: '123456',
       accountNumber: '12345678',
       requesterEmail: 'jane.smith@test.com',
-      sysId: '123',
       jpp: '112',
       organizationId: '123'
     }
