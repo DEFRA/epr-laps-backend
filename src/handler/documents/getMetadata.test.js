@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getDocumentMetadata } from './getMetadata.js'
 import { Outcome, writeAuditLog } from '../../common/helpers/audit-logging.js'
 import { processDocumentsByFinancialYear } from '../../common/helpers/utils/process-document-details.js'
 
@@ -28,13 +27,22 @@ vi.mock('../../common/helpers/utils/process-document-details.js', () => ({
 
 describe('getDocumentMetadata', () => {
   let fetch
+  let getDocumentMetadata
+  let writeDocumentListedAuditLog
   let mockRequest
   let mockH
 
   beforeEach(async () => {
-    const mod = await import('node-fetch')
-    fetch = mod.default
+    // ensure module imports pick up the mocks
+    vi.resetModules()
     vi.clearAllMocks()
+
+    const fetchMod = await import('node-fetch')
+    fetch = fetchMod.default
+
+    const mod = await import('./getMetadata.js')
+    getDocumentMetadata = mod.getDocumentMetadata
+    writeDocumentListedAuditLog = mod.writeDocumentListedAuditLog
 
     mockRequest = {
       params: { localAuthority: 'LA123' },
@@ -119,5 +127,44 @@ describe('getDocumentMetadata', () => {
       'User with role viewer tried to get document list'
     )
     expect(writeAuditLog).not.toHaveBeenCalled()
+  })
+
+  it('writeDocumentListedAuditLog should call writeAuditLog for both true and false canListDocuments', () => {
+    writeDocumentListedAuditLog(true, mockRequest, Outcome.Success)
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      'DocumentsListed',
+      Outcome.Success
+    )
+
+    writeDocumentListedAuditLog(false, mockRequest, Outcome.Failure)
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      'DocumentsListed',
+      Outcome.Failure
+    )
+    expect(writeAuditLog).toHaveBeenCalledTimes(2)
+  })
+
+  it('logs exact info message on success and writes audit log', async () => {
+    const apiResult = [{ year: '2025', documents: ['a'] }]
+    const processed = [{ year: '2025', files: ['a'] }]
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ result: apiResult })
+    })
+    processDocumentsByFinancialYear.mockReturnValue(processed)
+
+    await getDocumentMetadata(mockRequest, mockH)
+
+    const expectedInfo = `Processed document details response:': ${JSON.stringify(processed)}`
+    expect(mockRequest.logger.info).toHaveBeenCalledWith(expectedInfo)
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      'DocumentsListed',
+      Outcome.Success
+    )
   })
 })
