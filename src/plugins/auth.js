@@ -9,7 +9,7 @@ const RELATIONSHIP_PARTS_MIN = 3 // minimum number of parts in a relationship st
 
 let cachedDiscovery = null
 
-export const __setCachedDiscovery = (value) => {
+export const _setCachedDiscovery = (value) => {
   cachedDiscovery = value
 }
 
