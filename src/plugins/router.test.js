@@ -16,8 +16,6 @@ describe('router plugin', () => {
     const routes = server.table().map((r) => r.path)
     expect(routes).toContain('/bank-details')
     expect(routes).toContain('/documents/{localAuthority}')
-    expect(routes).toContain('/example')
-    expect(routes).toContain('/example/{exampleId}')
     expect(routes).toContain('/health')
   })
 })
