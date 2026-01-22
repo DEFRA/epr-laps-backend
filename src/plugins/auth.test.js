@@ -8,7 +8,7 @@ import {
   authPlugin,
   getKey,
   jwtValidate,
-  __setCachedDiscovery,
+  _setCachedDiscovery,
   extractCurrentLocalAuthority
 } from './auth.js'
 
@@ -104,7 +104,7 @@ describe('getKey', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    __setCachedDiscovery({
+    _setCachedDiscovery({
       jwks_uri: 'http://fake-jwks'
     })
   })
@@ -134,7 +134,7 @@ describe('getKey', () => {
   })
 
   it('throws Boom.internal if discovery doc has no jwks_uri', async () => {
-    __setCachedDiscovery({}) // simulate missing jwks_uri
+    _setCachedDiscovery({}) // simulate missing jwks_uri
 
     await expect(getKey()).rejects.toThrow(
       'No jwks_uri found in discovery document'

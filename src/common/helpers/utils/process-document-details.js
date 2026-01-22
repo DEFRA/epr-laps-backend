@@ -17,7 +17,7 @@ function parseDateString(dateString) {
     parsedDate = new Date(dateString)
   }
 
-  return isNaN(parsedDate.getTime()) ? undefined : parsedDate
+  return Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate
 }
 
 function formatIsoToShort(iso) {
