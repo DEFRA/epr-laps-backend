@@ -2,12 +2,34 @@ import { statusCodes } from '../../common/constants/status-codes.js'
 import fetch from 'node-fetch'
 import { config } from '../../config.js'
 import { processBankDetails } from '../../common/helpers/utils/process-bank-details.js'
+import { decryptBankDetails } from '../../common/helpers/utils/decrypt-bank-details.js'
 import Boom from '@hapi/boom'
 import {
   ActionKind,
   Outcome,
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
+
+/**
+ * Decrypt and parse bank details response
+ * @param {string} responseData - Encrypted response data
+ * @param {object} request - Hapi request object with logger
+ * @returns {object} Decrypted and parsed data
+ * @throws {Error} If decryption or parsing fails
+ */
+export function decryptAndParseResponse(responseData, request) {
+  const encryptionKey = config.get('fssEncryptionKey')
+
+  try {
+    const decryptedString = decryptBankDetails(responseData, encryptionKey)
+    return JSON.parse(decryptedString)
+  } catch (decryptErr) {
+    request.logger.error(
+      `Error decrypting bank details: ${JSON.stringify(decryptErr)}`
+    )
+    throw Boom.internal('Failed to decrypt bank details')
+  }
+}
 
 const getBankDetails = async (request, h) => {
   const { localAuthority } = request.params
@@ -28,9 +50,15 @@ const getBankDetails = async (request, h) => {
       `Raw bank details received:, ${JSON.stringify(bankDetails)}`
     )
 
-    // Use utility function
+    // Decrypt and process the response data
+    const decryptedData = decryptAndParseResponse(
+      bankDetails.result.response_data,
+      request
+    )
+
+    // Use utility function with decrypted data
     const processedDetails = processBankDetails(
-      bankDetails.result,
+      decryptedData,
       request.auth.isAuthorized
     )
     request.logger.info(

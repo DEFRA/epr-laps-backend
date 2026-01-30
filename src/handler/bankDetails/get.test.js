@@ -1,8 +1,9 @@
 import { describe, it, beforeEach, vi, expect } from 'vitest'
 import fetch from 'node-fetch'
-import { getBankDetails } from './get.js'
+import { getBankDetails, decryptAndParseResponse } from './get.js'
 import Boom from '@hapi/boom'
 import * as auditLogging from '../../common/helpers/audit-logging.js'
+import * as decryptUtils from '../../common/helpers/utils/decrypt-bank-details.js'
 
 vi.mock('node-fetch', () => ({
   default: vi.fn()
@@ -10,6 +11,10 @@ vi.mock('node-fetch', () => ({
 
 vi.mock('../../common/helpers/utils/process-bank-details.js', () => ({
   processBankDetails: vi.fn((details) => details)
+}))
+
+vi.mock('../../common/helpers/utils/decrypt-bank-details.js', () => ({
+  decryptBankDetails: vi.fn()
 }))
 
 vi.spyOn(auditLogging, 'writeAuditLog')
@@ -121,5 +126,61 @@ describe('getBankDetails', () => {
     )
     expect(result.status).toBe(200)
     expect(result.data).toEqual(undefined)
+  })
+})
+
+describe('decryptAndParseResponse', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('decrypts and parses response data successfully', () => {
+    const mockDecryptedData = { account: '12345', sortCode: '11-22-33' }
+    const mockResponseData = 'encrypted_data'
+    decryptUtils.decryptBankDetails.mockReturnValueOnce(
+      JSON.stringify(mockDecryptedData)
+    )
+
+    const request = {
+      logger: mockLogger
+    }
+
+    const result = decryptAndParseResponse(mockResponseData, request)
+
+    expect(decryptUtils.decryptBankDetails).toHaveBeenCalledWith(
+      mockResponseData,
+      expect.any(String)
+    )
+    expect(result).toEqual(mockDecryptedData)
+  })
+
+  it('throws Boom.internal when decryption fails', () => {
+    const mockResponseData = 'invalid_encrypted_data'
+    decryptUtils.decryptBankDetails.mockImplementationOnce(() => {
+      throw new Error('Decryption failed')
+    })
+
+    const request = {
+      logger: mockLogger
+    }
+
+    expect(() => decryptAndParseResponse(mockResponseData, request)).toThrow(
+      Boom.Boom
+    )
+    expect(request.logger.error).toHaveBeenCalled()
+  })
+
+  it('throws Boom.internal when JSON parsing fails', () => {
+    const mockResponseData = 'encrypted_data'
+    decryptUtils.decryptBankDetails.mockReturnValueOnce('invalid json {')
+
+    const request = {
+      logger: mockLogger
+    }
+
+    expect(() => decryptAndParseResponse(mockResponseData, request)).toThrow(
+      Boom.Boom
+    )
+    expect(request.logger.error).toHaveBeenCalled()
   })
 })
