@@ -16,8 +16,7 @@ export function urlBase64ToBase64(str) {
  * @throws {Error} If pattern is not found in response
  */
 export function extractIvAndCiphertext(responseData) {
-  const match = responseData.match(/([A-Za-z0-9_-]+==)([A-Za-z0-9_-]+=*)/)
-
+  const match = responseData.match(/([A-Za-z0-9_-]+==)([A-Za-z0-9_-]+)(=?)/)
   if (!match) {
     throw new Error('IV and ciphertext pattern not found in response_data')
   }
