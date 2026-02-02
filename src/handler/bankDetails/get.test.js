@@ -54,9 +54,18 @@ describe('getBankDetails', () => {
   })
 
   it('writes to audit log correctly for CEO', async () => {
+    const mockDecryptedData = { account: '12345', sortCode: '11-22-33' }
+    decryptUtils.decryptBankDetails.mockReturnValueOnce(
+      JSON.stringify(mockDecryptedData)
+    )
+
     fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ some: 'data' })
+      json: async () => ({
+        result: {
+          response_data: 'encrypted_bank_data'
+        }
+      })
     })
 
     const request = {
@@ -77,13 +86,21 @@ describe('getBankDetails', () => {
       auditLogging.Outcome.Success
     )
     expect(result.status).toBe(200)
-    expect(result.data).toEqual(undefined)
   })
 
   it('writes to audit log correctly for Waste Officer', async () => {
+    const mockDecryptedData = { account: '12345', sortCode: '11-22-33' }
+    decryptUtils.decryptBankDetails.mockReturnValueOnce(
+      JSON.stringify(mockDecryptedData)
+    )
+
     fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ some: 'data' })
+      json: async () => ({
+        result: {
+          response_data: 'encrypted_bank_data'
+        }
+      })
     })
 
     const request = {
@@ -101,13 +118,21 @@ describe('getBankDetails', () => {
       auditLogging.Outcome.Success
     )
     expect(result.status).toBe(200)
-    expect(result.data).toEqual(undefined)
   })
 
   it('writes to audit log correctly for HOF', async () => {
+    const mockDecryptedData = { account: '12345', sortCode: '11-22-33' }
+    decryptUtils.decryptBankDetails.mockReturnValueOnce(
+      JSON.stringify(mockDecryptedData)
+    )
+
     fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ some: 'data' })
+      json: async () => ({
+        result: {
+          response_data: 'encrypted_bank_data'
+        }
+      })
     })
 
     const request = {
@@ -125,7 +150,6 @@ describe('getBankDetails', () => {
       auditLogging.Outcome.Success
     )
     expect(result.status).toBe(200)
-    expect(result.data).toEqual(undefined)
   })
 })
 

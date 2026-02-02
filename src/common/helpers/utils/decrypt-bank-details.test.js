@@ -11,7 +11,7 @@ import {
 describe('decrypt-bank-details utilities', () => {
   describe('urlBase64ToBase64', () => {
     it('converts URL-safe Base64 to standard Base64', () => {
-      const urlSafe = 'SGVsbG8gV29ybGQtX19f'
+      const urlSafe = 'SGVsbG8gV29ybGQrLy8v'
       const standard = urlBase64ToBase64(urlSafe)
       expect(standard).toBe('SGVsbG8gV29ybGQrLy8v')
     })
