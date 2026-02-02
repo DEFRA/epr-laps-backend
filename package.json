@@ -55,7 +55,7 @@
     "uuid": "13.0.0"
   },
   "devDependencies": {
-    "@babel/core": "7.28.6",
+    "@babel/core": "7.29.0",
     "@babel/preset-env": "7.29.0",
     "@vitest/coverage-v8": "4.0.17",
     "autoprefixer": "10.4.24",
