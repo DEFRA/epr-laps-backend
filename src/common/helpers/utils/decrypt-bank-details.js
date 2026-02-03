@@ -16,14 +16,26 @@ export function urlBase64ToBase64(str) {
  * @throws {Error} If pattern is not found in response
  */
 export function extractIvAndCiphertext(responseData) {
-  const match = responseData.match(/([A-Za-z0-9_-]+==)([A-Za-z0-9_-]+)(=?)/)
-  if (!match) {
+  // Remove all non-Base64 characters (keeps only A-Za-z0-9+/\-_=)
+  const cleanedData = responseData.replace(/[^A-Za-z0-9+/\-_=]/g, '')
+
+  // Find the first occurrence of == separator (marks end of IV)
+  const firstSeparatorIndex = cleanedData.indexOf('==')
+  if (firstSeparatorIndex === -1) {
     throw new Error('IV and ciphertext pattern not found in response_data')
   }
 
+  // IV should be roughly 24 characters when base64-encoded (16 bytes encoded)
+  // Extract the last 24 characters before the == as the IV
+  const ivEndIndex = firstSeparatorIndex + 2
+  const ivStartIndex = Math.max(0, ivEndIndex - 24)
+
+  const ivB64Url = cleanedData.substring(ivStartIndex, ivEndIndex)
+  const cipherB64Url = cleanedData.substring(ivEndIndex)
+
   return {
-    ivB64Url: match[1],
-    cipherB64Url: match[2]
+    ivB64Url,
+    cipherB64Url
   }
 }
 

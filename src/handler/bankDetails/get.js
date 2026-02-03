@@ -24,9 +24,7 @@ export function decryptAndParseResponse(responseData, request) {
     const decryptedString = decryptBankDetails(responseData, encryptionKey)
     return JSON.parse(decryptedString)
   } catch (decryptErr) {
-    request.logger.error(
-      `Error decrypting bank details: ${JSON.stringify(decryptErr)}`
-    )
+    request.logger.error(`Error decrypting bank details: ${decryptErr}`)
     throw Boom.internal('Failed to decrypt bank details')
   }
 }
