@@ -211,33 +211,40 @@ describe('decryptAndParseResponse', () => {
   it('throws Boom.internal when API returns failure status', async () => {
     fetch.mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ error: { message: 'Service down' } })
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Service down'
     })
 
     const request = makeRequest()
     const h = makeH()
 
-    // Expect the fallback message that getBankDetails actually throws
     await expect(getBankDetails(request, h)).rejects.toMatchObject({
-      isBoom: true,
-      output: { statusCode: 500 },
       message: 'Failed to fetch bank details'
     })
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error fetching bank details: 500 Internal Server Error: Service down'
+    )
   })
 
   it('uses fallback message when API error.message is missing', async () => {
     fetch.mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ error: {} })
+      status: 502,
+      statusText: 'Bad Gateway',
+      text: async () => ''
     })
 
     const request = makeRequest()
     const h = makeH()
 
     await expect(getBankDetails(request, h)).rejects.toMatchObject({
-      isBoom: true,
-      output: { statusCode: 500 },
       message: 'Failed to fetch bank details'
     })
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error fetching bank details: 502 Bad Gateway: '
+    )
   })
 })
