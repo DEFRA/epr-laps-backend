@@ -156,6 +156,12 @@ const config = convict({
     default: 'some-api-key',
     env: 'FSS_API_KEY'
   },
+  fssEncryptionKey: {
+    doc: 'Base64-encoded encryption key for FSS bank details',
+    format: String,
+    default: '',
+    env: 'FSS_API_ENCRYPTION_KEY'
+  },
   currentFiscalYear: {
     doc: 'Fiscal year range to pass to frontend',
     format: String,
