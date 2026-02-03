@@ -48,6 +48,15 @@ const getBankDetails = async (request, h) => {
       `Raw bank details received:, ${JSON.stringify(bankDetails)}`
     )
 
+    if (!response.ok) {
+      request.logger.error(
+        `Error fetching bank details: ${JSON.stringify(bankDetails.error?.message)}`
+      )
+      throw Boom.internal(
+        bankDetails.error?.message || 'Failed to fetch bank details'
+      )
+    }
+
     // Decrypt and process the response data
     const decryptedData = decryptAndParseResponse(
       bankDetails.result.response_data,

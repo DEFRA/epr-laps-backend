@@ -207,4 +207,36 @@ describe('decryptAndParseResponse', () => {
     )
     expect(request.logger.error).toHaveBeenCalled()
   })
+
+  it('throws Boom.internal when API returns failure status', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: { message: 'Service down' } })
+    })
+
+    const request = makeRequest()
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toMatchObject({
+      isBoom: true,
+      output: { statusCode: 500 },
+      message: 'Failed to fetch bank details'
+    })
+  })
+
+  it('uses fallback message when API error.message is missing', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: {} })
+    })
+
+    const request = makeRequest()
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toMatchObject({
+      isBoom: true,
+      output: { statusCode: 500 },
+      message: 'Failed to fetch bank details'
+    })
+  })
 })
