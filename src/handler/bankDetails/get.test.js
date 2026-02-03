@@ -217,6 +217,7 @@ describe('decryptAndParseResponse', () => {
     const request = makeRequest()
     const h = makeH()
 
+    // Expect the fallback message that getBankDetails actually throws
     await expect(getBankDetails(request, h)).rejects.toMatchObject({
       isBoom: true,
       output: { statusCode: 500 },
