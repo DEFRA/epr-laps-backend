@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 
 /**
  * Convert URL-safe Base64 to standard Base64
@@ -6,7 +6,7 @@ import crypto from 'crypto'
  * @returns {string} Standard Base64 string
  */
 export function urlBase64ToBase64(str) {
-  return str.replace(/-/g, '+').replace(/_/g, '/')
+  return str.replaceAll(/-/g, '+').replaceAll(/_/g, '/')
 }
 
 /**
@@ -17,7 +17,7 @@ export function urlBase64ToBase64(str) {
  */
 export function extractIvAndCiphertext(responseData) {
   // Remove all non-Base64 characters (keeps only A-Za-z0-9+/\-_=)
-  const cleanedData = responseData.replace(/[^A-Za-z0-9+/\-_=]/g, '')
+  const cleanedData = responseData.replaceAll(/[^A-Za-z0-9+/\-_=]/g, '')
 
   // Find the first occurrence of == separator (marks end of IV)
   const firstSeparatorIndex = cleanedData.indexOf('==')
