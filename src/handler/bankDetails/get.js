@@ -43,6 +43,14 @@ const getBankDetails = async (request, h) => {
       }
     })
 
+    if (!response.ok) {
+      const errorBody = await response.text()
+      request.logger.error(
+        `Error fetching bank details: ${response.status} ${response.statusText}: ${errorBody}`
+      )
+      throw Boom.internal(`Failed to fetch bank details`)
+    }
+
     const bankDetails = await response.json()
     request.logger.debug(
       `Raw bank details received:, ${JSON.stringify(bankDetails)}`
