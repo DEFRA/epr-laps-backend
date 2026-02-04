@@ -37,6 +37,14 @@ const putBankDetails = async (request, h) => {
       body: JSON.stringify(payload)
     })
 
+    if (!response.ok) {
+      const errorBody = await response.text()
+      request.logger.error(
+        `Error confirming bank details: ${response.status} ${response.statusText}: ${errorBody}`
+      )
+      throw Boom.internal(`Error confirming bank details`)
+    }
+
     // Optionally, handle the response if you want to return it
     const data = await response.json()
 
