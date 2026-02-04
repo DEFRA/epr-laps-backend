@@ -94,7 +94,14 @@ describe('getDocumentMetadata', () => {
     const result = await getDocumentMetadata(mockRequest, mockH)
 
     expect(result.isBoom).toBe(true)
-    expect(result.message).toBe('Server error')
+    expect(result.output.statusCode).toBe(500)
+    expect(result.message).toBe('Error fetching file metadata')
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      'DocumentsListed',
+      Outcome.Failure
+    )
   })
 
   it('should throw Boom error when fetch throws', async () => {

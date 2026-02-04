@@ -37,7 +37,7 @@ const getDocument = async (request, h) => {
         request,
         Outcome.Failure
       )
-      return Boom.internal(errorText, errorMsg)
+      return Boom.internal(errorMsg)
     }
 
     // Get the PDF as a buffer

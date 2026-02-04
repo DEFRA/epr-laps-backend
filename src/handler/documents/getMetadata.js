@@ -37,7 +37,7 @@ const getDocumentMetadata = async (request, h) => {
         request,
         Outcome.Failure
       )
-      return Boom.internal(errorText, errorMsg)
+      return Boom.internal(errorMsg)
     }
 
     const data = await response.json()
