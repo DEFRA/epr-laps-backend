@@ -32,7 +32,12 @@ const getDocument = async (request, h) => {
     if (!response.ok) {
       const errorText = await response.text()
       request.logger?.error(errorText, errorMsg)
-      return Boom.internal(errorText, errorMsg)
+      writeDocumentAccessedAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Failure
+      )
+      return Boom.internal(errorMsg)
     }
 
     // Get the PDF as a buffer

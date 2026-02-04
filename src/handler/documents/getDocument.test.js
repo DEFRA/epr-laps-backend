@@ -111,7 +111,14 @@ describe('getDocument', () => {
     const result = await getDocument(mockRequest, mockH)
 
     expect(result.isBoom).toBe(true)
-    expect(result.message).toBe('Server error')
+    expect(result.output.statusCode).toBe(500)
+    expect(result.message).toBe('Error fetching file:')
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      ActionKind.DocumentAccessed,
+      Outcome.Failure
+    )
   })
 
   it('returns forbidden for unauthorized user', async () => {

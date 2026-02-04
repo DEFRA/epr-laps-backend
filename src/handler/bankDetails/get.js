@@ -48,6 +48,11 @@ const getBankDetails = async (request, h) => {
       request.logger.error(
         `Error fetching bank details: ${response.status} ${response.statusText}: ${errorBody}`
       )
+      writeBankDetailsAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Failure
+      )
       throw Boom.internal(`Failed to fetch bank details`)
     }
 

@@ -42,6 +42,7 @@ describe('putBankDetails', () => {
     }
 
     mockResponse = {
+      ok: true,
       json: vi.fn().mockResolvedValue({ success: true }),
       status: 200
     }
@@ -142,5 +143,28 @@ describe('putBankDetails', () => {
 
     expect(response.isBoom).toBe(true)
     expect(response.output.statusCode).toBe(403)
+  })
+
+  it('logs API error and throws when response is not ok', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: vi.fn().mockResolvedValue('service exploded')
+    })
+
+    await expect(putBankDetails(request, h)).rejects.toThrow(
+      'Failed to confirm bank details'
+    )
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error confirming bank details: 500 Internal Server Error: service exploded'
+    )
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      request,
+      ActionKind.BankDetailsConfirmed,
+      Outcome.Failure
+    )
   })
 })

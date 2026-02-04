@@ -10,6 +10,7 @@ import {
 } from '../../common/helpers/audit-logging.js'
 
 const getDocumentMetadata = async (request, h) => {
+  const errorMsg = 'Error fetching file metadata'
   try {
     const { localAuthority } = request.params
     const { role } = request.auth.credentials
@@ -30,7 +31,13 @@ const getDocumentMetadata = async (request, h) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      return Boom.internal(errorText, 'Error fetching file metadata')
+      request.logger?.error(errorText, errorMsg)
+      writeDocumentListedAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Failure
+      )
+      return Boom.internal(errorMsg)
     }
 
     const data = await response.json()
@@ -55,7 +62,7 @@ const getDocumentMetadata = async (request, h) => {
       request,
       Outcome.Failure
     )
-    throw Boom.internal('Error fetching file metadata')
+    throw Boom.internal(errorMsg)
   }
 }
 
