@@ -32,6 +32,11 @@ const getDocument = async (request, h) => {
     if (!response.ok) {
       const errorText = await response.text()
       request.logger?.error(errorText, errorMsg)
+      writeDocumentAccessedAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Failure
+      )
       return Boom.internal(errorText, errorMsg)
     }
 

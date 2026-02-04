@@ -42,6 +42,7 @@ const putBankDetails = async (request, h) => {
       request.logger.error(
         `Error confirming bank details: ${response.status} ${response.statusText}: ${errorBody}`
       )
+      writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure)
       throw Boom.internal(`Error confirming bank details`)
     }
 
