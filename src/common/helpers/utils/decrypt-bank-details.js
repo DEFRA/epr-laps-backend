@@ -6,9 +6,8 @@ import crypto from 'node:crypto'
  * @returns {string} Standard Base64 string
  */
 export function urlBase64ToBase64(str) {
-  return str.replaceAll(/-/g, '+').replaceAll(/_/g, '/')
+  return str.replaceAll('-', '+').replaceAll('_', '/')
 }
-
 /**
  * Extract IV and ciphertext from encrypted response
  * @param {string} responseData - Encrypted response data in format: <IV_BASE64URL>==<CIPHERTEXT_BASE64URL>
