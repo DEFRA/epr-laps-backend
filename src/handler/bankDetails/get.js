@@ -86,9 +86,7 @@ const getBankDetails = async (request, h) => {
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
     const statusCode = err.output?.statusCode || statusCodes.internalServerError
-    request.logger.error(
-      `Error fetching bank details for logger: ${JSON.stringify(err)}`
-    )
+    request.logger.error(`Error fetching bank details: ${JSON.stringify(err)}`)
     writeBankDetailsAuditLog(
       request.auth.isAuthorized,
       request,

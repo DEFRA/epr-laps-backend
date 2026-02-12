@@ -83,7 +83,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      true
     )
     expect(result.status).toBe(200)
   })
@@ -115,7 +116,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.MaskedBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      true
     )
     expect(result.status).toBe(200)
   })
@@ -147,7 +149,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      true
     )
     expect(result.status).toBe(200)
   })
