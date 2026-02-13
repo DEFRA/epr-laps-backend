@@ -35,7 +35,8 @@ const getDocumentMetadata = async (request, h) => {
       writeDocumentListedAuditLog(
         request.auth.isAuthorized,
         request,
-        Outcome.Failure
+        Outcome.Failure,
+        response.status
       )
       return Boom.internal(errorMsg)
     }
@@ -50,17 +51,21 @@ const getDocumentMetadata = async (request, h) => {
     writeDocumentListedAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Success
+      Outcome.Success,
+      response.ok
     )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (error) {
+    const statusCode =
+      error.output?.statusCode || statusCodes.internalServerError
     request.logger.error(
       `Error fetching file metadata:', ${JSON.stringify(error)}`
     )
     writeDocumentListedAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Failure
+      Outcome.Failure,
+      statusCode
     )
     throw Boom.internal(errorMsg)
   }
@@ -71,11 +76,12 @@ export { getDocumentMetadata }
 export const writeDocumentListedAuditLog = (
   canListDocuments,
   request,
-  outcome
+  outcome,
+  statusCode
 ) => {
   if (canListDocuments) {
-    writeAuditLog(request, ActionKind.DocumentsListed, outcome)
+    writeAuditLog(request, ActionKind.DocumentsListed, outcome, statusCode)
     return
   }
-  writeAuditLog(request, ActionKind.DocumentsListed, outcome)
+  writeAuditLog(request, ActionKind.DocumentsListed, outcome, statusCode)
 }
