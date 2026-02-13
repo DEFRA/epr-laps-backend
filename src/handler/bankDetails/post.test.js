@@ -124,7 +124,8 @@ describe('postBankDetails', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       request,
       ActionKind.BankDetailsCreated,
-      Outcome.Success
+      Outcome.Success,
+      201
     )
   })
 
@@ -139,7 +140,8 @@ describe('postBankDetails', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       request,
       ActionKind.BankDetailsCreated,
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
   })
 

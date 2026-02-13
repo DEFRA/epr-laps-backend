@@ -15,7 +15,7 @@ export const ActionKind = {
   BankDetailsCreated: 'BankDetailsCreated'
 }
 
-export const writeAuditLog = (request, action, outcome) => {
+export const writeAuditLog = (request, action, outcome, statuscode) => {
   const auditLogData = {
     log_id: uuidv4(),
     user_id: request.auth.credentials.sub,
@@ -25,7 +25,8 @@ export const writeAuditLog = (request, action, outcome) => {
     user_role: request.auth.credentials.role,
     local_authority_name: request.auth.credentials.currentOrganisation,
     action_kind: action,
-    outcome
+    outcome,
+    status: statuscode
   }
   request.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)
   audit(auditLogData)

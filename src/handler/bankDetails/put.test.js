@@ -116,7 +116,8 @@ describe('putBankDetails', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       request,
       ActionKind.BankDetailsConfirmed,
-      Outcome.Success
+      Outcome.Success,
+      200
     )
   })
 
@@ -131,7 +132,8 @@ describe('putBankDetails', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       request,
       ActionKind.BankDetailsConfirmed,
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
   })
 
@@ -164,7 +166,8 @@ describe('putBankDetails', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       request,
       ActionKind.BankDetailsConfirmed,
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
   })
 })

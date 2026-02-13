@@ -35,7 +35,8 @@ const getDocument = async (request, h) => {
       writeDocumentAccessedAuditLog(
         request.auth.isAuthorized,
         request,
-        Outcome.Failure
+        Outcome.Failure,
+        response.status
       )
       return Boom.internal(errorMsg)
     }
@@ -45,18 +46,22 @@ const getDocument = async (request, h) => {
     writeDocumentAccessedAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Success
+      Outcome.Success,
+      response.status
     )
     return h
       .response(Buffer.from(fileBuffer))
       .type('application/pdf')
       .code(statusCodes.ok)
   } catch (error) {
+    const statusCode =
+      error.output?.statusCode || statusCodes.internalServerError
     request.logger?.error(error, errorMsg)
     writeDocumentAccessedAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Failure
+      Outcome.Failure,
+      statusCode
     )
     throw Boom.internal('Error fetching file')
   }
@@ -67,11 +72,12 @@ export { getDocument }
 export const writeDocumentAccessedAuditLog = (
   canListDocuments,
   request,
-  outcome
+  outcome,
+  statusCode
 ) => {
   if (canListDocuments) {
-    writeAuditLog(request, ActionKind.DocumentAccessed, outcome)
+    writeAuditLog(request, ActionKind.DocumentAccessed, outcome, statusCode)
     return
   }
-  writeAuditLog(request, ActionKind.DocumentAccessed, outcome)
+  writeAuditLog(request, ActionKind.DocumentAccessed, outcome, statusCode)
 }

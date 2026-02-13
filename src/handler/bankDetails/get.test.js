@@ -61,6 +61,7 @@ describe('getBankDetails', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: async () => ({
         result: {
           response_data: 'encrypted_bank_data'
@@ -83,7 +84,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      200
     )
     expect(result.status).toBe(200)
   })
@@ -96,6 +98,7 @@ describe('getBankDetails', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: async () => ({
         result: {
           response_data: 'encrypted_bank_data'
@@ -115,7 +118,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.MaskedBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      200
     )
     expect(result.status).toBe(200)
   })
@@ -128,6 +132,7 @@ describe('getBankDetails', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: async () => ({
         result: {
           response_data: 'encrypted_bank_data'
@@ -147,7 +152,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      200
     )
     expect(result.status).toBe(200)
   })

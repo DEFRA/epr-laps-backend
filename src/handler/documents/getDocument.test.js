@@ -77,7 +77,8 @@ describe('getDocument', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       ActionKind.DocumentAccessed,
-      Outcome.Success
+      Outcome.Success,
+      200
     )
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
     expect(mockH.type).toHaveBeenCalledWith('application/pdf')
@@ -97,7 +98,8 @@ describe('getDocument', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       ActionKind.DocumentAccessed,
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
   })
 
@@ -105,7 +107,8 @@ describe('getDocument', () => {
     const fetchMock = (await import('node-fetch')).default
     fetchMock.mockResolvedValueOnce({
       ok: false,
-      text: async () => 'Server error'
+      text: async () => 'Server error',
+      status: 500
     })
 
     const result = await getDocument(mockRequest, mockH)
@@ -117,7 +120,8 @@ describe('getDocument', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       ActionKind.DocumentAccessed,
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
   })
 
@@ -131,21 +135,23 @@ describe('getDocument', () => {
   })
 
   it('writeDocumentAccessedAuditLog calls writeAuditLog for both true/false', () => {
-    writeDocumentAccessedAuditLog(true, mockRequest, Outcome.Success)
-    writeDocumentAccessedAuditLog(false, mockRequest, Outcome.Failure)
+    writeDocumentAccessedAuditLog(true, mockRequest, Outcome.Success, 200)
+    writeDocumentAccessedAuditLog(false, mockRequest, Outcome.Failure, 500)
 
     expect(writeAuditLog).toHaveBeenCalledTimes(2)
     expect(writeAuditLog).toHaveBeenNthCalledWith(
       1,
       mockRequest,
       ActionKind.DocumentAccessed,
-      Outcome.Success
+      Outcome.Success,
+      200
     )
     expect(writeAuditLog).toHaveBeenNthCalledWith(
       2,
       mockRequest,
       ActionKind.DocumentAccessed,
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
   })
 })
