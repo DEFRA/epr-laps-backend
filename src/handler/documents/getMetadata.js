@@ -52,7 +52,7 @@ const getDocumentMetadata = async (request, h) => {
       request.auth.isAuthorized,
       request,
       Outcome.Success,
-      response.ok
+      response.status
     )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (error) {

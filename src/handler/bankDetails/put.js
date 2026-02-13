@@ -59,7 +59,12 @@ const putBankDetails = async (request, h) => {
       `Bank details confirmed successfully: ${JSON.stringify(data)}`
     )
 
-    writeConfirmBankDetailsAuditLog(role, request, Outcome.Success, response.ok)
+    writeConfirmBankDetailsAuditLog(
+      role,
+      request,
+      Outcome.Success,
+      response.status
+    )
     return h.response(data).code(response.status)
   } catch (err) {
     const statusCode = err.output?.statusCode || statusCodes.internalServerError
