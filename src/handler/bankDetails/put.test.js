@@ -117,7 +117,7 @@ describe('putBankDetails', () => {
       request,
       ActionKind.BankDetailsConfirmed,
       Outcome.Success,
-      true
+      200
     )
   })
 

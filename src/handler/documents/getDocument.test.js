@@ -78,7 +78,7 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Success,
-      true
+      200
     )
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
     expect(mockH.type).toHaveBeenCalledWith('application/pdf')

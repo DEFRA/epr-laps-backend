@@ -125,7 +125,7 @@ describe('postBankDetails', () => {
       request,
       ActionKind.BankDetailsCreated,
       Outcome.Success,
-      true
+      201
     )
   })
 

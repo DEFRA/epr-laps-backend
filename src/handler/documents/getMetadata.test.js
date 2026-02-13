@@ -61,6 +61,7 @@ describe('getDocumentMetadata', () => {
     const mockData = [{ year: '2024', documents: [] }]
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: vi.fn().mockResolvedValue(mockData)
     })
     processDocumentsByFinancialYear.mockReturnValue([
@@ -164,6 +165,7 @@ describe('getDocumentMetadata', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: vi.fn().mockResolvedValue({ result: apiResult })
     })
     processDocumentsByFinancialYear.mockReturnValue(processed)
@@ -177,7 +179,7 @@ describe('getDocumentMetadata', () => {
       mockRequest,
       'DocumentsListed',
       Outcome.Success,
-      true
+      200
     )
   })
 })
