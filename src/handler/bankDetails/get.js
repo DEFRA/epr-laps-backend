@@ -23,8 +23,8 @@ export function decryptAndParseResponse(responseData, request) {
   try {
     const decryptedString = decryptBankDetails(responseData, encryptionKey)
     return JSON.parse(decryptedString)
-  } catch (decryptErr) {
-    request.logger.error(`Error decrypting bank details: ${decryptErr}`)
+  } catch (error) {
+    request.logger.error(`Error decrypting bank details: ${error}`)
     throw Boom.internal('Failed to decrypt bank details')
   }
 }
@@ -42,6 +42,20 @@ const getBankDetails = async (request, h) => {
         'Content-Type': 'application/json'
       }
     })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      request.logger.error(
+        `Error fetching bank details: ${response.status} ${response.statusText}: ${errorBody}`
+      )
+      writeBankDetailsAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Failure,
+        response.status
+      )
+      throw Boom.internal(`Failed to fetch bank details`)
+    }
 
     const bankDetails = await response.json()
     request.logger.debug(
@@ -66,15 +80,18 @@ const getBankDetails = async (request, h) => {
     writeBankDetailsAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Success
+      Outcome.Success,
+      response.status
     )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
+    const statusCode = err.output?.statusCode || statusCodes.internalServerError
     request.logger.error(`Error fetching bank details: ${JSON.stringify(err)}`)
     writeBankDetailsAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Failure
+      Outcome.Failure,
+      statusCode
     )
     throw Boom.internal('Failed to fetch bank details')
   }
@@ -85,11 +102,22 @@ export { getBankDetails }
 export const writeBankDetailsAuditLog = (
   canViewFullBankDetails,
   request,
-  outcome
+  outcome,
+  statusCode
 ) => {
   if (canViewFullBankDetails) {
-    writeAuditLog(request, ActionKind.FullBankDetailsViewed, outcome)
+    writeAuditLog(
+      request,
+      ActionKind.FullBankDetailsViewed,
+      outcome,
+      statusCode
+    )
     return
   }
-  writeAuditLog(request, ActionKind.MaskedBankDetailsViewed, outcome)
+  writeAuditLog(
+    request,
+    ActionKind.MaskedBankDetailsViewed,
+    outcome,
+    statusCode
+  )
 }

@@ -33,7 +33,13 @@ const getDocument = async (request, h) => {
     if (!response.ok) {
       const errorText = await response.text()
       request.logger?.error(errorText, errorMsg)
-      return Boom.internal(errorText, errorMsg)
+      writeDocumentAccessedAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Failure,
+        response.status
+      )
+      return Boom.internal(errorMsg)
     }
 
     // Get the PDF as a buffer
@@ -42,6 +48,7 @@ const getDocument = async (request, h) => {
       request.auth.isAuthorized,
       request,
       Outcome.Success,
+      response.status,
       { documentType, language }
     )
     return h
@@ -49,11 +56,14 @@ const getDocument = async (request, h) => {
       .type('application/pdf')
       .code(statusCodes.ok)
   } catch (error) {
+    const statusCode =
+      error.output?.statusCode || statusCodes.internalServerError
     request.logger?.error(error, errorMsg)
     writeDocumentAccessedAuditLog(
       request.auth.isAuthorized,
       request,
       Outcome.Failure,
+      statusCode,
       {
         documentType: request.query?.documentType,
         language: request.query?.language
@@ -69,6 +79,7 @@ export const writeDocumentAccessedAuditLog = (
   canListDocuments,
   request,
   outcome,
+  statusCode,
   documentMetadata = {}
 ) => {
   const additionalData = {}
@@ -79,8 +90,20 @@ export const writeDocumentAccessedAuditLog = (
     additionalData.language = documentMetadata.language
   }
   if (canListDocuments) {
-    writeAuditLog(request, ActionKind.DocumentAccessed, outcome, additionalData)
+    writeAuditLog(
+      request,
+      ActionKind.DocumentAccessed,
+      outcome,
+      statusCode,
+      additionalData
+    )
     return
   }
-  writeAuditLog(request, ActionKind.DocumentAccessed, outcome, additionalData)
+  writeAuditLog(
+    request,
+    ActionKind.DocumentAccessed,
+    outcome,
+    statusCode,
+    additionalData
+  )
 }

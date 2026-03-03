@@ -7,6 +7,7 @@ import {
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
 import { roles } from '../../common/constants/constants.js'
+import { statusCodes } from '../../common/constants/status-codes.js'
 
 const putBankDetails = async (request, h) => {
   const { role } = request.auth.credentials
@@ -37,6 +38,20 @@ const putBankDetails = async (request, h) => {
       body: JSON.stringify(payload)
     })
 
+    if (!response.ok) {
+      const errorBody = await response.text()
+      request.logger.error(
+        `Error confirming bank details: ${response.status} ${response.statusText}: ${errorBody}`
+      )
+      writeConfirmBankDetailsAuditLog(
+        role,
+        request,
+        Outcome.Failure,
+        response.status
+      )
+      throw Boom.internal(`Error confirming bank details`)
+    }
+
     // Optionally, handle the response if you want to return it
     const data = await response.json()
 
@@ -44,21 +59,32 @@ const putBankDetails = async (request, h) => {
       `Bank details confirmed successfully: ${JSON.stringify(data)}`
     )
 
-    writeConfirmBankDetailsAuditLog(role, request, Outcome.Success)
+    writeConfirmBankDetailsAuditLog(
+      role,
+      request,
+      Outcome.Success,
+      response.status
+    )
     return h.response(data).code(response.status)
   } catch (err) {
+    const statusCode = err.output?.statusCode || statusCodes.internalServerError
     request.logger.error(
       `Error confirming bank details: ${JSON.stringify(err)}`
     )
-    writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure)
+    writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure, statusCode)
     throw Boom.internal('Failed to confirm bank details')
   }
 }
 
 export { putBankDetails }
 
-export const writeConfirmBankDetailsAuditLog = (role, request, outcome) => {
+export const writeConfirmBankDetailsAuditLog = (
+  role,
+  request,
+  outcome,
+  statusCode
+) => {
   if (role === roles.HOF) {
-    writeAuditLog(request, ActionKind.BankDetailsConfirmed, outcome)
+    writeAuditLog(request, ActionKind.BankDetailsConfirmed, outcome, statusCode)
   }
 }

@@ -19,6 +19,7 @@ export const writeAuditLog = (
   request,
   action,
   outcome,
+  statuscode,
   additionalData = {}
 ) => {
   const auditLogData = {
@@ -31,6 +32,7 @@ export const writeAuditLog = (
     local_authority_name: request.auth.credentials.currentOrganisation,
     action_kind: action,
     outcome,
+    status: statuscode,
     ...additionalData
   }
   request.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)

@@ -25,7 +25,7 @@ describe('#writeAuditLog', () => {
     const action = 'TestAction'
     const outcome = 'Success'
 
-    writeAuditLog(mockRequest, action, outcome)
+    writeAuditLog(mockRequest, action, outcome, 200)
 
     expect(mockRequest.logger.debug).toHaveBeenCalled()
     expect(audit).toHaveBeenCalledWith({
@@ -37,7 +37,8 @@ describe('#writeAuditLog', () => {
       user_role: 'Chief Executive Officer',
       local_authority_name: 'Test Authority',
       action_kind: 'TestAction',
-      outcome: 'Success'
+      outcome: 'Success',
+      status: 200
     })
   })
 
@@ -62,7 +63,7 @@ describe('#writeAuditLog', () => {
       language: 'EN'
     }
 
-    writeAuditLog(mockRequest, action, outcome, additionalData)
+    writeAuditLog(mockRequest, action, outcome, 200, additionalData)
 
     expect(mockRequest.logger.debug).toHaveBeenCalled()
     expect(audit).toHaveBeenCalledWith({
@@ -76,7 +77,8 @@ describe('#writeAuditLog', () => {
       action_kind: 'DocumentAccessed',
       outcome: 'Success',
       document_type: 'grant',
-      language: 'EN'
+      language: 'EN',
+      status: 200
     })
   })
 })

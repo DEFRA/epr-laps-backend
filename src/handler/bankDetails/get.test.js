@@ -61,6 +61,7 @@ describe('getBankDetails', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: async () => ({
         result: {
           response_data: 'encrypted_bank_data'
@@ -83,7 +84,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      200
     )
     expect(result.status).toBe(200)
   })
@@ -96,6 +98,7 @@ describe('getBankDetails', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: async () => ({
         result: {
           response_data: 'encrypted_bank_data'
@@ -115,7 +118,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.MaskedBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      200
     )
     expect(result.status).toBe(200)
   })
@@ -128,6 +132,7 @@ describe('getBankDetails', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: async () => ({
         result: {
           response_data: 'encrypted_bank_data'
@@ -147,7 +152,8 @@ describe('getBankDetails', () => {
     expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
-      auditLogging.Outcome.Success
+      auditLogging.Outcome.Success,
+      200
     )
     expect(result.status).toBe(200)
   })
@@ -206,5 +212,45 @@ describe('decryptAndParseResponse', () => {
       Boom.Boom
     )
     expect(request.logger.error).toHaveBeenCalled()
+  })
+
+  it('throws Boom.internal when API returns failure status', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Service down'
+    })
+
+    const request = makeRequest()
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toMatchObject({
+      message: 'Failed to fetch bank details'
+    })
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error fetching bank details: 500 Internal Server Error: Service down'
+    )
+  })
+
+  it('uses fallback message when API error.message is missing', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      statusText: 'Bad Gateway',
+      text: async () => ''
+    })
+
+    const request = makeRequest()
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toMatchObject({
+      message: 'Failed to fetch bank details'
+    })
+
+    expect(request.logger.error).toHaveBeenCalledWith(
+      'Error fetching bank details: 502 Bad Gateway: '
+    )
   })
 })

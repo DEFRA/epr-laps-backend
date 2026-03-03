@@ -61,6 +61,7 @@ describe('getDocumentMetadata', () => {
     const mockData = [{ year: '2024', documents: [] }]
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: vi.fn().mockResolvedValue(mockData)
     })
     processDocumentsByFinancialYear.mockReturnValue([
@@ -88,13 +89,22 @@ describe('getDocumentMetadata', () => {
   it('should return Boom error when fetch returns non-ok response', async () => {
     fetch.mockResolvedValueOnce({
       ok: false,
+      status: 500,
       text: vi.fn().mockResolvedValue('Server error')
     })
 
     const result = await getDocumentMetadata(mockRequest, mockH)
 
     expect(result.isBoom).toBe(true)
-    expect(result.message).toBe('Server error')
+    expect(result.output.statusCode).toBe(500)
+    expect(result.message).toBe('Error fetching file metadata')
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      'DocumentsListed',
+      Outcome.Failure,
+      500
+    )
   })
 
   it('should throw Boom error when fetch throws', async () => {
@@ -110,7 +120,8 @@ describe('getDocumentMetadata', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       'DocumentsListed',
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
   })
 
@@ -130,18 +141,20 @@ describe('getDocumentMetadata', () => {
   })
 
   it('writeDocumentListedAuditLog should call writeAuditLog for both true and false canListDocuments', () => {
-    writeDocumentListedAuditLog(true, mockRequest, Outcome.Success)
+    writeDocumentListedAuditLog(true, mockRequest, Outcome.Success, 200)
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       'DocumentsListed',
-      Outcome.Success
+      Outcome.Success,
+      200
     )
 
-    writeDocumentListedAuditLog(false, mockRequest, Outcome.Failure)
+    writeDocumentListedAuditLog(false, mockRequest, Outcome.Failure, 500)
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       'DocumentsListed',
-      Outcome.Failure
+      Outcome.Failure,
+      500
     )
     expect(writeAuditLog).toHaveBeenCalledTimes(2)
   })
@@ -152,6 +165,7 @@ describe('getDocumentMetadata', () => {
 
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       json: vi.fn().mockResolvedValue({ result: apiResult })
     })
     processDocumentsByFinancialYear.mockReturnValue(processed)
@@ -164,7 +178,8 @@ describe('getDocumentMetadata', () => {
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       'DocumentsListed',
-      Outcome.Success
+      Outcome.Success,
+      200
     )
   })
 })

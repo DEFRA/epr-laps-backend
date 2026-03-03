@@ -42,7 +42,8 @@ const postBankDetails = async (request, h) => {
       writeCreateBankDetailsAuditLog(
         request.auth.isAuthorized,
         request,
-        Outcome.Failure
+        Outcome.Failure,
+        response.status
       )
       return Boom.internal('Failed to create bank details')
     }
@@ -54,12 +55,14 @@ const postBankDetails = async (request, h) => {
     writeCreateBankDetailsAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Success
+      Outcome.Success,
+      response.status
     )
     return h.response(data).code(statusCodes.created)
   } catch (err) {
+    const statusCode = err.output?.statusCode || statusCodes.internalServerError
     request.logger.error(`Error creating bank details: ${JSON.stringify(err)}`)
-    writeCreateBankDetailsAuditLog(role, request, Outcome.Failure)
+    writeCreateBankDetailsAuditLog(role, request, Outcome.Failure, statusCode)
     throw Boom.internal('Failed to create bank details')
   }
 }
@@ -69,9 +72,10 @@ export { postBankDetails }
 export const writeCreateBankDetailsAuditLog = (
   canCreateBankDetails,
   request,
-  outcome
+  outcome,
+  statusCode
 ) => {
   if (canCreateBankDetails) {
-    writeAuditLog(request, ActionKind.BankDetailsCreated, outcome)
+    writeAuditLog(request, ActionKind.BankDetailsCreated, outcome, statusCode)
   }
 }

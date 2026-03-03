@@ -79,6 +79,7 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Success,
+      200,
       {}
     )
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
@@ -100,6 +101,7 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Failure,
+      500,
       {}
     )
   })
@@ -108,13 +110,23 @@ describe('getDocument', () => {
     const fetchMock = (await import('node-fetch')).default
     fetchMock.mockResolvedValueOnce({
       ok: false,
-      text: async () => 'Server error'
+      text: async () => 'Server error',
+      status: 500
     })
 
     const result = await getDocument(mockRequest, mockH)
 
     expect(result.isBoom).toBe(true)
-    expect(result.message).toBe('Server error')
+    expect(result.output.statusCode).toBe(500)
+    expect(result.message).toBe('Error fetching file:')
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      ActionKind.DocumentAccessed,
+      Outcome.Failure,
+      500,
+      {}
+    )
   })
 
   it('returns forbidden for unauthorized user', async () => {
@@ -127,8 +139,8 @@ describe('getDocument', () => {
   })
 
   it('writeDocumentAccessedAuditLog calls writeAuditLog for both true/false', () => {
-    writeDocumentAccessedAuditLog(true, mockRequest, Outcome.Success)
-    writeDocumentAccessedAuditLog(false, mockRequest, Outcome.Failure)
+    writeDocumentAccessedAuditLog(true, mockRequest, Outcome.Success, 200)
+    writeDocumentAccessedAuditLog(false, mockRequest, Outcome.Failure, 500)
 
     expect(writeAuditLog).toHaveBeenCalledTimes(2)
     expect(writeAuditLog).toHaveBeenNthCalledWith(
@@ -136,6 +148,7 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Success,
+      200,
       {}
     )
     expect(writeAuditLog).toHaveBeenNthCalledWith(
@@ -143,6 +156,7 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Failure,
+      500,
       {}
     )
   })
@@ -163,6 +177,7 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Success,
+      200,
       { document_type: 'grant', language: 'EN' }
     )
   })
