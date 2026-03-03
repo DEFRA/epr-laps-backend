@@ -12,6 +12,7 @@ const getDocument = async (request, h) => {
   const errorMsg = 'Error fetching file:'
   try {
     const { id } = request.params
+    const { documentType, language } = request.query
     const { role } = request.auth.credentials
     if (!request.auth.isAuthorized) {
       request.logger.warn(`User with role ${role} tried to access the document`)
@@ -40,7 +41,8 @@ const getDocument = async (request, h) => {
     writeDocumentAccessedAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Success
+      Outcome.Success,
+      { documentType, language }
     )
     return h
       .response(Buffer.from(fileBuffer))
@@ -51,7 +53,11 @@ const getDocument = async (request, h) => {
     writeDocumentAccessedAuditLog(
       request.auth.isAuthorized,
       request,
-      Outcome.Failure
+      Outcome.Failure,
+      {
+        documentType: request.query?.documentType,
+        language: request.query?.language
+      }
     )
     throw Boom.internal('Error fetching file')
   }
@@ -62,11 +68,19 @@ export { getDocument }
 export const writeDocumentAccessedAuditLog = (
   canListDocuments,
   request,
-  outcome
+  outcome,
+  documentMetadata = {}
 ) => {
+  const additionalData = {}
+  if (documentMetadata.documentType) {
+    additionalData.document_type = documentMetadata.documentType
+  }
+  if (documentMetadata.language) {
+    additionalData.language = documentMetadata.language
+  }
   if (canListDocuments) {
-    writeAuditLog(request, ActionKind.DocumentAccessed, outcome)
+    writeAuditLog(request, ActionKind.DocumentAccessed, outcome, additionalData)
     return
   }
-  writeAuditLog(request, ActionKind.DocumentAccessed, outcome)
+  writeAuditLog(request, ActionKind.DocumentAccessed, outcome, additionalData)
 }
