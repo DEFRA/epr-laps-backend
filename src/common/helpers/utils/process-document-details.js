@@ -90,6 +90,8 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
       financialYear: doc.financialYear,
       creationDate: formattedDate,
       documentName,
+      documentType: doc.documentType,
+      language,
       isLatest
     }
 

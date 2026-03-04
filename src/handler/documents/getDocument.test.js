@@ -48,6 +48,7 @@ describe('getDocument', () => {
   beforeEach(() => {
     mockRequest = {
       params: { id: 'file-123' },
+      query: { documentType: undefined, language: undefined },
       logger: { error: vi.fn(), debug: vi.fn(), warn: vi.fn() },
       auth: { isAuthorized: true, credentials: { role: 'admin' } }
     }
@@ -78,7 +79,8 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Success,
-      200
+      200,
+      {}
     )
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
     expect(mockH.type).toHaveBeenCalledWith('application/pdf')
@@ -99,7 +101,8 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Failure,
-      500
+      500,
+      {}
     )
   })
 
@@ -121,7 +124,8 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Failure,
-      500
+      500,
+      {}
     )
   })
 
@@ -144,14 +148,37 @@ describe('getDocument', () => {
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Success,
-      200
+      200,
+      {}
     )
     expect(writeAuditLog).toHaveBeenNthCalledWith(
       2,
       mockRequest,
       ActionKind.DocumentAccessed,
       Outcome.Failure,
-      500
+      500,
+      {}
+    )
+  })
+
+  it('includes document metadata in audit log when provided', async () => {
+    mockRequest.query = { documentType: 'grant', language: 'EN' }
+    const fetchMock = (await import('node-fetch')).default
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => mockBuffer,
+      text: async () => ''
+    })
+
+    await getDocument(mockRequest, mockH)
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      ActionKind.DocumentAccessed,
+      Outcome.Success,
+      200,
+      { document_type: 'grant', language: 'EN' }
     )
   })
 })
