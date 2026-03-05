@@ -80,6 +80,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      'End',
       {}
     )
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
@@ -102,6 +103,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Failure,
       500,
+      'End',
       {}
     )
   })
@@ -125,6 +127,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Failure,
       500,
+      'End',
       {}
     )
   })
@@ -139,8 +142,20 @@ describe('getDocument', () => {
   })
 
   it('writeDocumentAccessedAuditLog calls writeAuditLog for both true/false', () => {
-    writeDocumentAccessedAuditLog(true, mockRequest, Outcome.Success, 200)
-    writeDocumentAccessedAuditLog(false, mockRequest, Outcome.Failure, 500)
+    writeDocumentAccessedAuditLog(
+      true,
+      mockRequest,
+      Outcome.Success,
+      200,
+      'End'
+    )
+    writeDocumentAccessedAuditLog(
+      false,
+      mockRequest,
+      Outcome.Failure,
+      500,
+      'End'
+    )
 
     expect(writeAuditLog).toHaveBeenCalledTimes(2)
     expect(writeAuditLog).toHaveBeenNthCalledWith(
@@ -149,6 +164,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      'End',
       {}
     )
     expect(writeAuditLog).toHaveBeenNthCalledWith(
@@ -157,6 +173,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Failure,
       500,
+      'End',
       {}
     )
   })
@@ -178,6 +195,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      'End',
       { document_type: 'grant', language: 'EN', quarter: 'Q1' }
     )
   })
@@ -199,6 +217,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      'End',
       { quarter: 'Q2' }
     )
   })

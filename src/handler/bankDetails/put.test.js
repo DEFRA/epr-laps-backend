@@ -117,7 +117,8 @@ describe('putBankDetails', () => {
       request,
       ActionKind.BankDetailsConfirmed,
       Outcome.Success,
-      200
+      200,
+      'End'
     )
   })
 
@@ -133,7 +134,8 @@ describe('putBankDetails', () => {
       request,
       ActionKind.BankDetailsConfirmed,
       Outcome.Failure,
-      500
+      500,
+      'End'
     )
   })
 
@@ -167,7 +169,8 @@ describe('putBankDetails', () => {
       request,
       ActionKind.BankDetailsConfirmed,
       Outcome.Failure,
-      500
+      500,
+      'End'
     )
   })
 })

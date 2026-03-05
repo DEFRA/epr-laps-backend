@@ -47,7 +47,8 @@ const putBankDetails = async (request, h) => {
         role,
         request,
         Outcome.Failure,
-        response.status
+        response.status,
+        'End'
       )
       throw Boom.internal(`Error confirming bank details`)
     }
@@ -63,7 +64,8 @@ const putBankDetails = async (request, h) => {
       role,
       request,
       Outcome.Success,
-      response.status
+      response.status,
+      'End'
     )
     return h.response(data).code(response.status)
   } catch (err) {
@@ -71,7 +73,13 @@ const putBankDetails = async (request, h) => {
     request.logger.error(
       `Error confirming bank details: ${JSON.stringify(err)}`
     )
-    writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure, statusCode)
+    writeConfirmBankDetailsAuditLog(
+      role,
+      request,
+      Outcome.Failure,
+      statusCode,
+      'End'
+    )
     throw Boom.internal('Failed to confirm bank details')
   }
 }
@@ -82,9 +90,16 @@ export const writeConfirmBankDetailsAuditLog = (
   role,
   request,
   outcome,
-  statusCode
+  statusCode,
+  triggerType
 ) => {
   if (role === roles.HOF) {
-    writeAuditLog(request, ActionKind.BankDetailsConfirmed, outcome, statusCode)
+    writeAuditLog(
+      request,
+      ActionKind.BankDetailsConfirmed,
+      outcome,
+      statusCode,
+      triggerType
+    )
   }
 }

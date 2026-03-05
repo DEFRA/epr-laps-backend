@@ -20,6 +20,7 @@ export const writeAuditLog = (
   action,
   outcome,
   statuscode,
+  triggerType,
   additionalData = {}
 ) => {
   const auditLogData = {
@@ -33,6 +34,7 @@ export const writeAuditLog = (
     action_kind: action,
     outcome,
     status: statuscode,
+    trigger_type: triggerType,
     ...additionalData
   }
   request.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)

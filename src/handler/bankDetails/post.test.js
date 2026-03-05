@@ -125,7 +125,8 @@ describe('postBankDetails', () => {
       request,
       ActionKind.BankDetailsCreated,
       Outcome.Success,
-      201
+      201,
+      'End'
     )
   })
 
@@ -141,7 +142,8 @@ describe('postBankDetails', () => {
       request,
       ActionKind.BankDetailsCreated,
       Outcome.Failure,
-      500
+      500,
+      'End'
     )
   })
 

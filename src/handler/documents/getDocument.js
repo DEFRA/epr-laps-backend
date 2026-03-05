@@ -37,7 +37,8 @@ const getDocument = async (request, h) => {
         request.auth.isAuthorized,
         request,
         Outcome.Failure,
-        response.status
+        response.status,
+        'End'
       )
       return Boom.internal(errorMsg)
     }
@@ -49,6 +50,7 @@ const getDocument = async (request, h) => {
       request,
       Outcome.Success,
       response.status,
+      'End',
       { documentType, language, quarter }
     )
     return h
@@ -64,6 +66,7 @@ const getDocument = async (request, h) => {
       request,
       Outcome.Failure,
       statusCode,
+      'End',
       {
         documentType: request.query?.documentType,
         language: request.query?.language,
@@ -81,6 +84,7 @@ export const writeDocumentAccessedAuditLog = (
   request,
   outcome,
   statusCode,
+  triggerType,
   documentMetadata = {}
 ) => {
   const additionalData = {}
@@ -99,6 +103,7 @@ export const writeDocumentAccessedAuditLog = (
       ActionKind.DocumentAccessed,
       outcome,
       statusCode,
+      triggerType,
       additionalData
     )
     return
@@ -108,6 +113,7 @@ export const writeDocumentAccessedAuditLog = (
     ActionKind.DocumentAccessed,
     outcome,
     statusCode,
+    triggerType,
     additionalData
   )
 }

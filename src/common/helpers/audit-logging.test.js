@@ -63,7 +63,7 @@ describe('#writeAuditLog', () => {
       language: 'EN'
     }
 
-    writeAuditLog(mockRequest, action, outcome, 200, additionalData)
+    writeAuditLog(mockRequest, action, outcome, 200, 'End', additionalData)
 
     expect(mockRequest.logger.debug).toHaveBeenCalled()
     expect(audit).toHaveBeenCalledWith({
@@ -77,6 +77,7 @@ describe('#writeAuditLog', () => {
       action_kind: 'DocumentAccessed',
       outcome: 'Success',
       document_type: 'grant',
+      trigger_type: 'End',
       language: 'EN',
       status: 200
     })
