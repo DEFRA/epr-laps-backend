@@ -92,6 +92,7 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
       documentName,
       documentType: doc.documentType,
       language,
+      quarter: doc.quarter,
       isLatest
     }
 
