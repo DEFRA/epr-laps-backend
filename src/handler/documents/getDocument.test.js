@@ -162,7 +162,7 @@ describe('getDocument', () => {
   })
 
   it('includes document metadata in audit log when provided', async () => {
-    mockRequest.query = { documentType: 'grant', language: 'EN' }
+    mockRequest.query = { documentType: 'grant', language: 'EN', quarter: 'Q1' }
     const fetchMock = (await import('node-fetch')).default
     fetchMock.mockResolvedValueOnce({
       ok: true,
@@ -178,7 +178,28 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
-      { document_type: 'grant', language: 'EN' }
+      { document_type: 'grant', language: 'EN', quarter: 'Q1' }
+    )
+  })
+
+  it('includes quarter in audit log when provided', async () => {
+    mockRequest.query = { quarter: 'Q2' }
+    const fetchMock = (await import('node-fetch')).default
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => mockBuffer,
+      text: async () => ''
+    })
+
+    await getDocument(mockRequest, mockH)
+
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      mockRequest,
+      ActionKind.DocumentAccessed,
+      Outcome.Success,
+      200,
+      { quarter: 'Q2' }
     )
   })
 })

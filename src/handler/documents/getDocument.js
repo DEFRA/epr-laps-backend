@@ -12,7 +12,7 @@ const getDocument = async (request, h) => {
   const errorMsg = 'Error fetching file:'
   try {
     const { id } = request.params
-    const { documentType, language } = request.query
+    const { documentType, language, quarter } = request.query
     const { role } = request.auth.credentials
     if (!request.auth.isAuthorized) {
       request.logger.warn(`User with role ${role} tried to access the document`)
@@ -49,7 +49,7 @@ const getDocument = async (request, h) => {
       request,
       Outcome.Success,
       response.status,
-      { documentType, language }
+      { documentType, language, quarter }
     )
     return h
       .response(Buffer.from(fileBuffer))
@@ -66,7 +66,8 @@ const getDocument = async (request, h) => {
       statusCode,
       {
         documentType: request.query?.documentType,
-        language: request.query?.language
+        language: request.query?.language,
+        quarter: request.query?.quarter
       }
     )
     throw Boom.internal('Error fetching file')
@@ -88,6 +89,9 @@ export const writeDocumentAccessedAuditLog = (
   }
   if (documentMetadata.language) {
     additionalData.language = documentMetadata.language
+  }
+  if (documentMetadata.quarter) {
+    additionalData.quarter = documentMetadata.quarter
   }
   if (canListDocuments) {
     writeAuditLog(
