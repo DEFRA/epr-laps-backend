@@ -85,7 +85,8 @@ describe('getBankDetails', () => {
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
       auditLogging.Outcome.Success,
-      200
+      200,
+      'End'
     )
     expect(result.status).toBe(200)
   })
@@ -119,7 +120,8 @@ describe('getBankDetails', () => {
       request,
       auditLogging.ActionKind.MaskedBankDetailsViewed,
       auditLogging.Outcome.Success,
-      200
+      200,
+      'End'
     )
     expect(result.status).toBe(200)
   })
@@ -153,7 +155,8 @@ describe('getBankDetails', () => {
       request,
       auditLogging.ActionKind.FullBankDetailsViewed,
       auditLogging.Outcome.Success,
-      200
+      200,
+      'End'
     )
     expect(result.status).toBe(200)
   })

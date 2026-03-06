@@ -36,7 +36,8 @@ const getDocumentMetadata = async (request, h) => {
         request.auth.isAuthorized,
         request,
         Outcome.Failure,
-        response.status
+        response.status,
+        'End'
       )
       return Boom.internal(errorMsg)
     }
@@ -52,7 +53,8 @@ const getDocumentMetadata = async (request, h) => {
       request.auth.isAuthorized,
       request,
       Outcome.Success,
-      response.status
+      response.status,
+      'End'
     )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (error) {
@@ -65,7 +67,8 @@ const getDocumentMetadata = async (request, h) => {
       request.auth.isAuthorized,
       request,
       Outcome.Failure,
-      statusCode
+      statusCode,
+      'End'
     )
     throw Boom.internal(errorMsg)
   }
@@ -77,11 +80,24 @@ export const writeDocumentListedAuditLog = (
   canListDocuments,
   request,
   outcome,
-  statusCode
+  statusCode,
+  triggerType
 ) => {
   if (canListDocuments) {
-    writeAuditLog(request, ActionKind.DocumentsListed, outcome, statusCode)
+    writeAuditLog(
+      request,
+      ActionKind.DocumentsListed,
+      outcome,
+      statusCode,
+      triggerType
+    )
     return
   }
-  writeAuditLog(request, ActionKind.DocumentsListed, outcome, statusCode)
+  writeAuditLog(
+    request,
+    ActionKind.DocumentsListed,
+    outcome,
+    statusCode,
+    triggerType
+  )
 }

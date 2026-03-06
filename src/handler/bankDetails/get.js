@@ -52,7 +52,8 @@ const getBankDetails = async (request, h) => {
         request.auth.isAuthorized,
         request,
         Outcome.Failure,
-        response.status
+        response.status,
+        'End'
       )
       throw Boom.internal(`Failed to fetch bank details`)
     }
@@ -81,7 +82,8 @@ const getBankDetails = async (request, h) => {
       request.auth.isAuthorized,
       request,
       Outcome.Success,
-      response.status
+      response.status,
+      'End'
     )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
@@ -91,7 +93,8 @@ const getBankDetails = async (request, h) => {
       request.auth.isAuthorized,
       request,
       Outcome.Failure,
-      statusCode
+      statusCode,
+      'End'
     )
     throw Boom.internal('Failed to fetch bank details')
   }
@@ -103,14 +106,16 @@ export const writeBankDetailsAuditLog = (
   canViewFullBankDetails,
   request,
   outcome,
-  statusCode
+  statusCode,
+  triggerType
 ) => {
   if (canViewFullBankDetails) {
     writeAuditLog(
       request,
       ActionKind.FullBankDetailsViewed,
       outcome,
-      statusCode
+      statusCode,
+      triggerType
     )
     return
   }
@@ -118,6 +123,7 @@ export const writeBankDetailsAuditLog = (
     request,
     ActionKind.MaskedBankDetailsViewed,
     outcome,
-    statusCode
+    statusCode,
+    triggerType
   )
 }

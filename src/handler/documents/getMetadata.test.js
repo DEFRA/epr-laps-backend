@@ -103,7 +103,8 @@ describe('getDocumentMetadata', () => {
       mockRequest,
       'DocumentsListed',
       Outcome.Failure,
-      500
+      500,
+      'End'
     )
   })
 
@@ -121,7 +122,8 @@ describe('getDocumentMetadata', () => {
       mockRequest,
       'DocumentsListed',
       Outcome.Failure,
-      500
+      500,
+      'End'
     )
   })
 
@@ -141,20 +143,22 @@ describe('getDocumentMetadata', () => {
   })
 
   it('writeDocumentListedAuditLog should call writeAuditLog for both true and false canListDocuments', () => {
-    writeDocumentListedAuditLog(true, mockRequest, Outcome.Success, 200)
+    writeDocumentListedAuditLog(true, mockRequest, Outcome.Success, 200, 'End')
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       'DocumentsListed',
       Outcome.Success,
-      200
+      200,
+      'End'
     )
 
-    writeDocumentListedAuditLog(false, mockRequest, Outcome.Failure, 500)
+    writeDocumentListedAuditLog(false, mockRequest, Outcome.Failure, 500, 'End')
     expect(writeAuditLog).toHaveBeenCalledWith(
       mockRequest,
       'DocumentsListed',
       Outcome.Failure,
-      500
+      500,
+      'End'
     )
     expect(writeAuditLog).toHaveBeenCalledTimes(2)
   })
@@ -179,7 +183,8 @@ describe('getDocumentMetadata', () => {
       mockRequest,
       'DocumentsListed',
       Outcome.Success,
-      200
+      200,
+      'End'
     )
   })
 })
