@@ -99,6 +99,7 @@ export const writeDocumentAccessedAuditLog = (
       ActionKind.DocumentAccessed,
       outcome,
       statusCode,
+      undefined,
       additionalData
     )
     return
@@ -108,6 +109,7 @@ export const writeDocumentAccessedAuditLog = (
     ActionKind.DocumentAccessed,
     outcome,
     statusCode,
+    undefined,
     additionalData
   )
 }

@@ -80,6 +80,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      undefined,
       {}
     )
     expect(mockH.response).toHaveBeenCalledWith(Buffer.from(mockBuffer))
@@ -102,6 +103,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Failure,
       500,
+      undefined,
       {}
     )
   })
@@ -125,6 +127,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Failure,
       500,
+      undefined,
       {}
     )
   })
@@ -149,6 +152,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      undefined,
       {}
     )
     expect(writeAuditLog).toHaveBeenNthCalledWith(
@@ -157,6 +161,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Failure,
       500,
+      undefined,
       {}
     )
   })
@@ -178,6 +183,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      undefined,
       { document_type: 'grant', language: 'EN', quarter: 'Q1' }
     )
   })
@@ -199,6 +205,7 @@ describe('getDocument', () => {
       ActionKind.DocumentAccessed,
       Outcome.Success,
       200,
+      undefined,
       { quarter: 'Q2' }
     )
   })
