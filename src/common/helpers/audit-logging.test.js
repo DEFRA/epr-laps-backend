@@ -38,7 +38,8 @@ describe('#writeAuditLog', () => {
       local_authority_name: 'Test Authority',
       action_kind: 'TestAction',
       outcome: 'Success',
-      status: 200
+      status: 200,
+      journey_type: 'journey_ended'
     })
   })
 
@@ -63,7 +64,7 @@ describe('#writeAuditLog', () => {
       language: 'EN'
     }
 
-    writeAuditLog(mockRequest, action, outcome, 200, additionalData)
+    writeAuditLog(mockRequest, action, outcome, 200, undefined, additionalData)
 
     expect(mockRequest.logger.debug).toHaveBeenCalled()
     expect(audit).toHaveBeenCalledWith({
@@ -78,7 +79,8 @@ describe('#writeAuditLog', () => {
       outcome: 'Success',
       document_type: 'grant',
       language: 'EN',
-      status: 200
+      status: 200,
+      journey_type: 'journey_ended'
     })
   })
 })
