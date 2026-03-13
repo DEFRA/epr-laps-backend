@@ -7,6 +7,7 @@ import {
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
 import { statusCodes } from '../../common/constants/status-codes.js'
+import { encryptBankDetailsPayload } from '../../common/helpers/utils/encrypt-servicenow-bank-details.js'
 
 const postBankDetails = async (request, h) => {
   const { role } = request.auth.credentials
@@ -20,9 +21,15 @@ const postBankDetails = async (request, h) => {
     const url = `${BASE_URL}/sn_gsm/bank_details/update_bank_details`
 
     const payload = request.payload
+    const encryptedData = encryptBankDetailsPayload(payload, request)
+
+    // Send encrypted data in request body as {"request_data": "encrypted_data"}
+    const requestBody = {
+      request_data: encryptedData
+    }
 
     request.logger.debug(
-      `Bank details creation requested with data: ${JSON.stringify(payload)}`
+      `Bank details creation requested with data: ${JSON.stringify(requestBody)}`
     )
     const response = await fetch(url, {
       method: 'post',
@@ -30,7 +37,7 @@ const postBankDetails = async (request, h) => {
         'x-sn-apikey': config.get('fssAPIKey'),
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(requestBody)
     })
 
     const data = await response.json()
