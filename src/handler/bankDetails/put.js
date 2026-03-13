@@ -8,6 +8,7 @@ import {
 } from '../../common/helpers/audit-logging.js'
 import { roles } from '../../common/constants/constants.js'
 import { statusCodes } from '../../common/constants/status-codes.js'
+import { encryptBankDetailsPayload } from '../../common/helpers/utils/encrypt-servicenow-bank-details.js'
 
 const putBankDetails = async (request, h) => {
   const { role } = request.auth.credentials
@@ -24,9 +25,15 @@ const putBankDetails = async (request, h) => {
 
     // The payload should contain the updated bank details
     const payload = request.payload
+    const encryptedData = encryptBankDetailsPayload(payload, request)
+
+    // Send encrypted data in request body as {"request_data": "encrypted_data"}
+    const requestBody = {
+      request_data: encryptedData
+    }
 
     request.logger.debug(
-      `Bank details confirmation requested with data: ${JSON.stringify(payload)}`
+      `Bank details confirmation requested with data: ${JSON.stringify(requestBody)}`
     )
 
     const response = await fetch(url, {
@@ -35,7 +42,7 @@ const putBankDetails = async (request, h) => {
         'x-sn-apikey': config.get('fssAPIKey'),
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
