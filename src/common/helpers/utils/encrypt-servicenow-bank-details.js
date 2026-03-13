@@ -39,7 +39,7 @@ export function encryptServiceNowBankDetails(
 
   // Encrypt using AES-256-CBC with PKCS#7 padding (matches ServiceNow format)
   // NOSONAR - CBC mode with PKCS#7 padding required for ServiceNow KMFCryptoOperation compatibility
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv) // NOSONAR
   let encrypted = cipher.update(plaintext)
   encrypted = Buffer.concat([encrypted, cipher.final()])
 
