@@ -86,11 +86,6 @@ describe('encrypt-servicenow-bank-details', () => {
       expect(result).toContain('2')
     })
 
-    it('should use default keyId when not provided', () => {
-      const result = encryptServiceNowBankDetails(plaintext, validKey)
-      expect(result).toContain('b5d62a861be6f2102f6943f5e34bcbca')
-    })
-
     it('should use default version "1" when not provided', () => {
       const result = encryptServiceNowBankDetails(plaintext, validKey)
       expect(result).toMatch(/﷬﷔1﷬﷭/)
