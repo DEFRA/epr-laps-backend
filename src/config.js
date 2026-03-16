@@ -156,6 +156,12 @@ const config = convict({
     default: 'some-api-key',
     env: 'FSS_API_KEY'
   },
+  fssEncryptionKeyId: {
+    doc: 'ServiceNow key identifier (32 hex characters)',
+    format: String,
+    default: '',
+    env: 'FSS_API_ENCRYPTION_KEY_ID'
+  },
   fssEncryptionKey: {
     doc: 'Base64-encoded encryption key for FSS bank details',
     format: String,

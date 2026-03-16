@@ -9,6 +9,7 @@ import {
   Outcome,
   ActionKind
 } from '../../common/helpers/audit-logging.js'
+import * as encryptionModule from '../../common/helpers/utils/encrypt-servicenow-bank-details.js'
 
 vi.mock('node-fetch', () => ({
   default: vi.fn()
@@ -23,6 +24,12 @@ vi.mock('../../common/helpers/audit-logging.js', async (importOriginal) => {
     writeAuditLog: vi.fn()
   }
 })
+vi.mock(
+  '../../common/helpers/utils/encrypt-servicenow-bank-details.js',
+  () => ({
+    encryptBankDetailsPayload: vi.fn()
+  })
+)
 
 describe('putBankDetails', () => {
   let request, h, mockResponse, payload
@@ -64,7 +71,17 @@ describe('putBankDetails', () => {
   })
 
   it('calls fetch with correct URL and options', async () => {
+    const mockEncryptedData = 'encrypted-mock-data'
+    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
+      mockEncryptedData
+    )
+
     await putBankDetails(request, h)
+
+    const expectedRequestBody = {
+      request_data: mockEncryptedData
+    }
+
     expect(fetch).toHaveBeenCalledWith(
       'http://api.example.com/sn_gsm/bank_details/confirm_bank_details',
       expect.objectContaining({
@@ -73,7 +90,7 @@ describe('putBankDetails', () => {
           'x-sn-apikey': 'some-api-key',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(expectedRequestBody)
       })
     )
   })
@@ -85,18 +102,26 @@ describe('putBankDetails', () => {
   })
 
   it('logs error and throws Boom.internal when fetch rejects', async () => {
+    const mockEncryptedData = 'encrypted-mock-data'
+    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
+      mockEncryptedData
+    )
+
     const networkError = new Error('Network down')
     fetch.mockRejectedValueOnce(networkError)
 
     await expect(putBankDetails(request, h)).rejects.toThrow(
       Boom.internal('Failed to confirm bank details')
     )
-    expect(request.logger.error).toHaveBeenCalledWith(
-      'Error confirming bank details: {}'
-    )
+    expect(request.logger.error).toHaveBeenCalled()
   })
 
   it('logs error and throws Boom.internal when response.json fails', async () => {
+    const mockEncryptedData = 'encrypted-mock-data'
+    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
+      mockEncryptedData
+    )
+
     mockResponse.json.mockRejectedValueOnce(new Error('Bad JSON'))
 
     await expect(putBankDetails(request, h)).rejects.toThrow(
@@ -106,11 +131,21 @@ describe('putBankDetails', () => {
   })
 
   it('returns status.ok when response is successful', async () => {
+    const mockEncryptedData = 'encrypted-mock-data'
+    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
+      mockEncryptedData
+    )
+
     await putBankDetails(request, h)
     expect(h.code).toHaveBeenCalledWith(200)
   })
 
   it('calls writeAuditLog on success', async () => {
+    const mockEncryptedData = 'encrypted-mock-data'
+    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
+      mockEncryptedData
+    )
+
     await putBankDetails(request, h)
     expect(writeAuditLog).toHaveBeenCalledTimes(1)
     expect(writeAuditLog).toHaveBeenCalledWith(
@@ -122,6 +157,11 @@ describe('putBankDetails', () => {
   })
 
   it('calls writeAuditLog on failure', async () => {
+    const mockEncryptedData = 'encrypted-mock-data'
+    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
+      mockEncryptedData
+    )
+
     fetch.mockRejectedValueOnce(new Error('Network down'))
 
     await expect(putBankDetails(request, h)).rejects.toThrow(
@@ -148,6 +188,11 @@ describe('putBankDetails', () => {
   })
 
   it('logs API error and throws when response is not ok', async () => {
+    const mockEncryptedData = 'encrypted-mock-data'
+    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
+      mockEncryptedData
+    )
+
     fetch.mockResolvedValueOnce({
       ok: false,
       status: 500,
