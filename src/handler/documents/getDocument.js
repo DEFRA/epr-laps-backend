@@ -56,20 +56,7 @@ const getDocument = async (request, h) => {
       .type('application/pdf')
       .code(statusCodes.ok)
   } catch (error) {
-    const statusCode =
-      error.output?.statusCode || statusCodes.internalServerError
     request.logger?.error(error, errorMsg)
-    writeDocumentAccessedAuditLog(
-      request.auth.isAuthorized,
-      request,
-      Outcome.Failure,
-      statusCode,
-      {
-        documentType: request.query?.documentType,
-        language: request.query?.language,
-        quarter: request.query?.quarter
-      }
-    )
     throw Boom.internal('Error fetching file')
   }
 }

@@ -7,7 +7,6 @@ import {
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
 import { roles } from '../../common/constants/constants.js'
-import { statusCodes } from '../../common/constants/status-codes.js'
 import { encryptBankDetailsPayload } from '../../common/helpers/utils/encrypt-servicenow-bank-details.js'
 
 const putBankDetails = async (request, h) => {
@@ -74,11 +73,9 @@ const putBankDetails = async (request, h) => {
     )
     return h.response(data).code(response.status)
   } catch (err) {
-    const statusCode = err.output?.statusCode || statusCodes.internalServerError
     request.logger.error(
       `Error confirming bank details: ${JSON.stringify(err)}`
     )
-    writeConfirmBankDetailsAuditLog(role, request, Outcome.Failure, statusCode)
     throw Boom.internal('Failed to confirm bank details')
   }
 }

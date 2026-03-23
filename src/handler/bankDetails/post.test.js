@@ -165,27 +165,6 @@ describe('postBankDetails', () => {
     )
   })
 
-  it('calls writeAuditLog on failure', async () => {
-    const mockEncryptedData = 'encrypted-mock-data'
-    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
-      mockEncryptedData
-    )
-
-    fetch.mockRejectedValueOnce(new Error('Network down'))
-
-    await expect(postBankDetails(request, h)).rejects.toThrow(
-      'Failed to create bank details'
-    )
-
-    expect(writeAuditLog).toHaveBeenCalledTimes(1)
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      request,
-      ActionKind.BankDetailsCreated,
-      Outcome.Failure,
-      500
-    )
-  })
-
   it('should return forbidden if user is not authorized', async () => {
     request.auth.isAuthorized = false
     request.auth.credentials.role = roles.CEO

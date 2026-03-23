@@ -98,14 +98,6 @@ describe('getDocument', () => {
       message: 'Error fetching file'
     })
     expect(mockRequest.logger.error).toHaveBeenCalled()
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      mockRequest,
-      ActionKind.DocumentAccessed,
-      Outcome.Failure,
-      500,
-      undefined,
-      {}
-    )
   })
 
   it('handles fetch resolving with non-ok response', async () => {
