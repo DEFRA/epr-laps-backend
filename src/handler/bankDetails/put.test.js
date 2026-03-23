@@ -156,27 +156,6 @@ describe('putBankDetails', () => {
     )
   })
 
-  it('calls writeAuditLog on failure', async () => {
-    const mockEncryptedData = 'encrypted-mock-data'
-    encryptionModule.encryptBankDetailsPayload.mockReturnValue(
-      mockEncryptedData
-    )
-
-    fetch.mockRejectedValueOnce(new Error('Network down'))
-
-    await expect(putBankDetails(request, h)).rejects.toThrow(
-      'Failed to confirm bank details'
-    )
-
-    expect(writeAuditLog).toHaveBeenCalledTimes(1)
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      request,
-      ActionKind.BankDetailsConfirmed,
-      Outcome.Failure,
-      500
-    )
-  })
-
   it('should return forbidden if user is not authorized', async () => {
     request.auth.isAuthorized = false
     request.auth.credentials.role = roles.CEO

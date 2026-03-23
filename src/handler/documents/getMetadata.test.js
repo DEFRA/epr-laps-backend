@@ -116,13 +116,6 @@ describe('getDocumentMetadata', () => {
         message: 'Error fetching file metadata'
       }
     )
-
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      mockRequest,
-      'DocumentsListed',
-      Outcome.Failure,
-      500
-    )
   })
 
   it('should return Boom.forbidden if user is not authorized', async () => {

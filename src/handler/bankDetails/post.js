@@ -67,9 +67,7 @@ const postBankDetails = async (request, h) => {
     )
     return h.response(data).code(statusCodes.created)
   } catch (err) {
-    const statusCode = err.output?.statusCode || statusCodes.internalServerError
     request.logger.error(`Error creating bank details: ${JSON.stringify(err)}`)
-    writeCreateBankDetailsAuditLog(role, request, Outcome.Failure, statusCode)
     throw Boom.internal('Failed to create bank details')
   }
 }

@@ -56,16 +56,8 @@ const getDocumentMetadata = async (request, h) => {
     )
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (error) {
-    const statusCode =
-      error.output?.statusCode || statusCodes.internalServerError
     request.logger.error(
       `Error fetching file metadata:', ${JSON.stringify(error)}`
-    )
-    writeDocumentListedAuditLog(
-      request.auth.isAuthorized,
-      request,
-      Outcome.Failure,
-      statusCode
     )
     throw Boom.internal(errorMsg)
   }
