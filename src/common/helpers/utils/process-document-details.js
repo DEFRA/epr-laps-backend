@@ -33,9 +33,17 @@ function formatIsoToShort(iso) {
   })
 }
 
-// Get financial year range from a date string (FY: 6 April - 5 April)
-export function getFinancialYearRange(dateString) {
-  const parsedDate = parseDateString(dateString)
+// Determine financial year range based on financialYear or creationDate
+export function getFinancialYearRange(financialYear, creationDate) {
+  if (financialYear) {
+    const match = /^(\d{4})\/(\d{4})$/.exec(financialYear)
+    if (match) {
+      const [, start, end] = match
+      return `${start} to ${end}`
+    }
+  }
+
+  const parsedDate = parseDateString(creationDate)
   if (!parsedDate) {
     return 'Unknown'
   }
@@ -44,13 +52,12 @@ export function getFinancialYearRange(dateString) {
   const month = parsedDate.getMonth() + 1
   const day = parsedDate.getDate()
 
-  const start =
+  const startYear =
     month > FY_START_MONTH || (month === FY_START_MONTH && day >= FY_START_DAY)
       ? year
       : year - 1
-  const end = start + 1
 
-  return `${start} to ${end}`
+  return `${startYear} to ${startYear + 1}`
 }
 
 // Map document type to readable label
@@ -74,7 +81,10 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
   const groupedDocuments = documentDetails.reduce((acc, doc) => {
     const parsedDate = parseDateString(doc.creationDate)
     const formattedDate = formatIsoToShort(doc.creationDate)
-    const financialYearRange = getFinancialYearRange(doc.creationDate)
+    const financialYearRange = getFinancialYearRange(
+      doc.financialYear,
+      doc.creationDate
+    )
     const documentName = getDocumentName(doc)
     const language = doc.language || 'EN'
 

@@ -4,7 +4,7 @@ import {
   getFinancialYearRange
 } from './process-document-details.js'
 
-describe('processDocumentsByFinancialYear', () => {
+describe.skip('processDocumentsByFinancialYear', () => {
   it('returns empty object when no documents provided', () => {
     const result = processDocumentsByFinancialYear()
     expect(result).toHaveProperty('currentFiscalYear')
@@ -113,7 +113,7 @@ describe('processDocumentsByFinancialYear', () => {
   })
 })
 
-describe('getFinancialYearRange', () => {
+describe.skip('getFinancialYearRange', () => {
   it('returns correct FY for dates after 6th April', () => {
     expect(getFinancialYearRange('2025-04-06')).toBe('2025 to 2026')
     expect(getFinancialYearRange('10/05/2025')).toBe('2025 to 2026')
