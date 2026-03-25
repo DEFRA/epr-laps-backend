@@ -16,29 +16,6 @@ const rolesMap = {
   'Finance Officer': 'FO'
 }
 
-const rolePriority = {
-  HOF: 1,
-  CEO: 2,
-  HOW: 3,
-  FO: 4,
-  WO: 5
-}
-
-function normaliseRoles(rawRoles) {
-  const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
-
-  return roles
-    .map((r) => rolesMap[r]) // map "Head of Finance" → "HOF"
-    .filter(Boolean)
-}
-
-function resolveEffectiveRole(mappedRoles) {
-  if (mappedRoles.length === 0) return null
-  if (mappedRoles.length === 1) return mappedRoles[0]
-
-  return mappedRoles.sort((a, b) => rolePriority[a] - rolePriority[b])[0]
-}
-
 const accessControl = {
   name: 'access-control',
   register: (server, _options) => {
@@ -52,37 +29,21 @@ const accessControl = {
 
     server.ext('onPostAuth', (request, h) => {
       const authorizationConfig = config.get('authorization')
-
-      const rawRoles = ['Head of Finance', 'Chief Executive Officer']
-      console.log('Raw roles from token are::', rawRoles)
+      const rawRole = request.auth.credentials.role
+      const userRole = rolesMap[rawRole]
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
+
+      const allowedRoles = authorizationConfig[permissionKey]
 
       if (!permissionKey) {
         return h.continue
       }
-
-      const allowedRoles = authorizationConfig[permissionKey]
-
-      const mappedRoles = normaliseRoles(rawRoles)
-      const effectiveRole = resolveEffectiveRole(mappedRoles)
-
-      const hasPermission =
-        effectiveRole && allowedRoles.includes(effectiveRole)
-
-      request.auth.isAuthorized = hasPermission
-
-      // audit + debug use ONLY the effective role
-      request.logger.info(
-        {
-          action: permissionKey,
-          effectiveRole,
-          rolesProvided: mappedRoles,
-          outcome: hasPermission ? 'allowed' : 'denied'
-        },
-        'authorization decision'
+      const hasPermission = allowedRoles.includes(userRole)
+      request.logger.debug(
+        `Access control check for ${rawRole} on ${permissionKey}:  ${key} permission granted: ${hasPermission}`
       )
-
+      request.auth.isAuthorized = hasPermission
       return h.continue
     })
   }
