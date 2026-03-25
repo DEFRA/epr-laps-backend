@@ -9,11 +9,11 @@ const routePermissionMap = {
 }
 
 const rolesMap = {
-  'Chief Executive Officer': 'CEO',
-  'Head of Finance': 'HOF',
-  'Head of Waste': 'HOW',
-  'Waste Officer': 'WO',
-  'Finance Officer': 'FO'
+  'chief executive officer': 'CEO',
+  'head of finance': 'HOF',
+  'head of waste': 'HOW',
+  'waste officer': 'WO',
+  'finance officer': 'FO'
 }
 
 const rolePriority = {
@@ -24,11 +24,20 @@ const rolePriority = {
   WO: 5
 }
 
+function extractRoleName(roleEntry) {
+  if (!roleEntry || typeof roleEntry !== 'string') return null
+
+  const parts = roleEntry.split(':')
+  return parts.length >= 2 ? parts[1].trim() : roleEntry.trim()
+}
+
 function normaliseRoles(rawRoles) {
   const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
 
   return roles
-    .map((r) => rolesMap[r]) // map "Head of Finance" → "HOF"
+    .map(extractRoleName)
+    .filter(Boolean)
+    .map((r) => rolesMap[r.toLowerCase()])
     .filter(Boolean)
 }
 
@@ -36,31 +45,20 @@ function resolveEffectiveRole(mappedRoles) {
   if (mappedRoles.length === 0) return null
   if (mappedRoles.length === 1) return mappedRoles[0]
 
-  return mappedRoles.sort((a, b) => rolePriority[a] - rolePriority[b])[0]
+  return [...mappedRoles].sort((a, b) => rolePriority[a] - rolePriority[b])[0]
 }
 
 const accessControl = {
   name: 'access-control',
   register: (server, _options) => {
-    server.ext('onRequest', (request, h) => {
-      const ignoredRoutes = ['/health']
-      if (ignoredRoutes.includes(request.path)) {
-        return h.continue
-      }
-      return h.continue
-    })
-
     server.ext('onPostAuth', (request, h) => {
       const authorizationConfig = config.get('authorization')
 
-      const rawRoles = ['Head of Finance', 'Chief Executive Officer']
-      console.log('Raw roles from token are::', rawRoles)
+      const rawRoles = request.auth.credentials.roles
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
 
-      if (!permissionKey) {
-        return h.continue
-      }
+      if (!permissionKey) return h.continue
 
       const allowedRoles = authorizationConfig[permissionKey]
 
@@ -72,7 +70,6 @@ const accessControl = {
 
       request.auth.isAuthorized = hasPermission
 
-      // audit + debug use ONLY the effective role
       request.logger.info(
         {
           action: permissionKey,
