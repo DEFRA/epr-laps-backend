@@ -114,35 +114,41 @@ describe('processDocumentsByFinancialYear', () => {
 })
 
 describe('getFinancialYearRange', () => {
-  it('returns correct FY for dates after 6th April', () => {
-    expect(getFinancialYearRange('2025-04-06')).toBe('2025 to 2026')
-    expect(getFinancialYearRange('10/05/2025')).toBe('2025 to 2026')
+  it('returns correct FY for dates on/after 6th April', () => {
+    expect(getFinancialYearRange(undefined, '2025-04-06')).toBe('2025 to 2026')
+    expect(getFinancialYearRange(undefined, '10/05/2025')).toBe('2025 to 2026')
   })
 
   it('returns correct FY for dates before 6th April', () => {
-    expect(getFinancialYearRange('2025-04-05')).toBe('2024 to 2025')
-    expect(getFinancialYearRange('15/03/2025')).toBe('2024 to 2025')
+    expect(getFinancialYearRange(undefined, '2025-04-05')).toBe('2024 to 2025')
+    expect(getFinancialYearRange(undefined, '15/03/2025')).toBe('2024 to 2025')
   })
 
   it('handles 7th April correctly (after FY start)', () => {
-    expect(getFinancialYearRange('07/04/2025')).toBe('2025 to 2026')
+    expect(getFinancialYearRange(undefined, '07/04/2025')).toBe('2025 to 2026')
   })
 
   it('handles 5th April correctly (before FY start)', () => {
-    expect(getFinancialYearRange('05/04/2025')).toBe('2024 to 2025')
+    expect(getFinancialYearRange(undefined, '05/04/2025')).toBe('2024 to 2025')
   })
 
   it('handles unknown or missing date', () => {
     expect(getFinancialYearRange()).toBe('Unknown')
-    expect(getFinancialYearRange('')).toBe('Unknown')
-    expect(getFinancialYearRange('invalid-date')).toBe('Unknown')
+    expect(getFinancialYearRange(undefined, '')).toBe('Unknown')
+    expect(getFinancialYearRange(undefined, 'invalid-date')).toBe('Unknown')
   })
 
   it('works with ISO date format', () => {
-    expect(getFinancialYearRange('2025-12-15')).toBe('2025 to 2026')
+    expect(getFinancialYearRange(undefined, '2025-12-15')).toBe('2025 to 2026')
   })
 
   it('works with DD/MM/YYYY format', () => {
-    expect(getFinancialYearRange('10/12/2025')).toBe('2025 to 2026')
+    expect(getFinancialYearRange(undefined, '10/12/2025')).toBe('2025 to 2026')
+  })
+
+  it('uses explicit financialYear when in YYYY/YYYY format', () => {
+    expect(getFinancialYearRange('2024/2025', '2025-12-15')).toBe(
+      '2024 to 2025'
+    )
   })
 })
