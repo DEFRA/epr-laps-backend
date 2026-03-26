@@ -15,8 +15,16 @@ config.get = vi.fn((key) => {
 })
 describe('accessControl plugin', () => {
   let server
-  beforeEach(() => {
+  beforeEach(async () => {
     server = Hapi.server()
+
+    // ensure every request has a logger so accessControl never crashes
+    server.ext('onRequest', (request, h) => {
+      request.logger = { info: vi.fn() }
+      return h.continue
+    })
+
+    await server.register([accessControl])
   })
   afterEach(() => {
     vi.clearAllMocks()
@@ -28,7 +36,6 @@ describe('accessControl plugin', () => {
       path: '/health',
       handler: (_request, h) => h.response({ message: 'success' })
     })
-    await server.register([accessControl])
 
     const response = await server.inject({
       method: 'GET',
@@ -47,7 +54,6 @@ describe('accessControl plugin', () => {
       path: '/test-route',
       handler: (_request, h) => h.response({ message: 'success' })
     })
-    await server.register([accessControl])
 
     const response = await server.inject({
       method: 'GET',
@@ -66,7 +72,6 @@ describe('accessControl plugin', () => {
       path: '/test-route',
       handler: (_request, h) => h.response({ message: 'success' })
     })
-    await server.register([accessControl])
 
     const response = await server.inject({
       method: 'GET',
@@ -85,7 +90,6 @@ describe('accessControl plugin', () => {
       path: '/bank-details/test',
       handler: (_request, h) => h.response({ message: 'success' })
     })
-    await server.register([accessControl])
 
     const response = await server.inject({
       method: 'GET',
@@ -96,5 +100,130 @@ describe('accessControl plugin', () => {
       }
     })
     expect(response.statusCode).toBe(200)
+  })
+
+  it('sets isAuthorized=true and logs allowed when effective role is permitted', async () => {
+    const infoSpy = vi.fn()
+
+    server.ext('onPreAuth', (request, h) => {
+      request.logger = { info: infoSpy }
+      return h.continue
+    })
+
+    server.route({
+      method: 'GET',
+      path: '/bank-details/{localAuthority}',
+      handler: (request, h) => {
+        expect(request.auth.isAuthorized).toBe(true)
+        return h.response({ message: 'ok' })
+      }
+    })
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/bank-details/abc',
+      auth: {
+        credentials: {
+          roles: [
+            'c53f8b72-1ad4-4e39-9a2f-92d06b4f3e8d:Chief Executive Officer:3'
+          ]
+        },
+        strategy: 'default'
+      }
+    })
+    console.log('THE RESULT IS', res.result)
+
+    expect(res.statusCode).toBe(200)
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'viewFullBankDetails',
+        effectiveRole: 'CEO',
+        rolesProvided: ['CEO'],
+        outcome: 'allowed'
+      }),
+      'authorization decision'
+    )
+  })
+
+  it('uses colon-separated role, maps and denies when not allowed', async () => {
+    const infoSpy = vi.fn()
+
+    // ensure this request uses our spy logger
+    server.ext('onPreAuth', (request, h) => {
+      request.logger = { info: infoSpy }
+      return h.continue
+    })
+
+    server.route({
+      method: 'PUT',
+      path: '/bank-details',
+      handler: (request, h) => {
+        expect(request.auth.isAuthorized).toBe(false)
+        return h.response({ message: 'ok' })
+      }
+    })
+
+    const res = await server.inject({
+      method: 'PUT',
+      url: '/bank-details',
+      auth: {
+        // string form, colon-separated -> extractRoleName + normaliseRoles
+        credentials: { roles: '123:Waste Officer:1' },
+        strategy: 'default'
+      }
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'confirmBankDetails',
+        effectiveRole: 'WO',
+        rolesProvided: ['WO'],
+        outcome: 'denied'
+      }),
+      'authorization decision'
+    )
+  })
+
+  it('picks highest-priority effectiveRole when multiple roles', async () => {
+    const infoSpy = vi.fn()
+
+    // attach spy logger before onPostAuth runs
+    server.ext('onPreAuth', (request, h) => {
+      request.logger = { info: infoSpy }
+      return h.continue
+    })
+
+    server.route({
+      method: 'GET',
+      path: '/bank-details/{localAuthority}',
+      handler: (request, h) => {
+        // HOF has higher priority than CEO, both allowed
+        expect(request.auth.isAuthorized).toBe(true)
+        return h.response({ message: 'ok' })
+      }
+    })
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/bank-details/some-la',
+      auth: {
+        credentials: {
+          roles: ['Chief Executive Officer', 'Head of Finance']
+        },
+        strategy: 'default'
+      }
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'viewFullBankDetails',
+        effectiveRole: 'HOF',
+        rolesProvided: ['CEO', 'HOF'],
+        outcome: 'allowed'
+      }),
+      'authorization decision'
+    )
   })
 })
