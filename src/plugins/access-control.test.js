@@ -226,4 +226,44 @@ describe('accessControl plugin', () => {
       'authorization decision'
     )
   })
+
+  it('handles no mapped roles (empty roles array -> unauthorized) [DEBUG]', async () => {
+    const infoSpy = vi.fn()
+
+    server.ext('onPreAuth', (request, h) => {
+      request.logger = { info: infoSpy }
+      return h.continue
+    })
+
+    server.route({
+      method: 'GET',
+      path: '/bank-details/{localAuthority}',
+      handler: (request, h) => {
+        console.log('handler reached, auth:', {
+          isAuthorized: request.auth.isAuthorized,
+          credentials: request.auth.credentials,
+          loggerCalled: infoSpy.mock.calls.length > 0
+        })
+        return h.response({ message: 'ok' })
+      }
+    })
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/bank-details/xyz',
+      auth: {
+        credentials: { roles: [] },
+        strategy: 'default'
+      }
+    })
+
+    console.log('FULL RESPONSE:', {
+      statusCode: res.statusCode,
+      result: res.result,
+      payload: res.payload,
+      logs: infoSpy.mock.calls
+    })
+
+    expect(res.statusCode).toBe(200)
+  })
 })
