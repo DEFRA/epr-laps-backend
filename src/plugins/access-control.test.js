@@ -227,7 +227,7 @@ describe('accessControl plugin', () => {
     )
   })
 
-  it('handles no mapped roles (empty roles array -> unauthorized) [DEBUG]', async () => {
+  it('handles no mapped roles (empty roles array -> unauthorized)', async () => {
     const infoSpy = vi.fn()
 
     server.ext('onPreAuth', (request, h) => {
