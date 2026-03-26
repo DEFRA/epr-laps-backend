@@ -9,11 +9,51 @@ const routePermissionMap = {
 }
 
 const rolesMap = {
-  'Chief Executive Officer': 'CEO',
-  'Head of Finance': 'HOF',
-  'Head of Waste': 'HOW',
-  'Waste Officer': 'WO',
-  'Finance Officer': 'FO'
+  'chief executive officer': 'CEO',
+  'head of finance': 'HOF',
+  'head of waste': 'HOW',
+  'waste officer': 'WO',
+  'finance officer': 'FO'
+}
+
+const rolePriority = {
+  HOF: 1,
+  CEO: 2,
+  HOW: 3,
+  FO: 4,
+  WO: 5
+}
+
+// Extracts the role name from a role entry string, which may be in the format "c53f8b72-1ad4-4e39-9a2f-92d06b4f3e8c:Head of Finance:2"
+function extractRoleName(roleEntry) {
+  if (!roleEntry || typeof roleEntry !== 'string') {
+    return null
+  }
+
+  const parts = roleEntry.split(':')
+  return parts.length >= 2 ? parts[1].trim() : roleEntry.trim()
+}
+
+function normaliseRoles(rawRoles) {
+  const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
+
+  return roles
+    .map(extractRoleName)
+    .filter(Boolean)
+    .map((r) => rolesMap[r.toLowerCase()])
+    .filter(Boolean)
+}
+
+// Resolves the effective role based on the provided mapped roles and their defined priority
+function resolveEffectiveRole(mappedRoles) {
+  if (mappedRoles.length === 0) {
+    return null
+  }
+  if (mappedRoles.length === 1) {
+    return mappedRoles[0]
+  }
+
+  return [...mappedRoles].sort((a, b) => rolePriority[a] - rolePriority[b])[0]
 }
 
 const accessControl = {
@@ -29,21 +69,38 @@ const accessControl = {
 
     server.ext('onPostAuth', (request, h) => {
       const authorizationConfig = config.get('authorization')
-      const rawRole = request.auth.credentials.role
-      const userRole = rolesMap[rawRole]
+
+      const rawRoles = request.auth.credentials.roles
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
-
-      const allowedRoles = authorizationConfig[permissionKey]
 
       if (!permissionKey) {
         return h.continue
       }
-      const hasPermission = allowedRoles.includes(userRole)
-      request.logger.debug(
-        `Access control check for ${rawRole} on ${permissionKey}:  ${key} permission granted: ${hasPermission}`
-      )
+
+      const allowedRoles = authorizationConfig[permissionKey]
+
+      const mappedRoles = normaliseRoles(rawRoles)
+      request.logger.info({ mappedRoles }, 'roles mapped')
+
+      const effectiveRole = resolveEffectiveRole(mappedRoles)
+      request.logger.info({ effectiveRole }, 'Resolved effective role')
+
+      const hasPermission =
+        effectiveRole && allowedRoles.includes(effectiveRole)
+
       request.auth.isAuthorized = hasPermission
+
+      request.logger.info(
+        {
+          action: permissionKey,
+          effectiveRole,
+          rolesProvided: mappedRoles,
+          outcome: hasPermission ? 'allowed' : 'denied'
+        },
+        'authorization decision'
+      )
+
       return h.continue
     })
   }
