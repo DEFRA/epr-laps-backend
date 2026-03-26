@@ -47,20 +47,13 @@ export const jwtValidate = (decoded, request, _h) => {
     return { isValid: false }
   }
 
-  // Extract role
-  let role = null
-  if (Array.isArray(roles) && roles.length > 0) {
-    const firstRoleParts = roles[0].split(':')
-    role = firstRoleParts[1] || null
-  }
-
   request.logger.debug(`Roles is: ${roles}`)
 
   return {
     isValid: true,
     credentials: {
       userId,
-      role,
+      roles,
       currentOrganisation,
       ...decoded
     }

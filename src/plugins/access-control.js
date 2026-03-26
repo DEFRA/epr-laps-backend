@@ -24,8 +24,11 @@ const rolePriority = {
   WO: 5
 }
 
+// Extracts the role name from a role entry string, which may be in the format "c53f8b72-1ad4-4e39-9a2f-92d06b4f3e8c:Head of Finance:2"
 function extractRoleName(roleEntry) {
-  if (!roleEntry || typeof roleEntry !== 'string') return null
+  if (!roleEntry || typeof roleEntry !== 'string') {
+    return null
+  }
 
   const parts = roleEntry.split(':')
   return parts.length >= 2 ? parts[1].trim() : roleEntry.trim()
@@ -41,9 +44,14 @@ function normaliseRoles(rawRoles) {
     .filter(Boolean)
 }
 
+// Resolves the effective role based on the provided mapped roles and their defined priority
 function resolveEffectiveRole(mappedRoles) {
-  if (mappedRoles.length === 0) return null
-  if (mappedRoles.length === 1) return mappedRoles[0]
+  if (mappedRoles.length === 0) {
+    return null
+  }
+  if (mappedRoles.length === 1) {
+    return mappedRoles[0]
+  }
 
   return [...mappedRoles].sort((a, b) => rolePriority[a] - rolePriority[b])[0]
 }
@@ -51,6 +59,14 @@ function resolveEffectiveRole(mappedRoles) {
 const accessControl = {
   name: 'access-control',
   register: (server, _options) => {
+    server.ext('onRequest', (request, h) => {
+      const ignoredRoutes = ['/health']
+      if (ignoredRoutes.includes(request.path)) {
+        return h.continue
+      }
+      return h.continue
+    })
+
     server.ext('onPostAuth', (request, h) => {
       const authorizationConfig = config.get('authorization')
 
@@ -58,7 +74,9 @@ const accessControl = {
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
 
-      if (!permissionKey) return h.continue
+      if (!permissionKey) {
+        return h.continue
+      }
 
       const allowedRoles = authorizationConfig[permissionKey]
 
