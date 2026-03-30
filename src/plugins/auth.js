@@ -47,13 +47,16 @@ export const jwtValidate = (decoded, request, _h) => {
     return { isValid: false }
   }
 
-  request.logger.debug(`Roles is: ${roles}`)
+  // Extract roles
+  const rawRoles = extractRawRoles(roles)
+
+  request.logger.debug(`Roles is: ${rawRoles}`)
 
   return {
     isValid: true,
     credentials: {
       userId,
-      roles,
+      rawRoles,
       currentOrganisation,
       ...decoded
     }
@@ -103,4 +106,27 @@ export const authPlugin = {
 
     server.auth.default('jwt')
   }
+}
+
+/*
+  Takes an array like:
+  "<uuid>:<role name>:<number>"
+  Extracts just the role names,
+  de-duplicates them (preserving original order),
+  and returns an array of role names.
+*/
+
+export function extractRawRoles(roles = []) {
+  const seen = new Set()
+  const result = []
+
+  for (const role of roles) {
+    const name = role.split(':')[1]
+    if (name && !seen.has(name)) {
+      seen.add(name)
+      result.push(name)
+    }
+  }
+
+  return result
 }

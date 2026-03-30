@@ -89,7 +89,8 @@ describe('jwtValidate', () => {
       userId: '123',
       currentOrganisation: '',
       sub: '123',
-      roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3']
+      roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3'],
+      rawRoles: ['CEO']
     })
   })
 })

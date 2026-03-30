@@ -70,7 +70,7 @@ const accessControl = {
     server.ext('onPostAuth', (request, h) => {
       const authorizationConfig = config.get('authorization')
 
-      const rawRoles = request.auth.credentials.roles
+      const rawRoles = request.auth.credentials.rawRoles
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
 

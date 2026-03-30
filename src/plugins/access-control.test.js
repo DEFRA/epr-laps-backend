@@ -128,9 +128,7 @@ describe('accessControl plugin', () => {
       url: '/bank-details/abc',
       auth: {
         credentials: {
-          roles: [
-            'c53f8b72-1ad4-4e39-9a2f-92d06b4f3e8d:Chief Executive Officer:3'
-          ]
+          rawRoles: ['Chief Executive Officer']
         },
         strategy: 'default'
       }
@@ -171,7 +169,7 @@ describe('accessControl plugin', () => {
       url: '/bank-details',
       auth: {
         // string form, colon-separated -> extractRoleName + normaliseRoles
-        credentials: { roles: '123:Waste Officer:1' },
+        credentials: { rawRoles: '123:Waste Officer:1' },
         strategy: 'default'
       }
     })
@@ -212,7 +210,7 @@ describe('accessControl plugin', () => {
       url: '/bank-details/some-la',
       auth: {
         credentials: {
-          roles: ['Chief Executive Officer', 'Head of Finance']
+          rawRoles: ['Chief Executive Officer', 'Head of Finance']
         },
         strategy: 'default'
       }
