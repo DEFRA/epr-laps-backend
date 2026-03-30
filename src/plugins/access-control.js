@@ -9,11 +9,11 @@ const routePermissionMap = {
 }
 
 const rolesMap = {
-  'chief executive officer': 'CEO',
-  'head of finance': 'HOF',
-  'head of waste': 'HOW',
-  'waste officer': 'WO',
-  'finance officer': 'FO'
+  'Chief Executive Officer': 'CEO',
+  'Head of Finance': 'HOF',
+  'Head of Waste': 'HOW',
+  'Waste Officer': 'WO',
+  'Finance Officer': 'FO'
 }
 
 const rolePriority = {
@@ -34,18 +34,18 @@ function extractRoleName(roleEntry) {
   return parts.length >= 2 ? parts[1].trim() : roleEntry.trim()
 }
 
-function normaliseRoles(rawRoles) {
+export function normaliseRoles(rawRoles) {
   const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
 
   return roles
     .map(extractRoleName)
     .filter(Boolean)
-    .map((r) => rolesMap[r.toLowerCase()])
+    .map((r) => rolesMap[r])
     .filter(Boolean)
 }
 
 // Resolves the effective role based on the provided mapped roles and their defined priority
-function resolveEffectiveRole(mappedRoles) {
+export function resolveEffectiveRole(mappedRoles) {
   if (mappedRoles.length === 0) {
     return null
   }

@@ -1,6 +1,10 @@
 import Hapi from '@hapi/hapi'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { accessControl } from './access-control'
+import {
+  accessControl,
+  normaliseRoles,
+  resolveEffectiveRole
+} from './access-control'
 import { config } from '../config'
 
 vi.mock('../config.js')
@@ -131,7 +135,6 @@ describe('accessControl plugin', () => {
         strategy: 'default'
       }
     })
-    console.log('THE RESULT IS', res.result)
 
     expect(res.statusCode).toBe(200)
     expect(infoSpy).toHaveBeenCalledWith(
@@ -265,5 +268,63 @@ describe('accessControl plugin', () => {
     })
 
     expect(res.statusCode).toBe(200)
+  })
+
+  describe('normaliseRoles', () => {
+    it('normalises a single role string', () => {
+      const result = normaliseRoles('Chief Executive Officer')
+      expect(result).toEqual(['CEO'])
+    })
+
+    it('normalises an array of role strings', () => {
+      const result = normaliseRoles([
+        'Chief Executive Officer',
+        'Head of Finance'
+      ])
+
+      expect(result).toEqual(['CEO', 'HOF'])
+    })
+
+    it('handles colon-separated role strings', () => {
+      const result = normaliseRoles('123:Waste Officer:1')
+      expect(result).toEqual(['WO'])
+    })
+
+    it('filters out unmapped roles', () => {
+      const result = normaliseRoles('Unknown Role')
+      expect(result).toEqual([])
+    })
+
+    it('handles mixed valid and invalid roles', () => {
+      const result = normaliseRoles(['Chief Executive Officer', 'Unknown Role'])
+
+      expect(result).toEqual(['CEO'])
+    })
+
+    it('wraps non-array input into array', () => {
+      const result = normaliseRoles('Head of Finance')
+      expect(result).toEqual(['HOF'])
+    })
+  })
+
+  describe('resolveEffectiveRole', () => {
+    it('returns null when no roles are provided', () => {
+      expect(resolveEffectiveRole([])).toBeNull()
+    })
+
+    it('returns the only role when one is provided', () => {
+      expect(resolveEffectiveRole(['CEO'])).toBe('CEO')
+    })
+
+    it('returns the highest-priority role when multiple are provided', () => {
+      const result = resolveEffectiveRole(['CEO', 'HOF', 'WO'])
+      expect(result).toBe('HOF')
+    })
+
+    it('does not mutate the input array', () => {
+      const roles = ['CEO', 'HOF']
+      resolveEffectiveRole(roles)
+      expect(roles).toEqual(['CEO', 'HOF'])
+    })
   })
 })
