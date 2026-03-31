@@ -34,6 +34,7 @@ function extractRoleName(roleEntry) {
   return parts.length >= 2 ? parts[1].trim() : roleEntry.trim()
 }
 
+// Extracts and normalises role names from raw role entries, mapping them to known role keys and filtering out any unrecognised roles
 export function normaliseRoles(rawRoles) {
   const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
 
@@ -70,7 +71,7 @@ const accessControl = {
     server.ext('onPostAuth', (request, h) => {
       const authorizationConfig = config.get('authorization')
 
-      const rawRoles = request.auth.credentials.rawRoles
+      const rawRoles = request.auth.credentials.roles
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
 

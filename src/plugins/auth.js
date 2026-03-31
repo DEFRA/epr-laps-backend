@@ -56,6 +56,7 @@ export const jwtValidate = (decoded, request, _h) => {
     isValid: true,
     credentials: {
       userId,
+      roles,
       rawRoles,
       currentOrganisation,
       ...decoded
@@ -108,25 +109,24 @@ export const authPlugin = {
   }
 }
 
-/*
-  Takes an array like:
-  "<uuid>:<role name>:<number>"
-  Extracts just the role names,
-  de-duplicates them (preserving original order),
-  and returns an array of role names.
-*/
-
+/**
+ * Extracts unique role names from a list of role strings and returns them
+ * as a comma-separated string.
+ *
+ * Each role string is expected to follow the format:
+ *   "<organisationId>:<roleName>:<level>"
+ *
+ * @param {string[]} [roles=[]] - Array of colon-delimited role strings.
+ * @returns {string} A comma-separated list of unique role names.
+ */
 export function extractRawRoles(roles = []) {
-  const seen = new Set()
   const result = []
 
   for (const role of roles) {
     const name = role.split(':')[1]
-    if (name && !seen.has(name)) {
-      seen.add(name)
+    if (name && !result.includes(name)) {
       result.push(name)
     }
   }
-
-  return result
+  return result.join(', ')
 }

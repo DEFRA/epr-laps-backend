@@ -128,7 +128,8 @@ describe('accessControl plugin', () => {
       url: '/bank-details/abc',
       auth: {
         credentials: {
-          rawRoles: ['Chief Executive Officer']
+          rawRoles: ['Chief Executive Officer'],
+          roles: ['123:Chief Executive Officer:1', '456:Head of Finance:2']
         },
         strategy: 'default'
       }
@@ -138,8 +139,8 @@ describe('accessControl plugin', () => {
     expect(infoSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'viewFullBankDetails',
-        effectiveRole: 'CEO',
-        rolesProvided: ['CEO'],
+        effectiveRole: 'HOF',
+        rolesProvided: ['CEO', 'HOF'],
         outcome: 'allowed'
       }),
       'authorization decision'
@@ -169,7 +170,10 @@ describe('accessControl plugin', () => {
       url: '/bank-details',
       auth: {
         // string form, colon-separated -> extractRoleName + normaliseRoles
-        credentials: { rawRoles: '123:Waste Officer:1' },
+        credentials: {
+          rawRoles: '123:Waste Officer:1',
+          roles: ['123:Waste Officer:1']
+        },
         strategy: 'default'
       }
     })
@@ -210,6 +214,7 @@ describe('accessControl plugin', () => {
       url: '/bank-details/some-la',
       auth: {
         credentials: {
+          roles: ['123:Chief Executive Officer:1', '456:Head of Finance:2'],
           rawRoles: ['Chief Executive Officer', 'Head of Finance']
         },
         strategy: 'default'
