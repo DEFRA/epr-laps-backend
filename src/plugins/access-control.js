@@ -90,6 +90,9 @@ const accessControl = {
       const hasPermission =
         effectiveRole && allowedRoles.includes(effectiveRole)
 
+      request.logger.debug(
+        `Access control check for ${effectiveRole} on ${permissionKey}:  ${key} permission granted: ${hasPermission}`
+      )
       request.auth.isAuthorized = hasPermission
 
       request.logger.info(
