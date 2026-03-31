@@ -29,7 +29,7 @@ export const writeAuditLog = (
     user_email: request.auth.credentials.email,
     user_first_name: request.auth.credentials.firstName,
     user_last_name: request.auth.credentials.lastName,
-    user_role: request.auth.credentials.role,
+    user_role: request.auth.credentials.rawRoles,
     local_authority_name: request.auth.credentials.currentOrganisation,
     action_kind: action,
     outcome,

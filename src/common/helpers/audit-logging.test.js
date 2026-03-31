@@ -16,7 +16,7 @@ describe('#writeAuditLog', () => {
           email: 'test@testy.com',
           firstName: 'John',
           lastName: 'Doe',
-          role: 'Chief Executive Officer',
+          rawRoles: 'Chief Executive Officer, Head of Finance',
           currentOrganisation: 'Test Authority'
         }
       },
@@ -34,7 +34,7 @@ describe('#writeAuditLog', () => {
       user_email: 'test@testy.com',
       user_first_name: 'John',
       user_last_name: 'Doe',
-      user_role: 'Chief Executive Officer',
+      user_role: 'Chief Executive Officer, Head of Finance',
       local_authority_name: 'Test Authority',
       action_kind: 'TestAction',
       outcome: 'Success',
@@ -51,7 +51,7 @@ describe('#writeAuditLog', () => {
           email: 'test@testy.com',
           firstName: 'John',
           lastName: 'Doe',
-          role: 'Chief Executive Officer',
+          rawRoles: 'Chief Executive Officer, Head of Finance',
           currentOrganisation: 'Test Authority'
         }
       },
@@ -73,12 +73,49 @@ describe('#writeAuditLog', () => {
       user_email: 'test@testy.com',
       user_first_name: 'John',
       user_last_name: 'Doe',
-      user_role: 'Chief Executive Officer',
+      user_role: 'Chief Executive Officer, Head of Finance',
       local_authority_name: 'Test Authority',
       action_kind: 'DocumentAccessed',
       outcome: 'Success',
       document_type: 'grant',
       language: 'EN',
+      status: 200,
+      journey_type: 'journey_ended'
+    })
+  })
+
+  test('Should handle a single role in rawRoles', () => {
+    const mockRequest = {
+      auth: {
+        credentials: {
+          sub: 'user-id',
+          email: 'test@testy.com',
+          firstName: 'Jane',
+          lastName: 'Smith',
+          rawRoles: 'Chief Executive Officer',
+          currentOrganisation: 'Test Authority'
+        }
+      },
+      logger: { debug: vi.fn() }
+    }
+
+    const action = 'TestAction'
+    const outcome = 'Success'
+
+    writeAuditLog(mockRequest, action, outcome, 200)
+
+    expect(mockRequest.logger.debug).toHaveBeenCalled()
+
+    expect(audit).toHaveBeenCalledWith({
+      log_id: 'unique-id',
+      user_id: 'user-id',
+      user_email: 'test@testy.com',
+      user_first_name: 'Jane',
+      user_last_name: 'Smith',
+      user_role: 'Chief Executive Officer',
+      local_authority_name: 'Test Authority',
+      action_kind: 'TestAction',
+      outcome: 'Success',
       status: 200,
       journey_type: 'journey_ended'
     })

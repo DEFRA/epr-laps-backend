@@ -47,20 +47,17 @@ export const jwtValidate = (decoded, request, _h) => {
     return { isValid: false }
   }
 
-  // Extract role
-  let role = null
-  if (Array.isArray(roles) && roles.length > 0) {
-    const firstRoleParts = roles[0].split(':')
-    role = firstRoleParts[1] || null
-  }
+  // Extract roles
+  const rawRoles = extractRawRoles(roles)
 
-  request.logger.debug(`Roles is: ${roles}`)
+  request.logger.debug(`Roles is: ${rawRoles}`)
 
   return {
     isValid: true,
     credentials: {
       userId,
-      role,
+      roles,
+      rawRoles,
       currentOrganisation,
       ...decoded
     }
@@ -110,4 +107,26 @@ export const authPlugin = {
 
     server.auth.default('jwt')
   }
+}
+
+/**
+ * Extracts unique role names from a list of role strings and returns them
+ * as a comma-separated string.
+ *
+ * Each role string is expected to follow the format:
+ *   "<organisationId>:<roleName>:<level>"
+ *
+ * @param {string[]} [roles=[]] - Array of colon-delimited role strings.
+ * @returns {string} A comma-separated list of unique role names.
+ */
+export function extractRawRoles(roles = []) {
+  const result = []
+
+  for (const role of roles) {
+    const name = role.split(':')[1]
+    if (name && !result.includes(name)) {
+      result.push(name)
+    }
+  }
+  return result.join(', ')
 }
