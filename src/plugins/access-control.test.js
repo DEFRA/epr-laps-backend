@@ -24,7 +24,7 @@ describe('accessControl plugin', () => {
 
     // ensure every request has a logger so accessControl never crashes
     server.ext('onRequest', (request, h) => {
-      request.logger = { info: vi.fn() }
+      request.logger = { info: vi.fn(), debug: vi.fn() }
       return h.continue
     })
 
@@ -110,7 +110,7 @@ describe('accessControl plugin', () => {
     const infoSpy = vi.fn()
 
     server.ext('onPreAuth', (request, h) => {
-      request.logger = { info: infoSpy }
+      request.logger = { info: infoSpy, debug: vi.fn() }
       return h.continue
     })
 
@@ -152,7 +152,7 @@ describe('accessControl plugin', () => {
 
     // ensure this request uses our spy logger
     server.ext('onPreAuth', (request, h) => {
-      request.logger = { info: infoSpy }
+      request.logger = { info: infoSpy, debug: vi.fn() }
       return h.continue
     })
 
@@ -195,7 +195,7 @@ describe('accessControl plugin', () => {
 
     // attach spy logger before onPostAuth runs
     server.ext('onPreAuth', (request, h) => {
-      request.logger = { info: infoSpy }
+      request.logger = { info: infoSpy, debug: vi.fn() }
       return h.continue
     })
 
@@ -237,7 +237,7 @@ describe('accessControl plugin', () => {
     const infoSpy = vi.fn()
 
     server.ext('onPreAuth', (request, h) => {
-      request.logger = { info: infoSpy }
+      request.logger = { info: infoSpy, debug: vi.fn() }
       return h.continue
     })
 
