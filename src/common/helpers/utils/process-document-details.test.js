@@ -65,7 +65,13 @@ describe('processDocumentsByFinancialYear', () => {
 
   it('handles missing creationDate', () => {
     const docs = [
-      { id: 4, fileName: 'file4.pdf', documentType: 'Grant', quarter: 'Q4', financialYear: '2023/2024' }
+      {
+        id: 4,
+        fileName: 'file4.pdf',
+        documentType: 'Grant',
+        quarter: 'Q4',
+        financialYear: '2023/2024'
+      }
     ]
     const result = processDocumentsByFinancialYear(docs)
     const fyDocs = result['2023 to 2024']['EN']
