@@ -31,13 +31,17 @@ function formatIsoToShort(iso) {
 
 // Determine financial year range based on financialYear string (e.g. "2023/2024" => "2023 to 2024")
 export function getFinancialYearRange(financialYear) {
-  if (financialYear) {
-    const match = /^(\d{4})\/(\d{4})$/.exec(financialYear)
-    if (match) {
-      const [, start, end] = match
-      return `${start} to ${end}`
-    }
+  if (!financialYear) {
+    return
   }
+
+  const match = /^(\d{4})\/(\d{4})$/.exec(financialYear)
+  if (!match) {
+    return
+  }
+
+  const [, start, end] = match
+  return `${start} to ${end}`
 }
 
 // Map document type to readable label
