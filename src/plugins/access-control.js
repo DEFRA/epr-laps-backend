@@ -82,10 +82,10 @@ const accessControl = {
       const allowedRoles = authorizationConfig[permissionKey]
 
       const mappedRoles = normaliseRoles(rawRoles)
-      request.logger.info({ mappedRoles }, 'roles mapped')
+      request.logger.info(`Roles mapped: ${mappedRoles.join(', ')}`)
 
       const effectiveRole = resolveEffectiveRole(mappedRoles)
-      request.logger.info({ effectiveRole }, 'Resolved effective role')
+      request.logger.info(`Resolved effective role: ${effectiveRole}`)
 
       const hasPermission =
         effectiveRole && allowedRoles.includes(effectiveRole)
@@ -96,13 +96,7 @@ const accessControl = {
       request.auth.isAuthorized = hasPermission
 
       request.logger.info(
-        {
-          action: permissionKey,
-          effectiveRole,
-          rolesProvided: mappedRoles,
-          outcome: hasPermission ? 'allowed' : 'denied'
-        },
-        'authorization decision'
+        `authorization decision | action=${permissionKey} | effectiveRole=${effectiveRole} | rolesProvided=${mappedRoles.join(',')} | outcome=${hasPermission ? 'allowed' : 'denied'}`
       )
 
       return h.continue

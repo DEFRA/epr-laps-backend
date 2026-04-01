@@ -17,6 +17,15 @@ config.get = vi.fn((key) => {
   }
   return config[key]
 })
+
+const findAuthDecisionLog = (spy) =>
+  spy.mock.calls
+    .map(([msg]) => msg)
+    .find(
+      (msg) =>
+        typeof msg === 'string' && msg.startsWith('authorization decision')
+    )
+
 describe('accessControl plugin', () => {
   let server
   beforeEach(async () => {
@@ -136,14 +145,9 @@ describe('accessControl plugin', () => {
     })
 
     expect(res.statusCode).toBe(200)
-    expect(infoSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: 'viewFullBankDetails',
-        effectiveRole: 'HOF',
-        rolesProvided: ['CEO', 'HOF'],
-        outcome: 'allowed'
-      }),
-      'authorization decision'
+    const authLog = findAuthDecisionLog(infoSpy)
+    expect(authLog).toMatch(
+      /authorization decision \| action=viewFullBankDetails \| effectiveRole=HOF \| rolesProvided=CEO,HOF \| outcome=allowed/
     )
   })
 
@@ -179,14 +183,10 @@ describe('accessControl plugin', () => {
     })
 
     expect(res.statusCode).toBe(200)
-    expect(infoSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: 'confirmBankDetails',
-        effectiveRole: 'WO',
-        rolesProvided: ['WO'],
-        outcome: 'denied'
-      }),
-      'authorization decision'
+    const authLog = findAuthDecisionLog(infoSpy)
+
+    expect(authLog).toMatch(
+      /authorization decision \| action=confirmBankDetails \| effectiveRole=WO \| rolesProvided=WO \| outcome=denied/
     )
   })
 
@@ -220,16 +220,10 @@ describe('accessControl plugin', () => {
         strategy: 'default'
       }
     })
-
+    const authLog = findAuthDecisionLog(infoSpy)
     expect(res.statusCode).toBe(200)
-    expect(infoSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: 'viewFullBankDetails',
-        effectiveRole: 'HOF',
-        rolesProvided: ['CEO', 'HOF'],
-        outcome: 'allowed'
-      }),
-      'authorization decision'
+    expect(authLog).toMatch(
+      /authorization decision \| action=viewFullBankDetails \| effectiveRole=HOF \| rolesProvided=CEO,HOF \| outcome=allowed/
     )
   })
 
@@ -261,13 +255,6 @@ describe('accessControl plugin', () => {
         credentials: { roles: [] },
         strategy: 'default'
       }
-    })
-
-    console.log('FULL RESPONSE:', {
-      statusCode: res.statusCode,
-      result: res.result,
-      payload: res.payload,
-      logs: infoSpy.mock.calls
     })
 
     expect(res.statusCode).toBe(200)
