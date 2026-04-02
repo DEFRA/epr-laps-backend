@@ -6,16 +6,16 @@ const sqsClient = {
     name: 'sqsClient',
     version: '0.1.0',
     register(server) {
-      const sqsClient = new SQSClient({
+      const client = new SQSClient({
         region: config.get('awsRegion'),
         endpoint: config.get('sqsEndpoint')
       })
 
-      server.decorate('server', 'sqs', sqsClient)
+      server.decorate('server', 'sqs', client)
 
       server.events.on('stop', () => {
         server.logger.info(`Closing sqs client`)
-        sqsClient.destroy()
+        client.destroy()
       })
     }
   }
