@@ -1,9 +1,5 @@
 import { config } from '../../../config.js'
 
-// Format ISO or DD/MM/YYYY date to "d MMM yyyy"
-const FY_START_MONTH = 4
-const FY_START_DAY = 6
-
 function parseDateString(dateString) {
   if (!dateString) {
     return undefined
@@ -33,23 +29,18 @@ function formatIsoToShort(iso) {
   })
 }
 
-// Get financial year range from a date string (FY: 6 April - 5 April)
-export function getFinancialYearRange(dateString) {
-  const parsedDate = parseDateString(dateString)
-  if (!parsedDate) {
-    return 'Unknown'
+// Determine financial year range based on financialYear string (e.g. "2023/2024" => "2023 to 2024")
+export function getFinancialYearRange(financialYear) {
+  if (!financialYear) {
+    return undefined
   }
 
-  const year = parsedDate.getFullYear()
-  const month = parsedDate.getMonth() + 1
-  const day = parsedDate.getDate()
+  const match = /^(\d{4})\/(\d{4})$/.exec(financialYear)
+  if (!match) {
+    return undefined
+  }
 
-  const start =
-    month > FY_START_MONTH || (month === FY_START_MONTH && day >= FY_START_DAY)
-      ? year
-      : year - 1
-  const end = start + 1
-
+  const [, start, end] = match
   return `${start} to ${end}`
 }
 
@@ -74,7 +65,7 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
   const groupedDocuments = documentDetails.reduce((acc, doc) => {
     const parsedDate = parseDateString(doc.creationDate)
     const formattedDate = formatIsoToShort(doc.creationDate)
-    const financialYearRange = getFinancialYearRange(doc.creationDate)
+    const financialYearRange = getFinancialYearRange(doc.financialYear)
     const documentName = getDocumentName(doc)
     const language = doc.language || 'EN'
 
