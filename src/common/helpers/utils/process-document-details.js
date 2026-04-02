@@ -32,12 +32,12 @@ function formatIsoToShort(iso) {
 // Determine financial year range based on financialYear string (e.g. "2023/2024" => "2023 to 2024")
 export function getFinancialYearRange(financialYear) {
   if (!financialYear) {
-    return
+    return undefined
   }
 
   const match = /^(\d{4})\/(\d{4})$/.exec(financialYear)
   if (!match) {
-    return
+    return undefined
   }
 
   const [, start, end] = match
