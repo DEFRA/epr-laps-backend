@@ -11,6 +11,7 @@ import { requestTracing } from './common/helpers/request-tracing.js'
 import { setupProxy } from './common/helpers/proxy/setup-proxy.js'
 import { authPlugin } from './plugins/auth.js'
 import { accessControl } from './plugins/access-control.js'
+import { sqsClient } from './plugins/sqs-client.js'
 
 async function createServer() {
   setupProxy()
@@ -50,6 +51,7 @@ async function createServer() {
   // router         - routes used in the app
   await server.register([
     authPlugin,
+    sqsClient,
     requestLogger,
     requestTracing,
     secureContext,
