@@ -654,6 +654,269 @@ describe('sqs-listener plugin', () => {
     })
   })
 
+  describe('polling loop and error handling', () => {
+    let server
+    let mockLogger
+    let mockSqsClient
+    let extensionHandlers
+
+    beforeEach(() => {
+      mockLogger = {
+        info: vi.fn(),
+        error: vi.fn()
+      }
+
+      mockSqsClient = {
+        send: vi.fn()
+      }
+
+      extensionHandlers = {}
+
+      server = {
+        sqs: mockSqsClient,
+        logger: mockLogger,
+        ext: vi.fn((event, handler) => {
+          extensionHandlers[event] = handler
+        })
+      }
+    })
+
+    it('should execute polling loop when onPostStart is called', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl:
+          'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo'
+      })
+
+      let callCount = 0
+      mockSqsClient.send.mockImplementation(async () => {
+        callCount++
+        // Only allow one poll iteration before stopping
+        if (callCount > 1) {
+          extensionHandlers.onPostStop()
+        }
+        return { Messages: [] }
+      })
+
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
+
+      // Call onPostStart to start polling - with timeout safety
+      const pollPromise = Promise.race([
+        extensionHandlers.onPostStart(),
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new Error('Polling loop timeout')), 500)
+        )
+      ])
+
+      await expect(pollPromise).resolves.toBeUndefined()
+    }, 1000)
+
+    it('should handle errors in polling loop and continue', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+      })
+
+      let callCount = 0
+      mockSqsClient.send.mockImplementation(async () => {
+        callCount++
+        if (callCount === 2) {
+          // First poll fails
+          throw new Error('SQS connection error')
+        } else if (callCount === 3) {
+          // Second poll succeeds but we stop
+          extensionHandlers.onPostStop()
+        }
+        return { Messages: [] }
+      })
+
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
+
+      const pollPromise = Promise.race([
+        extensionHandlers.onPostStart(),
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new Error('Polling loop timeout')), 500)
+        )
+      ])
+
+      await expect(pollPromise).resolves.toBeUndefined()
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Error polling SQS')
+      )
+    }, 1000)
+
+    it('should stop polling when running flag is set to false', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+      })
+
+      let pollCount = 0
+      mockSqsClient.send.mockImplementation(async () => {
+        pollCount++
+        if (pollCount > 2) {
+          extensionHandlers.onPostStop()
+        }
+        return { Messages: [] }
+      })
+
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
+
+      const pollPromise = Promise.race([
+        extensionHandlers.onPostStart(),
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new Error('Polling loop timeout')), 500)
+        )
+      ])
+
+      await expect(pollPromise).resolves.toBeUndefined()
+
+      // Should have called send at least once for queue URL and at least once for polling
+      expect(mockSqsClient.send.mock.calls.length).toBeGreaterThanOrEqual(2)
+    }, 1000)
+
+    it('should catch and log SQS polling errors without stopping', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+      })
+
+      let callCount = 0
+      mockSqsClient.send.mockImplementation(async () => {
+        callCount++
+        if (callCount === 2) {
+          throw new Error('Network timeout')
+        } else if (callCount === 3) {
+          extensionHandlers.onPostStop()
+        }
+        return { Messages: [] }
+      })
+
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
+
+      const pollPromise = Promise.race([
+        extensionHandlers.onPostStart(),
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new Error('Polling loop timeout')), 500)
+        )
+      ])
+
+      await expect(pollPromise).resolves.toBeUndefined()
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Error polling SQS: Network timeout')
+      )
+    }, 1000)
+
+    it('should keep polling while running flag is true', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+      })
+
+      let pollCount = 0
+      mockSqsClient.send.mockImplementation(async () => {
+        pollCount++
+        if (pollCount >= 3) {
+          extensionHandlers.onPostStop()
+        }
+        return { Messages: [] }
+      })
+
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
+
+      const pollPromise = Promise.race([
+        extensionHandlers.onPostStart(),
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new Error('Polling loop timeout')), 500)
+        )
+      ])
+
+      await expect(pollPromise).resolves.toBeUndefined()
+
+      // Should have polled multiple times
+      expect(pollCount).toBeGreaterThan(1)
+    }, 1000)
+
+    it('should exit polling loop on onPostStop call', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+      })
+
+      let pollCount = 0
+      mockSqsClient.send.mockImplementation(async () => {
+        pollCount++
+        if (pollCount >= 2) {
+          extensionHandlers.onPostStop()
+        }
+        return { Messages: [] }
+      })
+
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
+
+      const pollPromise = Promise.race([
+        extensionHandlers.onPostStart(),
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new Error('Polling loop timeout')), 500)
+        )
+      ])
+
+      await expect(pollPromise).resolves.toBeUndefined()
+
+      // Should have completed without timeout
+      expect(pollCount).toBeGreaterThan(0)
+    }, 1000)
+
+    it('should handle ReceiveMessageCommand in polling loop', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+      })
+
+      let callCount = 0
+      mockSqsClient.send.mockImplementation(async () => {
+        callCount++
+        if (callCount > 1) {
+          extensionHandlers.onPostStop()
+        }
+        return { Messages: [] }
+      })
+
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
+
+      const pollPromise = Promise.race([
+        extensionHandlers.onPostStart(),
+        new Promise((_resolve, reject) =>
+          setTimeout(() => reject(new Error('Polling loop timeout')), 500)
+        )
+      ])
+
+      await expect(pollPromise).resolves.toBeUndefined()
+
+      // Check that ReceiveMessageCommand was used in polling
+      const receiveCalls = ReceiveMessageCommand.mock.calls.filter((call) =>
+        call[0]?.QueueUrl?.includes('test')
+      )
+      expect(receiveCalls.length).toBeGreaterThan(0)
+    }, 1000)
+  })
+
   describe('handleMessage function', () => {
     let server
     let options
