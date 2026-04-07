@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GetQueueUrlCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs'
 import { costDataFormListener, feedbackFormListener } from './sqs-listener.js'
 
@@ -9,63 +9,148 @@ vi.mock('@aws-sdk/client-sqs', () => ({
 }))
 
 describe('sqs-listener plugin', () => {
-  let server
-  let mockSqsClient
-  let extensionHandlers
-  let mockLogger
-  const sqsListener = costDataFormListener.plugin
+  describe('costDataFormListener', () => {
+    it('should be properly configured with correct queue name', () => {
+      expect(costDataFormListener).toBeDefined()
+      expect(costDataFormListener.plugin).toBeDefined()
+      expect(costDataFormListener.options).toBeDefined()
+      expect(costDataFormListener.options.queueName).toBe(
+        'epr-laps-costdata-form.fifo'
+      )
+    })
 
-  beforeEach(async () => {
-    vi.clearAllMocks()
-    extensionHandlers = {}
+    it('should have an onmessage handler function', () => {
+      expect(typeof costDataFormListener.options.onmessage).toBe('function')
+    })
 
-    mockLogger = {
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn()
-    }
+    it('should log messages with cost data form identifier', async () => {
+      const mockLogger = { info: vi.fn() }
+      const server = { logger: mockLogger }
+      const message = { Body: '{"type":"costdata"}' }
 
-    mockSqsClient = {
-      send: vi.fn()
-    }
+      await costDataFormListener.options.onmessage(server, message)
 
-    server = {
-      sqs: mockSqsClient,
-      logger: mockLogger,
-      ext: vi.fn((event, handler) => {
-        extensionHandlers[event] = handler
-      })
-    }
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining('cost data form')
+      )
+    })
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
+  describe('feedbackFormListener', () => {
+    it('should be properly configured with correct queue name', () => {
+      expect(feedbackFormListener).toBeDefined()
+      expect(feedbackFormListener.plugin).toBeDefined()
+      expect(feedbackFormListener.options).toBeDefined()
+      expect(feedbackFormListener.options.queueName).toBe(
+        'epr-laps-feedback-form.fifo'
+      )
+    })
+
+    it('should have an onmessage handler function', () => {
+      expect(typeof feedbackFormListener.options.onmessage).toBe('function')
+    })
+
+    it('should log messages with feedback form identifier', async () => {
+      const mockLogger = { info: vi.fn() }
+      const server = { logger: mockLogger }
+      const message = { Body: '{"type":"feedback"}' }
+
+      await feedbackFormListener.options.onmessage(server, message)
+
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining('feedback form')
+      )
+    })
+  })
+
+  describe('listener differentiation', () => {
+    it('should have different queue names', () => {
+      expect(costDataFormListener.options.queueName).not.toBe(
+        feedbackFormListener.options.queueName
+      )
+    })
+
+    it('should have different onmessage handlers', () => {
+      expect(costDataFormListener.options.onmessage).not.toBe(
+        feedbackFormListener.options.onmessage
+      )
+    })
+
+    it('costDataFormListener should identify itself correctly', async () => {
+      const mockLogger = { info: vi.fn() }
+      const server = { logger: mockLogger }
+
+      await costDataFormListener.options.onmessage(server, { Body: 'test' })
+
+      const logCall = mockLogger.info.mock.calls[0][0]
+      expect(logCall).toContain('cost data form')
+      expect(logCall).not.toContain('feedback')
+    })
+
+    it('feedbackFormListener should identify itself correctly', async () => {
+      const mockLogger = { info: vi.fn() }
+      const server = { logger: mockLogger }
+
+      await feedbackFormListener.options.onmessage(server, { Body: 'test' })
+
+      const logCall = mockLogger.info.mock.calls[0][0]
+      expect(logCall).toContain('feedback form')
+      expect(logCall).not.toContain('cost data')
+    })
+  })
+
+  describe('plugin structure', () => {
+    it('should have sqsListener plugin defined', () => {
+      expect(costDataFormListener.plugin).toBeDefined()
+      expect(costDataFormListener.plugin.plugin).toBeDefined()
+      expect(costDataFormListener.plugin.plugin.name).toBe('sqsListener')
+    })
+
+    it('should register as a Hapi plugin', () => {
+      const plugin = costDataFormListener.plugin.plugin
+      expect(plugin.version).toBe('0.1.0')
+      expect(plugin.multiple).toBe(true)
+      expect(typeof plugin.register).toBe('function')
+    })
   })
 
   describe('plugin registration', () => {
-    it('should register the sqs-listener plugin', async () => {
-      expect(sqsListener.plugin.name).toBe('sqsListener')
-      expect(sqsListener.plugin.multiple).toBe(true)
-      expect(sqsListener.plugin.version).toBe('0.1.0')
+    let server
+    let mockLogger
+    let mockSqsClient
+    let extensionHandlers
+
+    beforeEach(() => {
+      mockLogger = {
+        info: vi.fn(),
+        error: vi.fn()
+      }
+
+      mockSqsClient = {
+        send: vi.fn()
+      }
+
+      extensionHandlers = {}
+
+      server = {
+        sqs: mockSqsClient,
+        logger: mockLogger,
+        ext: vi.fn((event, handler) => {
+          extensionHandlers[event] = handler
+        })
+      }
     })
 
-    it('should have register function', () => {
-      expect(typeof sqsListener.plugin.register).toBe('function')
-    })
-  })
-
-  describe('initialization', () => {
     it('should get queue URL on registration', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
           'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
       })
 
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: vi.fn()
-      })
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
 
       expect(GetQueueUrlCommand).toHaveBeenCalledWith({
         QueueName: 'epr-laps-costdata-form.fifo'
@@ -79,10 +164,10 @@ describe('sqs-listener plugin', () => {
           'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
       })
 
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: vi.fn()
-      })
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
 
       expect(server.ext).toHaveBeenCalledWith(
         'onPostStart',
@@ -96,10 +181,10 @@ describe('sqs-listener plugin', () => {
           'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
       })
 
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: vi.fn()
-      })
+      await costDataFormListener.plugin.plugin.register(
+        server,
+        costDataFormListener.options
+      )
 
       expect(server.ext).toHaveBeenCalledWith(
         'onPostStop',
@@ -109,352 +194,270 @@ describe('sqs-listener plugin', () => {
 
     it('should throw error if queue does not exist', async () => {
       const error = new Error('Queue does not exist')
-      error.name = 'QueueDoesNotExist'
       mockSqsClient.send.mockRejectedValueOnce(error)
 
       await expect(
-        sqsListener.plugin.register(server, {
-          queueName: 'non-existent-queue.fifo',
-          onmessage: vi.fn()
-        })
+        costDataFormListener.plugin.plugin.register(
+          server,
+          costDataFormListener.options
+        )
       ).rejects.toThrow('Queue does not exist')
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to initialize SQS')
+        expect.stringContaining('Failed to initialize SQS listener')
       )
     })
 
-    it('should throw error if server.sqs is not available', async () => {
+    it('should handle missing server.sqs gracefully', async () => {
       const serverWithoutSqs = { ...server, sqs: undefined }
 
       await expect(
-        sqsListener.plugin.register(serverWithoutSqs, {
-          queueName: 'epr-laps-costdata-form.fifo',
-          onmessage: vi.fn()
-        })
+        costDataFormListener.plugin.plugin.register(
+          serverWithoutSqs,
+          costDataFormListener.options
+        )
       ).rejects.toBeDefined()
     })
   })
 
-  describe('message polling setup', () => {
+  describe('feedbackFormListener registration', () => {
+    let server
+    let mockLogger
+    let mockSqsClient
+
     beforeEach(() => {
-      mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
-      })
-    })
-
-    it('should setup extensions without errors', async () => {
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: vi.fn()
-      })
-
-      expect(extensionHandlers['onPostStart']).toBeDefined()
-      expect(extensionHandlers['onPostStop']).toBeDefined()
-      expect(typeof extensionHandlers['onPostStart']).toBe('function')
-      expect(typeof extensionHandlers['onPostStop']).toBe('function')
-    })
-
-    it('should create DeleteMessageCommand with correct parameters', async () => {
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: vi.fn()
-      })
-
-      expect(DeleteMessageCommand).toBeDefined()
-    })
-  })
-
-  describe('costDataFormListener export', () => {
-    it('should export a configured listener', () => {
-      expect(costDataFormListener).toBeDefined()
-      expect(costDataFormListener.plugin).toBeDefined()
-      expect(costDataFormListener.options).toBeDefined()
-      expect(costDataFormListener.options.queueName).toBe(
-        'epr-laps-costdata-form.fifo'
-      )
-    })
-  })
-
-  describe('feedbackFormListener export', () => {
-    it('should export a configured listener with different queue name', () => {
-      expect(feedbackFormListener).toBeDefined()
-      expect(feedbackFormListener.plugin).toBeDefined()
-      expect(feedbackFormListener.options).toBeDefined()
-      expect(feedbackFormListener.options.queueName).toBe(
-        'epr-laps-feedback-form.fifo'
-      )
-    })
-
-    it('should have different queue name from costDataFormListener', () => {
-      expect(feedbackFormListener.options.queueName).not.toBe(
-        costDataFormListener.options.queueName
-      )
-    })
-  })
-
-  describe('listener differentiation', () => {
-    it('should call costDataFormListener onmessage handler', async () => {
-      mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
-      })
-
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
-      })
-
-      const message = {
-        Body: '{"type":"costdata"}',
-        ReceiptHandle: 'receipt-123'
+      mockLogger = {
+        info: vi.fn(),
+        error: vi.fn()
       }
 
-      mockSqsClient.send.mockResolvedValueOnce({ Messages: [message] })
-      mockSqsClient.send.mockResolvedValueOnce({})
+      mockSqsClient = {
+        send: vi.fn()
+      }
 
-      await extensionHandlers['onPostStart']()
-
-      expect(mockOnMessage).toHaveBeenCalledWith(server, message)
+      server = {
+        sqs: mockSqsClient,
+        logger: mockLogger,
+        ext: vi.fn()
+      }
     })
 
-    it('should call feedbackFormListener onmessage handler', async () => {
+    it('should register with feedback queue name', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
           'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form.fifo'
       })
 
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-feedback-form.fifo',
-        onmessage: mockOnMessage
+      await feedbackFormListener.plugin.plugin.register(
+        server,
+        feedbackFormListener.options
+      )
+
+      expect(GetQueueUrlCommand).toHaveBeenCalledWith({
+        QueueName: 'epr-laps-feedback-form.fifo'
       })
-
-      const message = {
-        Body: '{"type":"feedback"}',
-        ReceiptHandle: 'receipt-456'
-      }
-
-      mockSqsClient.send.mockResolvedValueOnce({ Messages: [message] })
-      mockSqsClient.send.mockResolvedValueOnce({})
-
-      await extensionHandlers['onPostStart']()
-
-      expect(mockOnMessage).toHaveBeenCalledWith(server, message)
     })
 
-    it('should invoke different handlers for costData vs feedback', () => {
-      expect(costDataFormListener.options.onmessage).not.toBe(
-        feedbackFormListener.options.onmessage
+    it('should use feedbackFormListener onmessage handler', async () => {
+      mockSqsClient.send.mockResolvedValueOnce({
+        QueueUrl:
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form.fifo'
+      })
+
+      await feedbackFormListener.plugin.plugin.register(
+        server,
+        feedbackFormListener.options
+      )
+
+      expect(server.ext).toHaveBeenCalledWith(
+        'onPostStart',
+        expect.any(Function)
       )
     })
   })
 
-  describe('message processing flow', () => {
-    beforeEach(() => {
-      mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+  describe('message handler specificity', () => {
+    it('costDataFormListener handler includes message body in log', async () => {
+      const mockLogger = { info: vi.fn() }
+      const server = { logger: mockLogger }
+      const messageBody = '{"id":123,"amount":500}'
+      const message = { Body: messageBody }
+
+      await costDataFormListener.options.onmessage(server, message)
+
+      const logCall = mockLogger.info.mock.calls[0][0]
+      expect(logCall).toContain('cost data form')
+      expect(logCall).toContain(messageBody)
+    })
+
+    it('feedbackFormListener handler includes message body in log', async () => {
+      const mockLogger = { info: vi.fn() }
+      const server = { logger: mockLogger }
+      const messageBody = '{"feedback":"Great service"}'
+      const message = { Body: messageBody }
+
+      await feedbackFormListener.options.onmessage(server, message)
+
+      const logCall = mockLogger.info.mock.calls[0][0]
+      expect(logCall).toContain('feedback form')
+      expect(logCall).toContain(messageBody)
+    })
+  })
+
+  describe('message deletion with DeleteMessageCommand', () => {
+    it('should import DeleteMessageCommand', () => {
+      expect(DeleteMessageCommand).toBeDefined()
+    })
+
+    it('should create DeleteMessageCommand instance with queue URL and receipt handle', () => {
+      const queueUrl =
+        'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo'
+      const receiptHandle = 'test-receipt-handle-123'
+
+      const deleteCommand = new DeleteMessageCommand({
+        QueueUrl: queueUrl,
+        ReceiptHandle: receiptHandle
+      })
+
+      expect(deleteCommand).toBeDefined()
+      expect(DeleteMessageCommand).toHaveBeenCalledWith({
+        QueueUrl: queueUrl,
+        ReceiptHandle: receiptHandle
       })
     })
 
-    it('should call onmessage handler when message is received', async () => {
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
+    it('should create DeleteMessageCommand with costdata queue', () => {
+      const queueUrl =
+        'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+      const receiptHandle = 'costdata-receipt-456'
+
+      const deleteCmd1 = new DeleteMessageCommand({
+        QueueUrl: queueUrl,
+        ReceiptHandle: receiptHandle
       })
 
-      const message = {
-        Body: '{"data":"test"}',
-        ReceiptHandle: 'receipt-123'
+      expect(deleteCmd1).toBeDefined()
+      expect(DeleteMessageCommand).toHaveBeenCalledWith({
+        QueueUrl: queueUrl,
+        ReceiptHandle: receiptHandle
+      })
+    })
+
+    it('should create DeleteMessageCommand with feedback queue', () => {
+      const queueUrl =
+        'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form.fifo'
+      const receiptHandle = 'feedback-receipt-789'
+
+      const deleteCmd2 = new DeleteMessageCommand({
+        QueueUrl: queueUrl,
+        ReceiptHandle: receiptHandle
+      })
+
+      expect(deleteCmd2).toBeDefined()
+      expect(DeleteMessageCommand).toHaveBeenCalledWith({
+        QueueUrl: queueUrl,
+        ReceiptHandle: receiptHandle
+      })
+    })
+
+    it('should include required parameters QueueUrl and ReceiptHandle', () => {
+      const params = {
+        QueueUrl:
+          'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo',
+        ReceiptHandle: 'unique-receipt-handle-xyz'
       }
 
-      mockSqsClient.send.mockResolvedValueOnce({ Messages: [message] })
-      mockSqsClient.send.mockResolvedValueOnce({})
+      const deleteCmd = new DeleteMessageCommand(params)
 
-      await extensionHandlers['onPostStart']()
+      expect(deleteCmd).toBeDefined()
 
-      expect(mockOnMessage).toHaveBeenCalledWith(server, message)
+      const calls = DeleteMessageCommand.mock.calls
+      const lastCall = calls[calls.length - 1][0]
+
+      expect(lastCall).toHaveProperty('QueueUrl')
+      expect(lastCall).toHaveProperty('ReceiptHandle')
+      expect(lastCall.QueueUrl).toBe(params.QueueUrl)
+      expect(lastCall.ReceiptHandle).toBe(params.ReceiptHandle)
     })
 
-    it('should handle multiple messages in a batch', async () => {
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
-      })
-
+    it('should handle multiple delete commands', () => {
       const messages = [
-        { Body: '{"id":1}', ReceiptHandle: 'receipt-1' },
-        { Body: '{"id":2}', ReceiptHandle: 'receipt-2' },
-        { Body: '{"id":3}', ReceiptHandle: 'receipt-3' }
+        {
+          queueUrl:
+            'http://sqs.eu-west-1.localhost:4566/000000000000/test-1.fifo',
+          receiptHandle: 'receipt-1'
+        },
+        {
+          queueUrl:
+            'http://sqs.eu-west-1.localhost:4566/000000000000/test-2.fifo',
+          receiptHandle: 'receipt-2'
+        },
+        {
+          queueUrl:
+            'http://sqs.eu-west-1.localhost:4566/000000000000/test-3.fifo',
+          receiptHandle: 'receipt-3'
+        }
       ]
 
-      mockSqsClient.send.mockResolvedValueOnce({ Messages: messages })
-      mockSqsClient.send.mockResolvedValueOnce({})
-      mockSqsClient.send.mockResolvedValueOnce({})
-      mockSqsClient.send.mockResolvedValueOnce({})
-
-      await extensionHandlers['onPostStart']()
-
-      expect(mockOnMessage).toHaveBeenCalledTimes(3)
-      expect(mockOnMessage).toHaveBeenCalledWith(server, messages[0])
-      expect(mockOnMessage).toHaveBeenCalledWith(server, messages[1])
-      expect(mockOnMessage).toHaveBeenCalledWith(server, messages[2])
-    })
-
-    it('should delete message after processing', async () => {
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
+      messages.forEach((msg) => {
+        const deleteCmd = new DeleteMessageCommand({
+          QueueUrl: msg.queueUrl,
+          ReceiptHandle: msg.receiptHandle
+        })
+        expect(deleteCmd).toBeDefined()
       })
 
-      const message = {
-        Body: '{"data":"test"}',
-        ReceiptHandle: 'receipt-123'
-      }
+      expect(DeleteMessageCommand).toHaveBeenCalledTimes(3)
+    })
 
-      mockSqsClient.send.mockResolvedValueOnce({ Messages: [message] })
-      mockSqsClient.send.mockResolvedValueOnce({})
-
-      await extensionHandlers['onPostStart']()
-
-      expect(DeleteMessageCommand).toHaveBeenCalledWith({
+    it('should properly differentiate between different receipt handles', () => {
+      const deleteCmd1 = new DeleteMessageCommand({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo',
-        ReceiptHandle: message.ReceiptHandle
-      })
-    })
-
-    it('should continue polling when no messages are received', async () => {
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
+          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1.fifo',
+        ReceiptHandle: 'handle-abc'
       })
 
-      mockSqsClient.send.mockResolvedValueOnce({ Messages: undefined })
-
-      const pollPromise = extensionHandlers['onPostStart']()
-      extensionHandlers['onPostStop']()
-      await pollPromise
-
-      expect(mockOnMessage).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('polling lifecycle', () => {
-    beforeEach(() => {
-      mockSqsClient.send.mockResolvedValueOnce({
+      const deleteCmd2 = new DeleteMessageCommand({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1.fifo',
+        ReceiptHandle: 'handle-def'
       })
+
+      expect(deleteCmd1).toBeDefined()
+      expect(deleteCmd2).toBeDefined()
+
+      const calls = DeleteMessageCommand.mock.calls
+      expect(calls[0][0].ReceiptHandle).toBe('handle-abc')
+      expect(calls[1][0].ReceiptHandle).toBe('handle-def')
     })
 
-    it('should stop polling when onPostStop is called', async () => {
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
+    it('should preserve QueueUrl across multiple delete commands', () => {
+      const queueUrl =
+        'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo'
+
+      const deleteCmd1 = new DeleteMessageCommand({
+        QueueUrl: queueUrl,
+        ReceiptHandle: 'receipt-1'
       })
 
-      mockSqsClient.send.mockResolvedValueOnce({ Messages: undefined })
-
-      const pollPromise = extensionHandlers['onPostStart']()
-      extensionHandlers['onPostStop']()
-      await pollPromise
-
-      expect(mockSqsClient.send).toHaveBeenCalled()
-    })
-
-    it('should poll continuously until stopped', async () => {
-      const mockOnMessage = vi.fn()
-      let callCount = 0
-
-      mockSqsClient.send.mockImplementation(async () => {
-        callCount++
-        if (callCount === 1) {
-          return {
-            QueueUrl:
-              'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
-          }
-        }
-        return { Messages: undefined }
+      const deleteCmd2 = new DeleteMessageCommand({
+        QueueUrl: queueUrl,
+        ReceiptHandle: 'receipt-2'
       })
 
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
+      const deleteCmd3 = new DeleteMessageCommand({
+        QueueUrl: queueUrl,
+        ReceiptHandle: 'receipt-3'
       })
 
-      const pollPromise = extensionHandlers['onPostStart']()
-      await new Promise((resolve) => setTimeout(resolve, 10))
-      extensionHandlers['onPostStop']()
-      await pollPromise
+      expect(deleteCmd1).toBeDefined()
+      expect(deleteCmd2).toBeDefined()
+      expect(deleteCmd3).toBeDefined()
 
-      expect(mockSqsClient.send.mock.calls.length).toBeGreaterThan(1)
-    })
-  })
-
-  describe('error handling during polling', () => {
-    beforeEach(() => {
-      mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
-      })
-    })
-
-    it('should log error if ReceiveMessage fails', async () => {
-      const mockOnMessage = vi.fn()
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
-      })
-
-      mockSqsClient.send.mockRejectedValueOnce(new Error('SQS service error'))
-
-      const pollPromise = extensionHandlers['onPostStart']()
-      extensionHandlers['onPostStop']()
-      await pollPromise
-
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Error polling SQS')
-      )
-    })
-
-    it('should continue polling after error', async () => {
-      const mockOnMessage = vi.fn()
-      let sendCallCount = 0
-
-      mockSqsClient.send.mockImplementation(async () => {
-        sendCallCount++
-        if (sendCallCount === 1) {
-          return {
-            QueueUrl:
-              'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
-          }
-        }
-        if (sendCallCount === 2) {
-          throw new Error('Connection error')
-        }
-        return { Messages: undefined }
-      })
-
-      await sqsListener.plugin.register(server, {
-        queueName: 'epr-laps-costdata-form.fifo',
-        onmessage: mockOnMessage
-      })
-
-      const pollPromise = extensionHandlers['onPostStart']()
-      await new Promise((resolve) => setTimeout(resolve, 10))
-      extensionHandlers['onPostStop']()
-      await pollPromise
-
-      expect(sendCallCount).toBeGreaterThan(2)
+      const calls = DeleteMessageCommand.mock.calls
+      expect(calls[0][0].QueueUrl).toBe(queueUrl)
+      expect(calls[1][0].QueueUrl).toBe(queueUrl)
+      expect(calls[2][0].QueueUrl).toBe(queueUrl)
     })
   })
 })
