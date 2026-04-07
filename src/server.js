@@ -12,6 +12,10 @@ import { setupProxy } from './common/helpers/proxy/setup-proxy.js'
 import { authPlugin } from './plugins/auth.js'
 import { accessControl } from './plugins/access-control.js'
 import { sqsClient } from './plugins/sqs-client.js'
+import {
+  costDataFormListener,
+  feedbackFormListener
+} from './plugins/sqs-listener.js'
 
 async function createServer() {
   setupProxy()
@@ -61,7 +65,9 @@ async function createServer() {
       options: config.get('mongo')
     },
     router,
-    accessControl
+    accessControl,
+    costDataFormListener,
+    feedbackFormListener
   ])
 
   return server
