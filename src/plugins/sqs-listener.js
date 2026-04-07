@@ -20,7 +20,9 @@ const sqsListener = {
 
         const poll = async () => {
           while (true) {
-            if (!running) break
+            if (!running) {
+              break
+            }
 
             try {
               const response = await server.sqs.send(
@@ -30,20 +32,7 @@ const sqsListener = {
                   WaitTimeSeconds: 20
                 })
               )
-
-              if (response.Messages) {
-                for (const message of response.Messages) {
-                  // Process message
-                  await options.onmessage(server, message)
-
-                  await server.sqs.send(
-                    new DeleteMessageCommand({
-                      QueueUrl: queueUrl,
-                      ReceiptHandle: message.ReceiptHandle
-                    })
-                  )
-                }
-              }
+              handleMessage(response, server, options, queueUrl)
             } catch (error) {
               server.logger.error(`Error polling SQS: ${error.message}`)
             }
@@ -67,10 +56,24 @@ const sqsListener = {
   }
 }
 
+const handleMessage = async (response, server, options, queueUrl) => {
+  if (response.Messages) {
+    for (const message of response.Messages) {
+      await options.onmessage(server, message)
+      await server.sqs.send(
+        new DeleteMessageCommand({
+          QueueUrl: queueUrl,
+          ReceiptHandle: message.ReceiptHandle
+        })
+      )
+    }
+  }
+}
+
 const costDataFormListener = {
   plugin: sqsListener,
   options: {
-    queueName: 'epr-laps-costdata-form.fifo',
+    queueName: 'demo-queue.fifo',
     onmessage: async (server, message) => {
       // Process the message here
       server.logger.info(`Received message for cost data form: ${message.Body}`)
