@@ -70,7 +70,7 @@ const sqsListener = {
 const costDataFormListener = {
   plugin: sqsListener,
   options: {
-    queueName: 'demo-queue.fifo',
+    queueName: 'epr-laps-costdata-form.fifo',
     onmessage: async (server, message) => {
       // Process the message here
       server.logger.info(`Received message for cost data form: ${message.Body}`)
