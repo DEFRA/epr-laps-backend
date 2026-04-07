@@ -25,14 +25,7 @@ const sqsListener = {
             }
 
             try {
-              const response = await server.sqs.send(
-                new ReceiveMessageCommand({
-                  QueueUrl: queueUrl,
-                  MaxNumberOfMessages: 10,
-                  WaitTimeSeconds: 20
-                })
-              )
-              handleMessage(response, server, options, queueUrl)
+              await handleMessage(server, options, queueUrl)
             } catch (error) {
               server.logger.error(`Error polling SQS: ${error.message}`)
             }
@@ -56,7 +49,14 @@ const sqsListener = {
   }
 }
 
-const handleMessage = async (response, server, options, queueUrl) => {
+const handleMessage = async (server, options, queueUrl) => {
+  const response = await server.sqs.send(
+    new ReceiveMessageCommand({
+      QueueUrl: queueUrl,
+      MaxNumberOfMessages: 10,
+      WaitTimeSeconds: 20
+    })
+  )
   if (response.Messages) {
     for (const message of response.Messages) {
       await options.onmessage(server, message)
@@ -92,4 +92,4 @@ const feedbackFormListener = {
   }
 }
 
-export { costDataFormListener, feedbackFormListener }
+export { costDataFormListener, feedbackFormListener, handleMessage }
