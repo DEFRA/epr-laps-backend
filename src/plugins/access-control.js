@@ -38,11 +38,15 @@ function extractRoleName(roleEntry) {
 export function normaliseRoles(rawRoles) {
   const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
 
-  return roles
-    .map(extractRoleName)
-    .filter(Boolean)
-    .map((r) => rolesMap[r])
-    .filter(Boolean)
+  return [
+    ...new Set(
+      roles
+        .map(extractRoleName)
+        .filter(Boolean)
+        .map((r) => rolesMap[r])
+        .filter(Boolean)
+    )
+  ]
 }
 
 // Resolves the effective role based on the provided mapped roles and their defined priority
