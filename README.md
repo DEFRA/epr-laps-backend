@@ -21,6 +21,7 @@ Core delivery platform Node.js Backend Template.
   - [Development image](#development-image)
   - [Production image](#production-image)
   - [Docker Compose](#docker-compose)
+  - [Podman](#podman)
   - [Dependabot](#dependabot)
   - [SonarCloud](#sonarcloud)
 - [Licence](#licence)
@@ -221,6 +222,17 @@ A local environment with:
 
 ```bash
 docker compose up --build -d
+```
+
+## Podman
+
+Podman can be used as an alternative to Docker for local development.
+All docker commands shown above can be run with podman instead.
+Example:
+
+```bash
+podman build --target development --no-cache --tag epr-laps-frontend:development .
+podman run -p 3000:3000 epr-laps-frontend:development
 ```
 
 ### Dependabot
