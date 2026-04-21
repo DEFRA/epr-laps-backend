@@ -10,6 +10,20 @@ import {
 } from '../common/helpers/audit-logging.js'
 import { statusCodes } from '../common/constants/status-codes.js'
 
+const COST_DATA_ANONYMOUS_USER = {
+  user_id: 'user123',
+  user_email: 'laps.cost.user@defra.com',
+  user_first_name: 'Laps Cost User',
+  user_last_name: 'Cost User'
+}
+
+const FEEDBACK_ANONYMOUS_USER = {
+  user_id: 'user123',
+  user_email: 'laps.feedback.user@defra.com',
+  user_first_name: 'Laps Feedback User',
+  user_last_name: 'Feedback User'
+}
+
 const sqsListener = {
   plugin: {
     name: 'sqsListener',
@@ -82,18 +96,12 @@ const costDataFormListener = {
     queueName: 'epr-laps-costdata-form.fifo',
     onmessage: async (server, message) => {
       // Process the message here
-      const anonymousUserInfo = {
-        user_id: 'user123',
-        user_email: 'laps.cost.user@defra.com',
-        user_first_name: 'Laps Cost User',
-        user_last_name: 'Cost User'
-      }
 
       const body = JSON.parse(message.Body)
 
       server.logger.info(`Received message for cost data form: ${message.Body}`)
       writeFormsAuditLog(
-        anonymousUserInfo,
+        COST_DATA_ANONYMOUS_USER,
         ActionKind.CostDataSubmitted,
         Outcome.Success,
         statusCodes.ok,
@@ -109,17 +117,11 @@ const feedbackFormListener = {
   options: {
     queueName: 'epr-laps-feedback-form.fifo',
     onmessage: async (server, message) => {
-      const anonymousUserInfo = {
-        user_id: 'user123',
-        user_email: 'laps.feedback.user@defra.com',
-        user_first_name: 'Laps Feedback User',
-        user_last_name: 'Feedback User'
-      }
       const body = JSON.parse(message.Body)
       // Process the message here
       server.logger.info(`Received message for feedback form: ${message.Body}`)
       writeFormsAuditLog(
-        anonymousUserInfo,
+        FEEDBACK_ANONYMOUS_USER,
         ActionKind.SatisfactionDataFeedBackSubmitted,
         Outcome.Success,
         statusCodes.ok,

@@ -63,6 +63,5 @@ export const writeFormsAuditLog = (
     journey_type: journeyType,
     message
   }
-  request.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)
   audit(auditLogData)
 }
