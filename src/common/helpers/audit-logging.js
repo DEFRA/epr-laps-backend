@@ -42,3 +42,27 @@ export const writeAuditLog = (
   request.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)
   audit(auditLogData)
 }
+
+export const writeFormsAuditLog = (
+  userInfo,
+  action,
+  outcome,
+  statuscode,
+  journeyType = 'journey_ended',
+  message = {}
+) => {
+  const auditLogData = {
+    log_id: uuidv4(),
+    user_id: userInfo.user_id,
+    user_email: userInfo.user_email,
+    user_first_name: userInfo.user_first_name,
+    user_last_name: userInfo.user_last_name,
+    action_kind: action,
+    outcome,
+    status: statuscode,
+    journey_type: journeyType,
+    message
+  }
+  request.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)
+  audit(auditLogData)
+}

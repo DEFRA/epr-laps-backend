@@ -6,8 +6,9 @@ import {
 import {
   ActionKind,
   Outcome,
-  writeAuditLog
+  writeFormsAuditLog
 } from '../common/helpers/audit-logging.js'
+import { statusCodes } from '../common/constants/status-codes.js'
 
 const sqsListener = {
   plugin: {
@@ -88,23 +89,16 @@ const costDataFormListener = {
         user_last_name: 'Cost User'
       }
 
-      const additionalData = {
-        message: JSON.stringify(JSON.parse(message.Body))
-      }
+      const body = JSON.parse(message.Body)
 
       server.logger.info(`Received message for cost data form: ${message.Body}`)
-      writeAuditLog(
-        {
-          auth: {
-            credentials: anonymousUserInfo
-          },
-          logger: server.logger
-        },
+      writeFormsAuditLog(
+        anonymousUserInfo,
         ActionKind.CostDataSubmitted,
         Outcome.Success,
-        200,
+        statusCodes.ok,
         'journey_ended',
-        additionalData
+        body
       )
     }
   }
@@ -121,19 +115,16 @@ const feedbackFormListener = {
         user_first_name: 'Laps Feedback User',
         user_last_name: 'Feedback User'
       }
+      const body = JSON.parse(message.Body)
       // Process the message here
       server.logger.info(`Received message for feedback form: ${message.Body}`)
-      writeAuditLog(
-        {
-          auth: {
-            credentials: anonymousUserInfo
-          },
-          logger: server.logger
-        },
+      writeFormsAuditLog(
+        anonymousUserInfo,
         ActionKind.SatisfactionDataFeedBackSubmitted,
         Outcome.Success,
-        200,
-        'journey_ended'
+        statusCodes.ok,
+        'journey_ended',
+        body
       )
     }
   }
