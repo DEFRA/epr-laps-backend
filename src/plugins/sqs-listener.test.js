@@ -16,7 +16,7 @@ vi.mock('@aws-sdk/client-sqs', () => ({
   DeleteMessageCommand: vi.fn()
 }))
 
-describe.skip('sqs-listener plugin', () => {
+describe('sqs-listener plugin', () => {
   describe('costDataFormListener', () => {
     it('should be properly configured with correct queue name', () => {
       expect(costDataFormListener).toBeDefined()
@@ -88,7 +88,16 @@ describe.skip('sqs-listener plugin', () => {
       const mockLogger = { info: vi.fn() }
       const server = { logger: mockLogger }
 
-      await costDataFormListener.options.onmessage(server, { Body: 'test' })
+      // Provide a valid JSON string for message.Body
+      const message = {
+        Body: JSON.stringify({
+          type: 'costdata',
+          referenceNumber: '1A5-F72-704',
+          timestamp: '2025-09-11T14:53:58.466Z'
+        })
+      }
+
+      await costDataFormListener.options.onmessage(server, message)
 
       const logCall = mockLogger.info.mock.calls[0][0]
       expect(logCall).toContain('cost data form')
@@ -99,11 +108,23 @@ describe.skip('sqs-listener plugin', () => {
       const mockLogger = { info: vi.fn() }
       const server = { logger: mockLogger }
 
-      await feedbackFormListener.options.onmessage(server, { Body: 'test' })
+      // Provide a valid JSON string for message.Body
+      const message = {
+        Body: JSON.stringify({
+          type: 'feedback',
+          referenceNumber: '1A5-F72-704',
+          timestamp: '2025-09-11T14:53:58.466Z',
+          satisfaction: 'Very Satisfied',
+          feedback:
+            'This is a feedback comment for the cost data feedback form.'
+        })
+      }
+
+      await feedbackFormListener.options.onmessage(server, message)
 
       const logCall = mockLogger.info.mock.calls[0][0]
       expect(logCall).toContain('feedback form')
-      expect(logCall).not.toContain('cost data')
+      expect(logCall).not.toContain('cost data form')
     })
   })
 
