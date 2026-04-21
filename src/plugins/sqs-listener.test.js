@@ -32,7 +32,7 @@ describe('sqs-listener plugin', () => {
     })
 
     it('should log messages with cost data form identifier', async () => {
-      const mockLogger = { info: vi.fn() }
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
       const message = { Body: '{"type":"costdata"}' }
 
@@ -59,7 +59,7 @@ describe('sqs-listener plugin', () => {
     })
 
     it('should log messages with feedback form identifier', async () => {
-      const mockLogger = { info: vi.fn() }
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
       const message = { Body: '{"type":"feedback"}' }
 
@@ -85,7 +85,7 @@ describe('sqs-listener plugin', () => {
     })
 
     it('costDataFormListener should identify itself correctly', async () => {
-      const mockLogger = { info: vi.fn() }
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
 
       // Provide a valid JSON string for message.Body
@@ -105,7 +105,7 @@ describe('sqs-listener plugin', () => {
     })
 
     it('feedbackFormListener should identify itself correctly', async () => {
-      const mockLogger = { info: vi.fn() }
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
 
       // Provide a valid JSON string for message.Body
@@ -492,7 +492,7 @@ describe('sqs-listener plugin', () => {
 
   describe('message handler specificity', () => {
     it('costDataFormListener handler includes message body in log', async () => {
-      const mockLogger = { info: vi.fn() }
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
       const messageBody = '{"id":123,"amount":500}'
       const message = { Body: messageBody }
@@ -505,7 +505,7 @@ describe('sqs-listener plugin', () => {
     })
 
     it('feedbackFormListener handler includes message body in log', async () => {
-      const mockLogger = { info: vi.fn() }
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
       const messageBody = '{"feedback":"Great service"}'
       const message = { Body: messageBody }

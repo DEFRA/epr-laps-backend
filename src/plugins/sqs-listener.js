@@ -101,6 +101,7 @@ const costDataFormListener = {
 
       server.logger.info(`Received message for cost data form: ${message.Body}`)
       writeFormsAuditLog(
+        server,
         COST_DATA_ANONYMOUS_USER,
         ActionKind.CostDataSubmitted,
         Outcome.Success,
@@ -121,6 +122,7 @@ const feedbackFormListener = {
       // Process the message here
       server.logger.info(`Received message for feedback form: ${message.Body}`)
       writeFormsAuditLog(
+        server,
         FEEDBACK_ANONYMOUS_USER,
         ActionKind.SatisfactionDataFeedBackSubmitted,
         Outcome.Success,
