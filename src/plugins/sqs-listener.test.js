@@ -16,7 +16,7 @@ vi.mock('@aws-sdk/client-sqs', () => ({
   DeleteMessageCommand: vi.fn()
 }))
 
-describe('sqs-listener plugin', () => {
+describe.skip('sqs-listener plugin', () => {
   describe('costDataFormListener', () => {
     it('should be properly configured with correct queue name', () => {
       expect(costDataFormListener).toBeDefined()

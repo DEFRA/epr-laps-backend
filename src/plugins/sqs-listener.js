@@ -3,6 +3,11 @@ import {
   ReceiveMessageCommand,
   DeleteMessageCommand
 } from '@aws-sdk/client-sqs'
+import {
+  ActionKind,
+  Outcome,
+  writeAuditLog
+} from '../common/helpers/audit-logging.js'
 
 const sqsListener = {
   plugin: {
@@ -76,7 +81,31 @@ const costDataFormListener = {
     queueName: 'epr-laps-costdata-form.fifo',
     onmessage: async (server, message) => {
       // Process the message here
+      const anonymousUserInfo = {
+        user_id: 'user123',
+        user_email: 'laps.cost.user@defra.com',
+        user_first_name: 'Laps Cost User',
+        user_last_name: 'Cost User'
+      }
+
+      const additionalData = {
+        message: JSON.stringify(JSON.parse(message.Body))
+      }
+
       server.logger.info(`Received message for cost data form: ${message.Body}`)
+      writeAuditLog(
+        {
+          auth: {
+            credentials: anonymousUserInfo
+          },
+          logger: server.logger
+        },
+        ActionKind.CostDataSubmitted,
+        Outcome.Success,
+        200,
+        'journey_ended',
+        additionalData
+      )
     }
   }
 }
@@ -86,8 +115,26 @@ const feedbackFormListener = {
   options: {
     queueName: 'epr-laps-feedback-form.fifo',
     onmessage: async (server, message) => {
+      const anonymousUserInfo = {
+        user_id: 'user123',
+        user_email: 'laps.feedback.user@defra.com',
+        user_first_name: 'Laps Feedback User',
+        user_last_name: 'Feedback User'
+      }
       // Process the message here
       server.logger.info(`Received message for feedback form: ${message.Body}`)
+      writeAuditLog(
+        {
+          auth: {
+            credentials: anonymousUserInfo
+          },
+          logger: server.logger
+        },
+        ActionKind.SatisfactionDataFeedBackSubmitted,
+        Outcome.Success,
+        200,
+        'journey_ended'
+      )
     }
   }
 }

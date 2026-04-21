@@ -12,7 +12,9 @@ export const ActionKind = {
   DocumentsListed: 'DocumentsListed',
   FullBankDetailsViewed: 'FullBankDetailsViewed',
   MaskedBankDetailsViewed: 'MaskedBankDetailsViewed',
-  BankDetailsCreated: 'BankDetailsCreated'
+  BankDetailsCreated: 'BankDetailsCreated',
+  SatisfactionDataFeedBackSubmitted: 'SatisfactionDataFeedBackSubmitted',
+  CostDataSubmitted: 'CostDataSubmitted'
 }
 
 export const writeAuditLog = (
