@@ -8,7 +8,6 @@ import {
   Outcome,
   writeFormsAuditLog
 } from '../common/helpers/audit-logging.js'
-import { statusCodes } from '../common/constants/status-codes.js'
 
 const COST_DATA_ANONYMOUS_USER = {
   user_id: 'user123',
@@ -105,7 +104,6 @@ const costDataFormListener = {
         COST_DATA_ANONYMOUS_USER,
         ActionKind.CostDataSubmitted,
         Outcome.Success,
-        statusCodes.ok,
         'journey_ended',
         body
       )
@@ -126,7 +124,6 @@ const feedbackFormListener = {
         FEEDBACK_ANONYMOUS_USER,
         ActionKind.SatisfactionDataFeedBackSubmitted,
         Outcome.Success,
-        statusCodes.ok,
         'journey_ended',
         body
       )

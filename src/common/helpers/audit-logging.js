@@ -60,7 +60,6 @@ export const writeFormsAuditLog = (
     user_last_name: userInfo.user_last_name,
     action_kind: action,
     outcome,
-    status: statuscode,
     journey_type: journeyType,
     message
   }
