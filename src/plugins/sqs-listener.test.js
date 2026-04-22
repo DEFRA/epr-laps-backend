@@ -38,7 +38,7 @@ describe('sqs-listener plugin', () => {
 
       await costDataFormListener.options.onmessage(server, message)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('cost data form')
       )
     })
@@ -65,7 +65,7 @@ describe('sqs-listener plugin', () => {
 
       await feedbackFormListener.options.onmessage(server, message)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('feedback form')
       )
     })
@@ -99,7 +99,7 @@ describe('sqs-listener plugin', () => {
 
       await costDataFormListener.options.onmessage(server, message)
 
-      const logCall = mockLogger.info.mock.calls[0][0]
+      const logCall = mockLogger.debug.mock.calls[0][0]
       expect(logCall).toContain('cost data form')
       expect(logCall).not.toContain('feedback')
     })
@@ -122,7 +122,7 @@ describe('sqs-listener plugin', () => {
 
       await feedbackFormListener.options.onmessage(server, message)
 
-      const logCall = mockLogger.info.mock.calls[0][0]
+      const logCall = mockLogger.debug.mock.calls[0][0]
       expect(logCall).toContain('feedback form')
       expect(logCall).not.toContain('cost data form')
     })
@@ -499,7 +499,7 @@ describe('sqs-listener plugin', () => {
 
       await costDataFormListener.options.onmessage(server, message)
 
-      const logCall = mockLogger.info.mock.calls[0][0]
+      const logCall = mockLogger.debug.mock.calls[0][0]
       expect(logCall).toContain('cost data form')
       expect(logCall).toContain(messageBody)
     })
@@ -512,7 +512,7 @@ describe('sqs-listener plugin', () => {
 
       await feedbackFormListener.options.onmessage(server, message)
 
-      const logCall = mockLogger.info.mock.calls[0][0]
+      const logCall = mockLogger.debug.mock.calls[0][0]
       expect(logCall).toContain('feedback form')
       expect(logCall).toContain(messageBody)
     })
