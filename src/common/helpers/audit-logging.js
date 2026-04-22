@@ -48,7 +48,6 @@ export const writeFormsAuditLog = (
   userInfo,
   action,
   outcome,
-  statuscode,
   journeyType = 'journey_ended',
   message = {}
 ) => {
