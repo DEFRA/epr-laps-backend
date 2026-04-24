@@ -73,7 +73,7 @@ const handleMessage = async (server, options, queueUrl) => {
 const costDataFormListener = {
   plugin: sqsListener,
   options: {
-    queueName: 'epr-laps-costdata-form.fifo',
+    queueName: 'epr-laps-costdata-form',
     onmessage: async (server, message) => {
       // Process the message here
       server.logger.info(`Received message for cost data form: ${message.Body}`)
@@ -84,7 +84,7 @@ const costDataFormListener = {
 const feedbackFormListener = {
   plugin: sqsListener,
   options: {
-    queueName: 'epr-laps-feedback-form.fifo',
+    queueName: 'epr-laps-feedback-form',
     onmessage: async (server, message) => {
       // Process the message here
       server.logger.info(`Received message for feedback form: ${message.Body}`)
