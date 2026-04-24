@@ -35,11 +35,11 @@ describe('sqs-listener plugin', () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
       const message = {
-        Body: {
+        Body: JSON.stringify({
           data: {
-            main: JSON.stringify({ type: 'costdata' })
+            main: { type: 'costdata' }
           }
-        }
+        })
       }
 
       await costDataFormListener.options.onmessage(server, message)
@@ -68,11 +68,11 @@ describe('sqs-listener plugin', () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
       const message = {
-        Body: {
+        Body: JSON.stringify({
           data: {
-            main: JSON.stringify({ type: 'feedback' })
+            main: { type: 'feedback' }
           }
-        }
+        })
       }
 
       await feedbackFormListener.options.onmessage(server, message)
@@ -102,15 +102,15 @@ describe('sqs-listener plugin', () => {
 
       // Provide a valid JSON string for message.Body
       const message = {
-        Body: {
+        Body: JSON.stringify({
           data: {
-            main: JSON.stringify({
+            main: {
               type: 'costdata',
               referenceNumber: '1A5-F72-704',
               timestamp: '2025-09-11T14:53:58.466Z'
-            })
+            }
           }
-        }
+        })
       }
 
       await costDataFormListener.options.onmessage(server, message)
@@ -126,18 +126,18 @@ describe('sqs-listener plugin', () => {
 
       // Provide a valid JSON string for message.Body
       const message = {
-        Body: {
+        Body: JSON.stringify({
           data: {
-            main: JSON.stringify({
+            main: {
               type: 'feedback',
               referenceNumber: '1A5-F72-704',
               timestamp: '2025-09-11T14:53:58.466Z',
               satisfaction: 'Very Satisfied',
               feedback:
                 'This is a feedback comment for the cost data feedback form.'
-            })
+            }
           }
-        }
+        })
       }
 
       await feedbackFormListener.options.onmessage(server, message)
@@ -514,13 +514,12 @@ describe('sqs-listener plugin', () => {
     it('costDataFormListener handler includes message body in log', async () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
-      const messageBody = JSON.stringify({ id: 123, amount: 500 })
       const message = {
-        Body: {
+        Body: JSON.stringify({
           data: {
-            main: messageBody
+            main: { id: 123, amount: 500 }
           }
-        }
+        })
       }
 
       await costDataFormListener.options.onmessage(server, message)
@@ -533,13 +532,12 @@ describe('sqs-listener plugin', () => {
     it('feedbackFormListener handler includes message body in log', async () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
-      const messageBody = JSON.stringify({ feedback: 'Great service' })
       const message = {
-        Body: {
+        Body: JSON.stringify({
           data: {
-            main: messageBody
+            main: { feedback: 'Great service' }
           }
-        }
+        })
       }
 
       await feedbackFormListener.options.onmessage(server, message)
