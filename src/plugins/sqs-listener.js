@@ -95,12 +95,11 @@ const costDataFormListener = {
     queueName: 'epr-laps-costdata-form',
     onmessage: async (server, message) => {
       // Process the message here
-
-      const body = JSON.parse(message.Body)
-
       server.logger.debug(
         `Received message for cost data form: ${message.Body}`
       )
+
+      const body = JSON.parse(message.Body.data.main)
       writeFormsAuditLog(
         server,
         COST_DATA_ANONYMOUS_USER,
@@ -118,9 +117,10 @@ const feedbackFormListener = {
   options: {
     queueName: 'epr-laps-feedback-form',
     onmessage: async (server, message) => {
-      const body = JSON.parse(message.Body)
       // Process the message here
       server.logger.debug(`Received message for feedback form: ${message.Body}`)
+
+      const body = JSON.parse(message.Body.data.main)
       writeFormsAuditLog(
         server,
         FEEDBACK_ANONYMOUS_USER,

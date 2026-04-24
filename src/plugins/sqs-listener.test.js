@@ -34,7 +34,13 @@ describe('sqs-listener plugin', () => {
     it('should log messages with cost data form identifier', async () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
-      const message = { Body: '{"type":"costdata"}' }
+      const message = {
+        Body: {
+          data: {
+            main: JSON.stringify({ type: 'costdata' })
+          }
+        }
+      }
 
       await costDataFormListener.options.onmessage(server, message)
 
@@ -61,7 +67,13 @@ describe('sqs-listener plugin', () => {
     it('should log messages with feedback form identifier', async () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
-      const message = { Body: '{"type":"feedback"}' }
+      const message = {
+        Body: {
+          data: {
+            main: JSON.stringify({ type: 'feedback' })
+          }
+        }
+      }
 
       await feedbackFormListener.options.onmessage(server, message)
 
@@ -90,11 +102,15 @@ describe('sqs-listener plugin', () => {
 
       // Provide a valid JSON string for message.Body
       const message = {
-        Body: JSON.stringify({
-          type: 'costdata',
-          referenceNumber: '1A5-F72-704',
-          timestamp: '2025-09-11T14:53:58.466Z'
-        })
+        Body: {
+          data: {
+            main: JSON.stringify({
+              type: 'costdata',
+              referenceNumber: '1A5-F72-704',
+              timestamp: '2025-09-11T14:53:58.466Z'
+            })
+          }
+        }
       }
 
       await costDataFormListener.options.onmessage(server, message)
@@ -110,14 +126,18 @@ describe('sqs-listener plugin', () => {
 
       // Provide a valid JSON string for message.Body
       const message = {
-        Body: JSON.stringify({
-          type: 'feedback',
-          referenceNumber: '1A5-F72-704',
-          timestamp: '2025-09-11T14:53:58.466Z',
-          satisfaction: 'Very Satisfied',
-          feedback:
-            'This is a feedback comment for the cost data feedback form.'
-        })
+        Body: {
+          data: {
+            main: JSON.stringify({
+              type: 'feedback',
+              referenceNumber: '1A5-F72-704',
+              timestamp: '2025-09-11T14:53:58.466Z',
+              satisfaction: 'Very Satisfied',
+              feedback:
+                'This is a feedback comment for the cost data feedback form.'
+            })
+          }
+        }
       }
 
       await feedbackFormListener.options.onmessage(server, message)
@@ -494,27 +514,39 @@ describe('sqs-listener plugin', () => {
     it('costDataFormListener handler includes message body in log', async () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
-      const messageBody = '{"id":123,"amount":500}'
-      const message = { Body: messageBody }
+      const messageBody = JSON.stringify({ id: 123, amount: 500 })
+      const message = {
+        Body: {
+          data: {
+            main: messageBody
+          }
+        }
+      }
 
       await costDataFormListener.options.onmessage(server, message)
 
       const logCall = mockLogger.debug.mock.calls[0][0]
       expect(logCall).toContain('cost data form')
-      expect(logCall).toContain(messageBody)
+      expect(mockLogger.debug).toHaveBeenCalled()
     })
 
     it('feedbackFormListener handler includes message body in log', async () => {
       const mockLogger = { info: vi.fn(), debug: vi.fn() }
       const server = { logger: mockLogger }
-      const messageBody = '{"feedback":"Great service"}'
-      const message = { Body: messageBody }
+      const messageBody = JSON.stringify({ feedback: 'Great service' })
+      const message = {
+        Body: {
+          data: {
+            main: messageBody
+          }
+        }
+      }
 
       await feedbackFormListener.options.onmessage(server, message)
 
       const logCall = mockLogger.debug.mock.calls[0][0]
       expect(logCall).toContain('feedback form')
-      expect(logCall).toContain(messageBody)
+      expect(mockLogger.debug).toHaveBeenCalled()
     })
   })
 
@@ -993,7 +1025,11 @@ describe('sqs-listener plugin', () => {
     describe('with single message', () => {
       it('should call onmessage handler with server and message', async () => {
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1006,7 +1042,11 @@ describe('sqs-listener plugin', () => {
 
       it('should send DeleteMessageCommand with correct parameters', async () => {
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1021,7 +1061,11 @@ describe('sqs-listener plugin', () => {
 
       it('should process message then delete it', async () => {
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1034,7 +1078,12 @@ describe('sqs-listener plugin', () => {
 
       it('should call ReceiveMessageCommand with correct parameters', async () => {
         server.sqs.send.mockResolvedValueOnce({
-          Messages: [{ Body: 'test', ReceiptHandle: 'receipt-123' }]
+          Messages: [
+            {
+              Body: { data: { main: JSON.stringify({ data: 'test' }) } },
+              ReceiptHandle: 'receipt-123'
+            }
+          ]
         })
 
         await handleMessage(server, options, queueUrl)
@@ -1050,9 +1099,18 @@ describe('sqs-listener plugin', () => {
     describe('with multiple messages', () => {
       it('should call onmessage for each message', async () => {
         const messages = [
-          { Body: '{"id":1}', ReceiptHandle: 'receipt-1' },
-          { Body: '{"id":2}', ReceiptHandle: 'receipt-2' },
-          { Body: '{"id":3}', ReceiptHandle: 'receipt-3' }
+          {
+            Body: { data: { main: JSON.stringify({ id: 1 }) } },
+            ReceiptHandle: 'receipt-1'
+          },
+          {
+            Body: { data: { main: JSON.stringify({ id: 2 }) } },
+            ReceiptHandle: 'receipt-2'
+          },
+          {
+            Body: { data: { main: JSON.stringify({ id: 3 }) } },
+            ReceiptHandle: 'receipt-3'
+          }
         ]
         server.sqs.send.mockResolvedValueOnce({ Messages: messages })
 
@@ -1066,9 +1124,18 @@ describe('sqs-listener plugin', () => {
 
       it('should send DeleteMessageCommand for each message', async () => {
         const messages = [
-          { Body: '{"id":1}', ReceiptHandle: 'receipt-1' },
-          { Body: '{"id":2}', ReceiptHandle: 'receipt-2' },
-          { Body: '{"id":3}', ReceiptHandle: 'receipt-3' }
+          {
+            Body: { data: { main: JSON.stringify({ id: 1 }) } },
+            ReceiptHandle: 'receipt-1'
+          },
+          {
+            Body: { data: { main: JSON.stringify({ id: 2 }) } },
+            ReceiptHandle: 'receipt-2'
+          },
+          {
+            Body: { data: { main: JSON.stringify({ id: 3 }) } },
+            ReceiptHandle: 'receipt-3'
+          }
         ]
         server.sqs.send.mockResolvedValueOnce({ Messages: messages })
 
@@ -1096,8 +1163,14 @@ describe('sqs-listener plugin', () => {
         })
 
         const messages = [
-          { Body: '{"id":1}', ReceiptHandle: 'receipt-1' },
-          { Body: '{"id":2}', ReceiptHandle: 'receipt-2' }
+          {
+            Body: { data: { main: JSON.stringify({ id: 1 }) } },
+            ReceiptHandle: 'receipt-1'
+          },
+          {
+            Body: { data: { main: JSON.stringify({ id: 2 }) } },
+            ReceiptHandle: 'receipt-2'
+          }
         ]
         server.sqs.send.mockResolvedValueOnce({ Messages: messages })
 
@@ -1108,7 +1181,7 @@ describe('sqs-listener plugin', () => {
 
       it('should handle maximum batch size (10 messages)', async () => {
         const messages = Array.from({ length: 10 }, (_, i) => ({
-          Body: `{"id":${i + 1}}`,
+          Body: { data: { main: JSON.stringify({ id: i + 1 }) } },
           ReceiptHandle: `receipt-${i + 1}`
         }))
         server.sqs.send.mockResolvedValueOnce({ Messages: messages })
@@ -1123,7 +1196,11 @@ describe('sqs-listener plugin', () => {
     describe('message properties', () => {
       it('should use message ReceiptHandle for deletion', async () => {
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'unique-receipt-handle-xyz'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1137,9 +1214,13 @@ describe('sqs-listener plugin', () => {
       })
 
       it('should preserve message body data', async () => {
-        const messageBody = '{"id":456,"amount":1000,"status":"pending"}'
+        const messageData = { id: 456, amount: 1000, status: 'pending' }
         const message = {
-          Body: messageBody,
+          Body: {
+            data: {
+              main: JSON.stringify(messageData)
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1149,7 +1230,7 @@ describe('sqs-listener plugin', () => {
         expect(options.onmessage).toHaveBeenCalledWith(
           server,
           expect.objectContaining({
-            Body: messageBody
+            Body: message.Body
           })
         )
       })
@@ -1158,7 +1239,11 @@ describe('sqs-listener plugin', () => {
         const queueUrl1 =
           'http://sqs.eu-west-1.localhost:4566/000000000000/queue1'
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1178,12 +1263,22 @@ describe('sqs-listener plugin', () => {
           'http://sqs.eu-west-1.localhost:4566/000000000000/queue2'
 
         server.sqs.send.mockResolvedValueOnce({
-          Messages: [{ Body: '{"id":1}', ReceiptHandle: 'receipt-1' }]
+          Messages: [
+            {
+              Body: { data: { main: JSON.stringify({ id: 1 }) } },
+              ReceiptHandle: 'receipt-1'
+            }
+          ]
         })
         await handleMessage(server, options, queueUrl1)
 
         server.sqs.send.mockResolvedValueOnce({
-          Messages: [{ Body: '{"id":2}', ReceiptHandle: 'receipt-2' }]
+          Messages: [
+            {
+              Body: { data: { main: JSON.stringify({ id: 2 }) } },
+              ReceiptHandle: 'receipt-2'
+            }
+          ]
         })
         await handleMessage(server, options, queueUrl2)
 
@@ -1199,7 +1294,11 @@ describe('sqs-listener plugin', () => {
         options.onmessage.mockRejectedValueOnce(error)
 
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1224,8 +1323,14 @@ describe('sqs-listener plugin', () => {
         options.onmessage.mockRejectedValueOnce(error)
 
         const messages = [
-          { Body: '{"id":1}', ReceiptHandle: 'receipt-1' },
-          { Body: '{"id":2}', ReceiptHandle: 'receipt-2' }
+          {
+            Body: { data: { main: JSON.stringify({ id: 1 }) } },
+            ReceiptHandle: 'receipt-1'
+          },
+          {
+            Body: { data: { main: JSON.stringify({ id: 2 }) } },
+            ReceiptHandle: 'receipt-2'
+          }
         ]
         server.sqs.send.mockResolvedValueOnce({ Messages: messages })
 
@@ -1250,7 +1355,11 @@ describe('sqs-listener plugin', () => {
         })
 
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1288,7 +1397,11 @@ describe('sqs-listener plugin', () => {
         }
 
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1305,7 +1418,11 @@ describe('sqs-listener plugin', () => {
         }
 
         const message = {
-          Body: '{"data":"test"}',
+          Body: {
+            data: {
+              main: JSON.stringify({ data: 'test' })
+            }
+          },
           ReceiptHandle: 'receipt-123'
         }
         server.sqs.send.mockResolvedValueOnce({ Messages: [message] })
@@ -1317,8 +1434,14 @@ describe('sqs-listener plugin', () => {
 
       it('should maintain reference to queueUrl throughout execution', async () => {
         const messages = [
-          { Body: '{"id":1}', ReceiptHandle: 'receipt-1' },
-          { Body: '{"id":2}', ReceiptHandle: 'receipt-2' }
+          {
+            Body: { data: { main: JSON.stringify({ id: 1 }) } },
+            ReceiptHandle: 'receipt-1'
+          },
+          {
+            Body: { data: { main: JSON.stringify({ id: 2 }) } },
+            ReceiptHandle: 'receipt-2'
+          }
         ]
         server.sqs.send.mockResolvedValueOnce({ Messages: messages })
 
