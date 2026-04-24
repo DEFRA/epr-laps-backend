@@ -99,16 +99,19 @@ const costDataFormListener = {
         `Received message for cost data form: ${message.Body}`
       )
 
-      server.logger.debug(`Cost Data form main body: ${message.Body.data.main}`)
+      const body = JSON.parse(message.Body)
+      server.logger.debug(`Cost Data form body: ${JSON.stringify(body)}`)
 
-      const body = JSON.stringify(message.Body.data.main)
+      server.logger.debug(`Cost Data form main body: ${body.data.main}`)
+
+      const bodyStr = JSON.stringify(body.data.main)
       writeFormsAuditLog(
         server,
         COST_DATA_ANONYMOUS_USER,
         ActionKind.CostDataSubmitted,
         Outcome.Success,
         'journey_ended',
-        body
+        bodyStr
       )
     }
   }
@@ -121,16 +124,20 @@ const feedbackFormListener = {
     onmessage: async (server, message) => {
       // Process the message here
       server.logger.debug(`Received message for feedback form: ${message.Body}`)
-      server.logger.debug(`Feedback form main body: ${message.Body.data.main}`)
 
-      const body = JSON.stringify(message.Body.data.main)
+      const body = JSON.parse(message.Body)
+      server.logger.debug(`Feedback form body: ${JSON.stringify(body)}`)
+
+      server.logger.debug(`Feedback form main body: ${body.data.main}`)
+
+      const bodyStr = JSON.stringify(body.data.main)
       writeFormsAuditLog(
         server,
         FEEDBACK_ANONYMOUS_USER,
         ActionKind.SatisfactionDataFeedBackSubmitted,
         Outcome.Success,
         'journey_ended',
-        body
+        bodyStr
       )
     }
   }
