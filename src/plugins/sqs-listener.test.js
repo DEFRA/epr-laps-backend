@@ -23,7 +23,7 @@ describe('sqs-listener plugin', () => {
       expect(costDataFormListener.plugin).toBeDefined()
       expect(costDataFormListener.options).toBeDefined()
       expect(costDataFormListener.options.queueName).toBe(
-        'epr-laps-costdata-form.fifo'
+        'epr-laps-costdata-form'
       )
     })
 
@@ -50,7 +50,7 @@ describe('sqs-listener plugin', () => {
       expect(feedbackFormListener.plugin).toBeDefined()
       expect(feedbackFormListener.options).toBeDefined()
       expect(feedbackFormListener.options.queueName).toBe(
-        'epr-laps-feedback-form.fifo'
+        'epr-laps-feedback-form'
       )
     })
 
@@ -173,7 +173,7 @@ describe('sqs-listener plugin', () => {
     it('should get queue URL on registration', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -182,7 +182,7 @@ describe('sqs-listener plugin', () => {
       )
 
       expect(GetQueueUrlCommand).toHaveBeenCalledWith({
-        QueueName: 'epr-laps-costdata-form.fifo'
+        QueueName: 'epr-laps-costdata-form'
       })
       expect(mockSqsClient.send).toHaveBeenCalled()
     })
@@ -190,7 +190,7 @@ describe('sqs-listener plugin', () => {
     it('should register onPostStart extension', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -207,7 +207,7 @@ describe('sqs-listener plugin', () => {
     it('should register onPostStop extension', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -279,7 +279,7 @@ describe('sqs-listener plugin', () => {
     it('should register onPostStop handler that stops polling', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -297,7 +297,7 @@ describe('sqs-listener plugin', () => {
     it('should register onPostStart handler for polling', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -312,7 +312,7 @@ describe('sqs-listener plugin', () => {
     it('should have both lifecycle handlers registered', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -337,7 +337,7 @@ describe('sqs-listener plugin', () => {
     it('onPostStop should be callable and handle running flag', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -354,7 +354,7 @@ describe('sqs-listener plugin', () => {
     it('should call onPostStop multiple times without error', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -373,7 +373,7 @@ describe('sqs-listener plugin', () => {
     it('should register lifecycle handlers with GetQueueUrlCommand', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       const extensions = []
@@ -389,7 +389,7 @@ describe('sqs-listener plugin', () => {
 
       // Verify GetQueueUrlCommand was called
       expect(GetQueueUrlCommand).toHaveBeenCalledWith({
-        QueueName: 'epr-laps-costdata-form.fifo'
+        QueueName: 'epr-laps-costdata-form'
       })
 
       // Verify extensions were registered in correct order
@@ -406,7 +406,7 @@ describe('sqs-listener plugin', () => {
 
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       })
 
       await costDataFormListener.plugin.plugin.register(
@@ -420,7 +420,7 @@ describe('sqs-listener plugin', () => {
     it('feedbackFormListener should have same lifecycle behavior', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form'
       })
 
       await feedbackFormListener.plugin.plugin.register(
@@ -459,7 +459,7 @@ describe('sqs-listener plugin', () => {
     it('should register with feedback queue name', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form'
       })
 
       await feedbackFormListener.plugin.plugin.register(
@@ -468,14 +468,14 @@ describe('sqs-listener plugin', () => {
       )
 
       expect(GetQueueUrlCommand).toHaveBeenCalledWith({
-        QueueName: 'epr-laps-feedback-form.fifo'
+        QueueName: 'epr-laps-feedback-form'
       })
     })
 
     it('should use feedbackFormListener onmessage handler', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
         QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form'
       })
 
       await feedbackFormListener.plugin.plugin.register(
@@ -525,7 +525,7 @@ describe('sqs-listener plugin', () => {
 
     it('should create DeleteMessageCommand instance with queue URL and receipt handle', () => {
       const queueUrl =
-        'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo'
+        'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue'
       const receiptHandle = 'test-receipt-handle-123'
 
       const deleteCommand = new DeleteMessageCommand({
@@ -542,7 +542,7 @@ describe('sqs-listener plugin', () => {
 
     it('should create DeleteMessageCommand with costdata queue', () => {
       const queueUrl =
-        'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form.fifo'
+        'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-costdata-form'
       const receiptHandle = 'costdata-receipt-456'
 
       const deleteCmd1 = new DeleteMessageCommand({
@@ -559,7 +559,7 @@ describe('sqs-listener plugin', () => {
 
     it('should create DeleteMessageCommand with feedback queue', () => {
       const queueUrl =
-        'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form.fifo'
+        'http://sqs.eu-west-1.localhost:4566/000000000000/epr-laps-feedback-form'
       const receiptHandle = 'feedback-receipt-789'
 
       const deleteCmd2 = new DeleteMessageCommand({
@@ -576,8 +576,7 @@ describe('sqs-listener plugin', () => {
 
     it('should include required parameters QueueUrl and ReceiptHandle', () => {
       const params = {
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo',
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue',
         ReceiptHandle: 'unique-receipt-handle-xyz'
       }
 
@@ -597,18 +596,15 @@ describe('sqs-listener plugin', () => {
     it('should handle multiple delete commands', () => {
       const messages = [
         {
-          queueUrl:
-            'http://sqs.eu-west-1.localhost:4566/000000000000/test-1.fifo',
+          queueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test-1',
           receiptHandle: 'receipt-1'
         },
         {
-          queueUrl:
-            'http://sqs.eu-west-1.localhost:4566/000000000000/test-2.fifo',
+          queueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test-2',
           receiptHandle: 'receipt-2'
         },
         {
-          queueUrl:
-            'http://sqs.eu-west-1.localhost:4566/000000000000/test-3.fifo',
+          queueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test-3',
           receiptHandle: 'receipt-3'
         }
       ]
@@ -626,14 +622,12 @@ describe('sqs-listener plugin', () => {
 
     it('should properly differentiate between different receipt handles', () => {
       const deleteCmd1 = new DeleteMessageCommand({
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1.fifo',
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/queue1',
         ReceiptHandle: 'handle-abc'
       })
 
       const deleteCmd2 = new DeleteMessageCommand({
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1.fifo',
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/queue1',
         ReceiptHandle: 'handle-def'
       })
 
@@ -647,7 +641,7 @@ describe('sqs-listener plugin', () => {
 
     it('should preserve QueueUrl across multiple delete commands', () => {
       const queueUrl =
-        'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo'
+        'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue'
 
       const deleteCmd1 = new DeleteMessageCommand({
         QueueUrl: queueUrl,
@@ -704,8 +698,7 @@ describe('sqs-listener plugin', () => {
 
     it('should execute polling loop when onPostStart is called', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl:
-          'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo'
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue'
       })
 
       let callCount = 0
@@ -736,7 +729,7 @@ describe('sqs-listener plugin', () => {
 
     it('should handle errors in polling loop and continue', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test'
       })
 
       let callCount = 0
@@ -773,7 +766,7 @@ describe('sqs-listener plugin', () => {
 
     it('should stop polling when running flag is set to false', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test'
       })
 
       let pollCount = 0
@@ -805,7 +798,7 @@ describe('sqs-listener plugin', () => {
 
     it('should catch and log SQS polling errors without stopping', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test'
       })
 
       let callCount = 0
@@ -840,7 +833,7 @@ describe('sqs-listener plugin', () => {
 
     it('should keep polling while running flag is true', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test'
       })
 
       let pollCount = 0
@@ -872,7 +865,7 @@ describe('sqs-listener plugin', () => {
 
     it('should exit polling loop on onPostStop call', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test'
       })
 
       let pollCount = 0
@@ -904,7 +897,7 @@ describe('sqs-listener plugin', () => {
 
     it('should handle ReceiveMessageCommand in polling loop', async () => {
       mockSqsClient.send.mockResolvedValueOnce({
-        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test.fifo'
+        QueueUrl: 'http://sqs.eu-west-1.localhost:4566/000000000000/test'
       })
 
       let callCount = 0
@@ -953,8 +946,7 @@ describe('sqs-listener plugin', () => {
         onmessage: vi.fn()
       }
 
-      queueUrl =
-        'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue.fifo'
+      queueUrl = 'http://sqs.eu-west-1.localhost:4566/000000000000/test-queue'
 
       // Reset all mocks before each test
       vi.clearAllMocks()
@@ -1164,7 +1156,7 @@ describe('sqs-listener plugin', () => {
 
       it('should use correct queue URL for deletion', async () => {
         const queueUrl1 =
-          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1'
         const message = {
           Body: '{"data":"test"}',
           ReceiptHandle: 'receipt-123'
@@ -1181,9 +1173,9 @@ describe('sqs-listener plugin', () => {
 
       it('should handle different queue URLs for different calls', async () => {
         const queueUrl1 =
-          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/queue1'
         const queueUrl2 =
-          'http://sqs.eu-west-1.localhost:4566/000000000000/queue2.fifo'
+          'http://sqs.eu-west-1.localhost:4566/000000000000/queue2'
 
         server.sqs.send.mockResolvedValueOnce({
           Messages: [{ Body: '{"id":1}', ReceiptHandle: 'receipt-1' }]

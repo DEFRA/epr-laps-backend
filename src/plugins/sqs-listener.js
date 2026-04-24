@@ -92,7 +92,7 @@ const handleMessage = async (server, options, queueUrl) => {
 const costDataFormListener = {
   plugin: sqsListener,
   options: {
-    queueName: 'epr-laps-costdata-form.fifo',
+    queueName: 'epr-laps-costdata-form',
     onmessage: async (server, message) => {
       // Process the message here
 
@@ -116,7 +116,7 @@ const costDataFormListener = {
 const feedbackFormListener = {
   plugin: sqsListener,
   options: {
-    queueName: 'epr-laps-feedback-form.fifo',
+    queueName: 'epr-laps-feedback-form',
     onmessage: async (server, message) => {
       const body = JSON.parse(message.Body)
       // Process the message here
