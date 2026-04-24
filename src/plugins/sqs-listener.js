@@ -99,7 +99,9 @@ const costDataFormListener = {
         `Received message for cost data form: ${message.Body}`
       )
 
-      const body = JSON.parse(message.Body.data.main)
+      server.logger.debug(`Cost Data form main body: ${message.Body.data.main}`)
+
+      const body = JSON.stringify(message.Body.data.main)
       writeFormsAuditLog(
         server,
         COST_DATA_ANONYMOUS_USER,
@@ -119,8 +121,9 @@ const feedbackFormListener = {
     onmessage: async (server, message) => {
       // Process the message here
       server.logger.debug(`Received message for feedback form: ${message.Body}`)
+      server.logger.debug(`Feedback form main body: ${message.Body.data.main}`)
 
-      const body = JSON.parse(message.Body.data.main)
+      const body = JSON.stringify(message.Body.data.main)
       writeFormsAuditLog(
         server,
         FEEDBACK_ANONYMOUS_USER,
