@@ -12,7 +12,9 @@ export const ActionKind = {
   DocumentsListed: 'DocumentsListed',
   FullBankDetailsViewed: 'FullBankDetailsViewed',
   MaskedBankDetailsViewed: 'MaskedBankDetailsViewed',
-  BankDetailsCreated: 'BankDetailsCreated'
+  BankDetailsCreated: 'BankDetailsCreated',
+  SatisfactionDataFeedBackSubmitted: 'SatisfactionDataFeedBackSubmitted',
+  CostDataSubmitted: 'CostDataSubmitted'
 }
 
 export const writeAuditLog = (
@@ -38,5 +40,28 @@ export const writeAuditLog = (
     ...additionalData
   }
   request.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)
+  audit(auditLogData)
+}
+
+export const writeFormsAuditLog = (
+  server,
+  userInfo,
+  action,
+  outcome,
+  journeyType = 'journey_ended',
+  message = {}
+) => {
+  const auditLogData = {
+    log_id: uuidv4(),
+    user_id: userInfo.user_id,
+    user_email: userInfo.user_email,
+    user_first_name: userInfo.user_first_name,
+    user_last_name: userInfo.user_last_name,
+    action_kind: action,
+    outcome,
+    journey_type: journeyType,
+    message
+  }
+  server.logger.debug(`Audit log: ${JSON.stringify(auditLogData)}`)
   audit(auditLogData)
 }
