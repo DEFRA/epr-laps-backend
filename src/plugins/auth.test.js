@@ -9,7 +9,8 @@ import {
   getKey,
   jwtValidate,
   _setCachedDiscovery,
-  extractCurrentLocalAuthority
+  extractCurrentLocalAuthority,
+  extractRoleName
 } from './auth.js'
 
 // ----------------------------
@@ -76,8 +77,10 @@ describe('jwtValidate', () => {
   it('should return isValid true and correct credentials if all required fields exist', () => {
     const decoded = {
       sub: '123',
+      currentRelationshipId: '23950a2d-c37d-43da-9fcb-0a4ce9aa11ee',
       roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3']
     }
+
     const request = {
       logger: {
         debug: vi.fn()
@@ -88,6 +91,7 @@ describe('jwtValidate', () => {
     expect(result.credentials).toEqual({
       userId: '123',
       currentOrganisation: '',
+      currentRelationshipId: '23950a2d-c37d-43da-9fcb-0a4ce9aa11ee',
       sub: '123',
       roles: ['23950a2d-c37d-43da-9fcb-0a4ce9aa11ee:CEO:3'],
       rawRoles: 'CEO'
@@ -165,5 +169,35 @@ describe('#extractCurrentLocalAuthority', () => {
     }
     const result = extractCurrentLocalAuthority(decoded)
     expect(result).toBe('Warwickshire County Council')
+  })
+})
+
+describe('#extractRoleName', () => {
+  it('should return all roles that match the currentRelationshipId', () => {
+    const currentRelationshipId = '53333962-6f27-f111-8341-000d3a49590f'
+    const roles = [
+      '53333962-6f27-f111-8341-000d3a49590f:Finance Officer:3',
+      '53333962-6f27-f111-8341-000d3a49590f:Head of Waste:3',
+      '69cd8c11-ff8e-f011-b4cb-000d3a28b317:Chief Executive Officer:3'
+    ]
+
+    const result = extractRoleName(currentRelationshipId, roles)
+    expect(result).toEqual([
+      '53333962-6f27-f111-8341-000d3a49590f:Finance Officer:3',
+      '53333962-6f27-f111-8341-000d3a49590f:Head of Waste:3'
+    ])
+  })
+
+  it('should return an empty array if no roles match', () => {
+    const currentRelationshipId = 'does-not-exist'
+    const roles = ['53333962-6f27-f111-8341-000d3a49590f:Finance Officer:3']
+
+    const result = extractRoleName(currentRelationshipId, roles)
+    expect(result).toEqual([])
+  })
+
+  it('should return an empty array if roles is not an array', () => {
+    const result = extractRoleName('53333962-6f27-f111-8341-000d3a49590f', null)
+    expect(result).toEqual([])
   })
 })

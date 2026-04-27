@@ -48,8 +48,8 @@ export const jwtValidate = (decoded, request, _h) => {
   }
 
   // Extract roles
-  const rawRoles = extractRawRoles(roles)
-
+  const matchedRoles = extractRoleName(decoded.currentRelationshipId, roles)
+  const rawRoles = extractRawRoles(matchedRoles)
   request.logger.debug(`Roles is: ${rawRoles}`)
 
   return {
@@ -129,4 +129,15 @@ export function extractRawRoles(roles = []) {
     }
   }
   return result.join(', ')
+}
+
+export const extractRoleName = (currentRelationshipId, roles) => {
+  if (!currentRelationshipId || !Array.isArray(roles) || roles.length === 0) {
+    return []
+  }
+
+  return roles.filter((role) => {
+    const [relationshipId] = String(role).split(':')
+    return relationshipId === currentRelationshipId
+  })
 }
