@@ -24,16 +24,6 @@ const rolePriority = {
   WO: 5
 }
 
-// Extracts the role name from a role entry string, which may be in the format "c53f8b72-1ad4-4e39-9a2f-92d06b4f3e8c:Head of Finance:2"
-function extractRoleName(roleEntry) {
-  if (!roleEntry || typeof roleEntry !== 'string') {
-    return null
-  }
-
-  const parts = roleEntry.split(':')
-  return parts.length >= 2 ? parts[1].trim() : roleEntry.trim()
-}
-
 // Extracts and normalises role names from raw role entries, mapping them to known role keys and filtering out any unrecognised roles
 export function normaliseRoles(rawRoles) {
   const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
@@ -41,8 +31,7 @@ export function normaliseRoles(rawRoles) {
   return [
     ...new Set(
       roles
-        .map(extractRoleName)
-        .filter(Boolean)
+        .filter((r) => typeof r === 'string')
         .map((r) => rolesMap[r])
         .filter(Boolean)
     )
@@ -76,6 +65,8 @@ const accessControl = {
       const authorizationConfig = config.get('authorization')
 
       const rawRoles = request.auth.credentials.rawRoles
+
+      console.log('Raw roles from token:', rawRoles)
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
 

@@ -137,7 +137,7 @@ describe('accessControl plugin', () => {
       url: '/bank-details/abc',
       auth: {
         credentials: {
-          rawRoles: ['123:Chief Executive Officer:1', '456:Head of Finance:2'],
+          rawRoles: ['Chief Executive Officer', 'Head of Finance'],
           roles: ['123:Chief Executive Officer:1', '456:Head of Finance:2']
         },
         strategy: 'default'
@@ -173,9 +173,8 @@ describe('accessControl plugin', () => {
       method: 'PUT',
       url: '/bank-details',
       auth: {
-        // string form, colon-separated -> extractRoleName + normaliseRoles
         credentials: {
-          rawRoles: '123:Waste Officer:1',
+          rawRoles: 'Waste Officer',
           roles: ['123:Waste Officer:1']
         },
         strategy: 'default'
@@ -273,11 +272,6 @@ describe('accessControl plugin', () => {
       ])
 
       expect(result).toEqual(['CEO', 'HOF'])
-    })
-
-    it('handles colon-separated role strings', () => {
-      const result = normaliseRoles('123:Waste Officer:1')
-      expect(result).toEqual(['WO'])
     })
 
     it('filters out unmapped roles', () => {
