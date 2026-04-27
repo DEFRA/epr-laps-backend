@@ -29,7 +29,7 @@ const sqsListener = {
     multiple: true,
     version: '0.1.0',
     register: async function (server, options) {
-      let running = true
+      const abortController = new AbortController()
 
       try {
         const queueUrlResult = await server.sqs.send(
@@ -38,11 +38,7 @@ const sqsListener = {
         const queueUrl = queueUrlResult.QueueUrl
 
         const poll = async () => {
-          while (true) {
-            if (!running) {
-              break
-            }
-
+          while (!abortController.signal.aborted) {
             try {
               await handleMessage(server, options, queueUrl)
             } catch (error) {
@@ -52,11 +48,13 @@ const sqsListener = {
         }
 
         server.ext('onPostStart', async () => {
-          await poll()
+          poll().catch((error) => {
+            server.logger.error(`Polling error: ${error.message}`)
+          })
         })
 
         server.ext('onPostStop', () => {
-          running = false
+          abortController.abort()
         })
       } catch (error) {
         server.logger.error(
