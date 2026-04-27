@@ -137,7 +137,7 @@ describe('accessControl plugin', () => {
       url: '/bank-details/abc',
       auth: {
         credentials: {
-          rawRoles: ['Chief Executive Officer'],
+          rawRoles: ['123:Chief Executive Officer:1', '456:Head of Finance:2'],
           roles: ['123:Chief Executive Officer:1', '456:Head of Finance:2']
         },
         strategy: 'default'
