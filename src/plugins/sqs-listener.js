@@ -102,7 +102,13 @@ const costDataFormListener = {
 
       server.logger.debug(`Cost Data form main body: ${body.data.main}`)
 
-      const bodyStr = JSON.stringify(body.data.main)
+      const bodyStr = JSON.stringify({
+        timestamp: body.meta.timestamp,
+        referenceNumber: body.meta.referenceNumber,
+        status: body.meta.status,
+        isPreview: body.meta.isPreview,
+        ...body.data.main
+      })
       writeFormsAuditLog(
         server,
         COST_DATA_ANONYMOUS_USER,
@@ -128,7 +134,13 @@ const feedbackFormListener = {
 
       server.logger.debug(`Feedback form main body: ${body.data.main}`)
 
-      const bodyStr = JSON.stringify(body.data.main)
+      const bodyStr = JSON.stringify({
+        timestamp: body.meta.timestamp,
+        referenceNumber: body.meta.referenceNumber,
+        status: body.meta.status,
+        isPreview: body.meta.isPreview,
+        ...body.data.main
+      })
       writeFormsAuditLog(
         server,
         FEEDBACK_ANONYMOUS_USER,

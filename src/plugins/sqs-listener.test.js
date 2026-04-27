@@ -16,6 +16,17 @@ vi.mock('@aws-sdk/client-sqs', () => ({
   DeleteMessageCommand: vi.fn()
 }))
 
+vi.mock('../common/helpers/audit-logging.js', () => ({
+  ActionKind: {
+    CostDataSubmitted: 'CostDataSubmitted',
+    SatisfactionDataFeedBackSubmitted: 'SatisfactionDataFeedBackSubmitted'
+  },
+  Outcome: {
+    Success: 'Success'
+  },
+  writeFormsAuditLog: vi.fn()
+}))
+
 describe('sqs-listener plugin', () => {
   describe('costDataFormListener', () => {
     it('should be properly configured with correct queue name', () => {
@@ -36,6 +47,12 @@ describe('sqs-listener plugin', () => {
       const server = { logger: mockLogger }
       const message = {
         Body: JSON.stringify({
+          meta: {
+            timestamp: '2026-04-27T12:03:58.928Z',
+            referenceNumber: '2E3-E9Z-U9L',
+            status: 'draft',
+            isPreview: true
+          },
           data: {
             main: { type: 'costdata' }
           }
@@ -69,6 +86,12 @@ describe('sqs-listener plugin', () => {
       const server = { logger: mockLogger }
       const message = {
         Body: JSON.stringify({
+          meta: {
+            timestamp: '2026-04-27T12:03:58.928Z',
+            referenceNumber: '2E3-E9Z-U9L',
+            status: 'draft',
+            isPreview: true
+          },
           data: {
             main: { type: 'feedback' }
           }
@@ -103,6 +126,12 @@ describe('sqs-listener plugin', () => {
       // Provide a valid JSON string for message.Body
       const message = {
         Body: JSON.stringify({
+          meta: {
+            timestamp: '2025-09-11T14:53:58.466Z',
+            referenceNumber: '1A5-F72-704',
+            status: 'draft',
+            isPreview: true
+          },
           data: {
             main: {
               type: 'costdata',
@@ -127,6 +156,12 @@ describe('sqs-listener plugin', () => {
       // Provide a valid JSON string for message.Body
       const message = {
         Body: JSON.stringify({
+          meta: {
+            timestamp: '2025-09-11T14:53:58.466Z',
+            referenceNumber: '1A5-F72-704',
+            status: 'draft',
+            isPreview: true
+          },
           data: {
             main: {
               type: 'feedback',
@@ -145,6 +180,148 @@ describe('sqs-listener plugin', () => {
       const logCall = mockLogger.debug.mock.calls[0][0]
       expect(logCall).toContain('feedback form')
       expect(logCall).not.toContain('cost data form')
+    })
+  })
+
+  describe('audit logging with metadata', () => {
+    it('costDataFormListener should include metadata in bodyStr', async () => {
+      const { writeFormsAuditLog } =
+        await import('../common/helpers/audit-logging.js')
+
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
+      const server = { logger: mockLogger }
+      const message = {
+        Body: JSON.stringify({
+          meta: {
+            timestamp: '2026-04-27T12:03:58.928Z',
+            referenceNumber: '2E3-E9Z-U9L',
+            status: 'draft',
+            isPreview: true
+          },
+          data: {
+            main: {
+              costYear: '2026',
+              costQuater: 'Q1',
+              cloudCost: 6722,
+              resourceCost: 1231
+            }
+          }
+        })
+      }
+
+      await costDataFormListener.options.onmessage(server, message)
+
+      expect(writeFormsAuditLog).toHaveBeenCalled()
+      const callArgs = writeFormsAuditLog.mock.calls[0]
+      const bodyStr = callArgs[5]
+      const parsedBody = JSON.parse(bodyStr)
+
+      expect(parsedBody).toHaveProperty('timestamp', '2026-04-27T12:03:58.928Z')
+      expect(parsedBody).toHaveProperty('referenceNumber', '2E3-E9Z-U9L')
+      expect(parsedBody).toHaveProperty('status', 'draft')
+      expect(parsedBody).toHaveProperty('isPreview', true)
+      expect(parsedBody).toHaveProperty('costYear', '2026')
+      expect(parsedBody).toHaveProperty('costQuater', 'Q1')
+      expect(parsedBody).toHaveProperty('cloudCost', 6722)
+      expect(parsedBody).toHaveProperty('resourceCost', 1231)
+    })
+
+    it('feedbackFormListener should include metadata in bodyStr', async () => {
+      const { writeFormsAuditLog } =
+        await import('../common/helpers/audit-logging.js')
+
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
+      const server = { logger: mockLogger }
+      const message = {
+        Body: JSON.stringify({
+          meta: {
+            timestamp: '2026-04-27T12:03:58.928Z',
+            referenceNumber: '2E3-E9Z-U9L',
+            status: 'submitted',
+            isPreview: false
+          },
+          data: {
+            main: {
+              satisfaction: 'Very Satisfied',
+              feedback: 'Great service'
+            }
+          }
+        })
+      }
+
+      await feedbackFormListener.options.onmessage(server, message)
+
+      expect(writeFormsAuditLog).toHaveBeenCalled()
+      const callArgs = writeFormsAuditLog.mock.calls[0]
+      const bodyStr = callArgs[5]
+      const parsedBody = JSON.parse(bodyStr)
+
+      expect(parsedBody).toHaveProperty('timestamp', '2026-04-27T12:03:58.928Z')
+      expect(parsedBody).toHaveProperty('referenceNumber', '2E3-E9Z-U9L')
+      expect(parsedBody).toHaveProperty('status', 'submitted')
+      expect(parsedBody).toHaveProperty('isPreview', false)
+      expect(parsedBody).toHaveProperty('satisfaction', 'Very Satisfied')
+      expect(parsedBody).toHaveProperty('feedback', 'Great service')
+    })
+
+    it('should preserve all data fields alongside metadata in bodyStr', async () => {
+      const { writeFormsAuditLog } =
+        await import('../common/helpers/audit-logging.js')
+
+      const mockLogger = { info: vi.fn(), debug: vi.fn() }
+      const server = { logger: mockLogger }
+      const message = {
+        Body: JSON.stringify({
+          meta: {
+            timestamp: '2026-04-27T12:03:58.928Z',
+            referenceNumber: '2E3-E9Z-U9L',
+            status: 'draft',
+            isPreview: true,
+            form: 'Local Authority Payments Service - Cost Collection',
+            formId: '69e63907fa9efc8becf52206'
+          },
+          data: {
+            main: {
+              costYear: '2026',
+              costQuater: 'Q1',
+              cloudCost: 6722,
+              resourceCost: 1231,
+              supportCost: 7634,
+              otherCost: 123123,
+              costCategory: null
+            }
+          }
+        })
+      }
+
+      await costDataFormListener.options.onmessage(server, message)
+
+      const callArgs = writeFormsAuditLog.mock.calls[0]
+      const bodyStr = callArgs[5]
+      const parsedBody = JSON.parse(bodyStr)
+
+      // Verify metadata fields are present
+      expect(parsedBody.timestamp).toBe('2026-04-27T12:03:58.928Z')
+      expect(parsedBody.referenceNumber).toBe('2E3-E9Z-U9L')
+      expect(parsedBody.status).toBe('draft')
+      expect(parsedBody.isPreview).toBe(true)
+
+      // Verify all data fields are present
+      expect(parsedBody.costYear).toBe('2026')
+      expect(parsedBody.costQuater).toBe('Q1')
+      expect(parsedBody.cloudCost).toBe(6722)
+      expect(parsedBody.resourceCost).toBe(1231)
+      expect(parsedBody.supportCost).toBe(7634)
+      expect(parsedBody.otherCost).toBe(123123)
+      expect(parsedBody.costCategory).toBe(null)
+
+      // Verify the structure contains only the expected fields
+      const keys = Object.keys(parsedBody)
+      expect(keys).toContain('timestamp')
+      expect(keys).toContain('referenceNumber')
+      expect(keys).toContain('status')
+      expect(keys).toContain('isPreview')
+      expect(keys).toContain('costYear')
     })
   })
 
@@ -516,6 +693,12 @@ describe('sqs-listener plugin', () => {
       const server = { logger: mockLogger }
       const message = {
         Body: JSON.stringify({
+          meta: {
+            timestamp: '2026-04-27T12:03:58.928Z',
+            referenceNumber: '2E3-E9Z-U9L',
+            status: 'draft',
+            isPreview: true
+          },
           data: {
             main: { id: 123, amount: 500 }
           }
@@ -534,6 +717,12 @@ describe('sqs-listener plugin', () => {
       const server = { logger: mockLogger }
       const message = {
         Body: JSON.stringify({
+          meta: {
+            timestamp: '2026-04-27T12:03:58.928Z',
+            referenceNumber: '2E3-E9Z-U9L',
+            status: 'draft',
+            isPreview: true
+          },
           data: {
             main: { feedback: 'Great service' }
           }
