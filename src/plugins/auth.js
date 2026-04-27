@@ -50,7 +50,7 @@ export const jwtValidate = (decoded, request, _h) => {
   // Extract roles
   const matchedRoles = extractRoleName(decoded.currentRelationshipId, roles)
   const rawRoles = extractRawRoles(matchedRoles)
-  request.logger.debug(`Roles from auth is: ${rawRoles}`)
+  request.logger.debug(`Roles is: ${rawRoles}`)
 
   return {
     isValid: true,
