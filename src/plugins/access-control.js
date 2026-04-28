@@ -76,10 +76,8 @@ const accessControl = {
       const allowedRoles = authorizationConfig[permissionKey]
 
       const mappedRoles = normaliseRoles(rawRoles)
-      request.logger.info(`Roles mapped: ${mappedRoles.join(', ')}`)
 
       const effectiveRole = resolveEffectiveRole(mappedRoles)
-      request.logger.info(`Resolved effective role: ${effectiveRole}`)
 
       const hasPermission =
         effectiveRole && allowedRoles.includes(effectiveRole)
