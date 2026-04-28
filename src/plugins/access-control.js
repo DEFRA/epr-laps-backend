@@ -66,7 +66,6 @@ const accessControl = {
 
       const rawRoles = request.auth.credentials.rawRoles
 
-      console.log('Raw roles from token:', rawRoles)
       const key = `${request.method.toUpperCase()} ${request.route.path}`
       const permissionKey = routePermissionMap[key]
 
