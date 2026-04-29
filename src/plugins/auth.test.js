@@ -10,7 +10,8 @@ import {
   jwtValidate,
   _setCachedDiscovery,
   extractCurrentLocalAuthority,
-  extractRoleName
+  extractRoleName,
+  extractRawRoles
 } from './auth.js'
 
 // ----------------------------
@@ -199,5 +200,22 @@ describe('#extractRoleName', () => {
   it('should return an empty array if roles is not an array', () => {
     const result = extractRoleName('53333962-6f27-f111-8341-000d3a49590f', null)
     expect(result).toEqual([])
+  })
+})
+
+describe('#extractRawRoles', () => {
+  it('should extract raw role names from matched roles', () => {
+    const matchedRoles = [
+      '517d3e59-d934-f111-88b4-000d3a495719:Chief Executive Officer:3',
+      '517d3e59-d934-f111-88b4-000d3a495719:Waste Officer:3',
+      '517d3e59-d934-f111-88b4-000d3a495719:Waste Officer:3'
+    ]
+
+    const result = extractRawRoles(matchedRoles)
+    expect(result).toEqual('Chief Executive Officer, Waste Officer')
+  })
+  it('should return an empty array if no matched roles', () => {
+    const result = extractRawRoles([])
+    expect(result).toEqual('')
   })
 })

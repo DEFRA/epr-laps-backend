@@ -24,18 +24,27 @@ const rolePriority = {
   WO: 5
 }
 
-// Extracts and normalises role names from raw role entries, mapping them to known role keys and filtering out any unrecognised roles
-export function normaliseRoles(rawRoles) {
-  const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles]
+/**
+ * Normalises a comma-separated roles string by:
+ * - splitting it into individual role names
+ * - trimming whitespace
+ * - mapping known role names to internal role keys
+ * - filtering out any unrecognised roles
+ * - returning an array of valid internal role keys
+ * Example:
+ * input: "Chief Executive Officer, Finance Officer, Unknown Role"
+ *  output: ["CEO", "FO"]
+ */
 
-  return [
-    ...new Set(
-      roles
-        .filter((r) => typeof r === 'string')
-        .map((r) => rolesMap[r])
-        .filter(Boolean)
-    )
-  ]
+export function normaliseRoles(rawRoles) {
+  if (!rawRoles) {
+    return []
+  }
+
+  return rawRoles
+    .split(',')
+    .map((r) => rolesMap[r.trim()])
+    .filter(Boolean)
 }
 
 // Resolves the effective role based on the provided mapped roles and their defined priority

@@ -137,7 +137,7 @@ describe('accessControl plugin', () => {
       url: '/bank-details/abc',
       auth: {
         credentials: {
-          rawRoles: ['Chief Executive Officer', 'Head of Finance'],
+          rawRoles: 'Chief Executive Officer, Head of Finance',
           roles: ['123:Chief Executive Officer:1', '456:Head of Finance:2']
         },
         strategy: 'default'
@@ -214,7 +214,7 @@ describe('accessControl plugin', () => {
       auth: {
         credentials: {
           roles: ['123:Chief Executive Officer:1', '456:Head of Finance:2'],
-          rawRoles: ['Chief Executive Officer', 'Head of Finance']
+          rawRoles: 'Chief Executive Officer, Head of Finance'
         },
         strategy: 'default'
       }
@@ -266,10 +266,7 @@ describe('accessControl plugin', () => {
     })
 
     it('normalises an array of role strings', () => {
-      const result = normaliseRoles([
-        'Chief Executive Officer',
-        'Head of Finance'
-      ])
+      const result = normaliseRoles('Chief Executive Officer, Head of Finance')
 
       expect(result).toEqual(['CEO', 'HOF'])
     })
@@ -280,7 +277,7 @@ describe('accessControl plugin', () => {
     })
 
     it('handles mixed valid and invalid roles', () => {
-      const result = normaliseRoles(['Chief Executive Officer', 'Unknown Role'])
+      const result = normaliseRoles('Chief Executive Officer, Unknown Role')
 
       expect(result).toEqual(['CEO'])
     })
