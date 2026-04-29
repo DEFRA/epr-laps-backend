@@ -30,12 +30,13 @@ const rolePriority = {
  * - trimming whitespace
  * - mapping known role names to internal role keys
  * - filtering out any unrecognised roles
+ * - removing duplicates
  *
  * @param {string} rawRoles - Comma-separated role names (e.g. "Head of Finance, Finance Officer")
  * @returns {string[]} Array of normalised role keys (e.g. ["HOF", "FO"])
  */
 export function normaliseRoles(rawRoles) {
-  const roles = rawRoles.split(',').map((r) => r.trim())
+  const roles = rawRoles ? rawRoles.split(',').map((r) => r.trim()) : []
 
   return [...new Set(roles.map((r) => rolesMap[r]).filter(Boolean))]
 }
