@@ -128,7 +128,7 @@ export function extractRawRoles(roles = []) {
       result.push(name)
     }
   }
-  return result.join(', ')
+  return result
 }
 
 export const extractRoleName = (currentRelationshipId, roles) => {
