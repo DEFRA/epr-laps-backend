@@ -37,7 +37,9 @@ const rolePriority = {
  */
 
 export function normaliseRoles(rawRoles) {
-  if (!rawRoles) return []
+  if (!rawRoles) {
+    return []
+  }
 
   return rawRoles
     .split(',')
