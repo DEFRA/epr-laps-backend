@@ -57,35 +57,6 @@ describe('getDocumentMetadata', () => {
     }
   })
 
-  it.skip('should return metadata successfully', async () => {
-    const mockData = [{ year: '2024', documents: [] }]
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: vi.fn().mockResolvedValue(mockData)
-    })
-    processDocumentsByFinancialYear.mockReturnValue([
-      { year: '2024', files: [] }
-    ])
-
-    await getDocumentMetadata(mockRequest, mockH)
-
-    expect(fetch).toHaveBeenCalledWith(
-      'https://mock-fss-api/sn_gsm/laps_documents/LA123',
-      expect.objectContaining({
-        method: 'GET',
-        headers: expect.objectContaining({ 'x-sn-apikey': 'mock-api-key' })
-      })
-    )
-    expect(processDocumentsByFinancialYear).toHaveBeenCalledWith(mockData)
-    expect(writeAuditLog).toHaveBeenCalledWith(
-      mockRequest,
-      'DocumentsListed',
-      Outcome.Success
-    )
-    expect(mockH.response).toHaveBeenCalledWith([undefined])
-  })
-
   it('should return Boom error when fetch returns non-ok response', async () => {
     fetch.mockResolvedValueOnce({
       ok: false,
