@@ -64,7 +64,7 @@ export function encryptBankDetailsPayload(payload, request) {
 
   try {
     const plaintext = JSON.stringify(payload)
-    request.logger.debug(`Encrypting payload: ${plaintext}`)
+    request.logger.debug(`Encrypting payload`)
     const encryptedData = encryptServiceNowBankDetails(plaintext, encryptionKey)
     request.logger.debug(
       `Payload encrypted successfully: ${encryptedData.substring(0, FIRST_50_CHARS)}...`
