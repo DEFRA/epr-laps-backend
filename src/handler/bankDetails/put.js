@@ -10,10 +10,6 @@ import { encryptBankDetailsPayload } from '../../common/helpers/utils/encrypt-se
 
 const putBankDetails = async (request, h) => {
   const { effectiveRole } = request.auth.credentials
-  console.log(
-    `User with role is attempting to confirm bank details`,
-    request.auth.credentials
-  ) // Add this log to check the role
   try {
     if (!request.auth.isAuthorized) {
       request.logger.warn(
