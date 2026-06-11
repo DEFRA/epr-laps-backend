@@ -10,11 +10,15 @@ import { statusCodes } from '../../common/constants/status-codes.js'
 import { encryptBankDetailsPayload } from '../../common/helpers/utils/encrypt-servicenow-bank-details.js'
 
 const postBankDetails = async (request, h) => {
-  const { role } = request.auth.credentials
+  const { effectiveRole } = request.auth.credentials
   try {
     if (!request.auth.isAuthorized) {
-      request.logger.warn(`User with role ${role} tried to create bank details`)
-      return Boom.forbidden(`${role} not allowed to create bank details`)
+      request.logger.warn(
+        `User with role ${effectiveRole} tried to create bank details`
+      )
+      return Boom.forbidden(
+        `${effectiveRole} not allowed to create bank details`
+      )
     }
 
     const BASE_URL = config.get('fssApiUrl')

@@ -88,6 +88,8 @@ const accessControl = {
 
       const effectiveRole = resolveEffectiveRole(mappedRoles)
 
+      request.auth.credentials.effectiveRole = effectiveRole
+
       const hasPermission =
         effectiveRole && allowedRoles.includes(effectiveRole)
 
