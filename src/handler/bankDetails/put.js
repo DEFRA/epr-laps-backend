@@ -6,17 +6,18 @@ import {
   Outcome,
   writeAuditLog
 } from '../../common/helpers/audit-logging.js'
-import { roles } from '../../common/constants/constants.js'
 import { encryptBankDetailsPayload } from '../../common/helpers/utils/encrypt-servicenow-bank-details.js'
 
 const putBankDetails = async (request, h) => {
-  const { role } = request.auth.credentials
+  const { effectiveRole } = request.auth.credentials
   try {
     if (!request.auth.isAuthorized) {
       request.logger.warn(
-        `User with role ${role} tried to confirm bank details`
+        `User with role ${effectiveRole} tried to confirm bank details`
       )
-      return Boom.forbidden(`${role} not allowed to confirm bank details`)
+      return Boom.forbidden(
+        `${effectiveRole} not allowed to confirm bank details`
+      )
     }
 
     const BASE_URL = config.get('fssApiUrl')
@@ -50,7 +51,7 @@ const putBankDetails = async (request, h) => {
         `Error confirming bank details: ${response.status} ${response.statusText}: ${errorBody}`
       )
       writeConfirmBankDetailsAuditLog(
-        role,
+        request.auth.isAuthorized,
         request,
         Outcome.Failure,
         response.status
@@ -66,7 +67,7 @@ const putBankDetails = async (request, h) => {
     )
 
     writeConfirmBankDetailsAuditLog(
-      role,
+      request.auth.isAuthorized,
       request,
       Outcome.Success,
       response.status
@@ -83,12 +84,12 @@ const putBankDetails = async (request, h) => {
 export { putBankDetails }
 
 export const writeConfirmBankDetailsAuditLog = (
-  role,
+  canConfirmBankDetails,
   request,
   outcome,
   statusCode
 ) => {
-  if (role === roles.HOF) {
+  if (canConfirmBankDetails) {
     writeAuditLog(request, ActionKind.BankDetailsConfirmed, outcome, statusCode)
   }
 }
