@@ -319,4 +319,36 @@ describe('decryptAndParseResponse', () => {
 
     expect(auditLogging.writeAuditLog).not.toHaveBeenCalled()
   })
+
+  it('writes failure audit log when API request fails and source page is not home', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Service down'
+    })
+
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': 'dashboard' },
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
+
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toThrow(
+      'Failed to fetch bank details'
+    )
+
+    expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
+      request,
+      auditLogging.ActionKind.FullBankDetailsViewed,
+      auditLogging.Outcome.Failure,
+      500
+    )
+  })
 })
