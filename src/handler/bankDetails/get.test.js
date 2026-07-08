@@ -292,4 +292,31 @@ describe('decryptAndParseResponse', () => {
     expect(result.status).toBe(200)
     expect(result.data).toEqual(mockDecryptedData)
   })
+
+  it('should not write audit log on failed response when x-source-page is home', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Service down'
+    })
+
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': 'home' },
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
+
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toMatchObject({
+      message: 'Failed to fetch bank details'
+    })
+
+    expect(auditLogging.writeAuditLog).not.toHaveBeenCalled()
+  })
 })
