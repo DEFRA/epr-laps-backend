@@ -1,5 +1,4 @@
 import { config } from '../../../config.js'
-
 function parseDateString(dateString) {
   if (!dateString) {
     return undefined
@@ -62,7 +61,12 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
   const RECENT_DOC_DAYS_LIMIT = 30
   const today = new Date()
 
-  const groupedDocuments = documentDetails.reduce((acc, doc) => {
+  // Sort documents by creation date descending (latest first)
+  const sortedDocuments = [...documentDetails].sort(
+    (a, b) => parseDateString(b.creationDate) - parseDateString(a.creationDate)
+  )
+
+  const groupedDocuments = sortedDocuments.reduce((acc, doc) => {
     const parsedDate = parseDateString(doc.creationDate)
     const formattedDate = formatIsoToShort(doc.creationDate)
     const financialYearRange = getFinancialYearRange(doc.financialYear)
@@ -98,7 +102,6 @@ export function processDocumentsByFinancialYear(documentDetails = []) {
     acc[financialYearRange][language].push(processedDoc)
     return acc
   }, {})
-
   return {
     ...groupedDocuments,
     currentFiscalYear
