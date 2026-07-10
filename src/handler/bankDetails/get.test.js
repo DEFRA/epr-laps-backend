@@ -71,6 +71,7 @@ describe('getBankDetails', () => {
 
     const request = {
       params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': 'bank-details' },
       logger: mockLogger,
       auth: {
         credentials: { role: 'Chief Executive Officer' },
@@ -108,6 +109,7 @@ describe('getBankDetails', () => {
 
     const request = {
       params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': 'bank-details' },
       logger: mockLogger,
       auth: { credentials: { role: 'Head of Finance' }, isAuthorized: false }
     }
@@ -142,6 +144,7 @@ describe('getBankDetails', () => {
 
     const request = {
       params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': 'bank-details' },
       logger: mockLogger,
       auth: { credentials: { role: 'Head of Finance' }, isAuthorized: true }
     }
@@ -252,5 +255,173 @@ describe('decryptAndParseResponse', () => {
     expect(request.logger.error).toHaveBeenCalledWith(
       'Error fetching bank details: 502 Bad Gateway: '
     )
+  })
+
+  it('should not write audit log when x-source-page is home', async () => {
+    const mockDecryptedData = { account: '12345', sortCode: '11-22-33' }
+
+    decryptUtils.decryptBankDetails.mockReturnValueOnce(
+      JSON.stringify(mockDecryptedData)
+    )
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        result: {
+          response_data: 'encrypted_bank_data'
+        }
+      })
+    })
+
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': 'home' },
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
+
+    const h = makeH()
+
+    const result = await getBankDetails(request, h)
+
+    expect(auditLogging.writeAuditLog).not.toHaveBeenCalled()
+    expect(result.status).toBe(200)
+    expect(result.data).toEqual(mockDecryptedData)
+  })
+
+  it('should not write audit log on failed response when x-source-page is home', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Service down'
+    })
+
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': 'home' },
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
+
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toMatchObject({
+      message: 'Failed to fetch bank details'
+    })
+
+    expect(auditLogging.writeAuditLog).not.toHaveBeenCalled()
+  })
+
+  it('writes failure audit log when API request fails and source page is empty', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Service down'
+    })
+
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      headers: { 'x-source-page': '' },
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
+
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toThrow(
+      'Failed to fetch bank details'
+    )
+
+    expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
+      request,
+      auditLogging.ActionKind.FullBankDetailsViewed,
+      auditLogging.Outcome.Failure,
+      500
+    )
+  })
+
+  it('writes failure audit log when API request fails and x-source-page header is missing', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => 'Service down'
+    })
+
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      headers: {},
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
+
+    const h = makeH()
+
+    await expect(getBankDetails(request, h)).rejects.toThrow(
+      'Failed to fetch bank details'
+    )
+
+    expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
+      request,
+      auditLogging.ActionKind.FullBankDetailsViewed,
+      auditLogging.Outcome.Failure,
+      500
+    )
+  })
+
+  it('writes success audit log when API request succeeds and x-source-page header is missing', async () => {
+    const mockDecryptedData = { account: '12345', sortCode: '11-22-33' }
+
+    decryptUtils.decryptBankDetails.mockReturnValueOnce(
+      JSON.stringify(mockDecryptedData)
+    )
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        result: {
+          response_data: 'encrypted_bank_data'
+        }
+      })
+    })
+
+    const request = {
+      params: { localAuthority: 'Some Local Authority' },
+      headers: {},
+      logger: mockLogger,
+      auth: {
+        credentials: { role: 'Chief Executive Officer' },
+        isAuthorized: true
+      }
+    }
+
+    const h = makeH()
+
+    const result = await getBankDetails(request, h)
+
+    expect(auditLogging.writeAuditLog).toHaveBeenCalledWith(
+      request,
+      auditLogging.ActionKind.FullBankDetailsViewed,
+      auditLogging.Outcome.Success,
+      200
+    )
+
+    expect(result.status).toBe(200)
   })
 })

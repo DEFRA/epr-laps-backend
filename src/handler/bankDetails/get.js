@@ -48,12 +48,14 @@ const getBankDetails = async (request, h) => {
       request.logger.error(
         `Error fetching bank details: ${response.status} ${response.statusText}: ${errorBody}`
       )
-      writeBankDetailsAuditLog(
-        request.auth.isAuthorized,
-        request,
-        Outcome.Failure,
-        response.status
-      )
+      if (request.headers['x-source-page'] !== 'home') {
+        writeBankDetailsAuditLog(
+          request.auth.isAuthorized,
+          request,
+          Outcome.Failure,
+          response.status
+        )
+      }
       throw Boom.internal(`Failed to fetch bank details`)
     }
 
@@ -76,13 +78,14 @@ const getBankDetails = async (request, h) => {
     request.logger.info(
       `Processed Bank details response:': ${JSON.stringify(processedDetails)}`
     )
-
-    writeBankDetailsAuditLog(
-      request.auth.isAuthorized,
-      request,
-      Outcome.Success,
-      response.status
-    )
+    if (request.headers['x-source-page'] !== 'home') {
+      writeBankDetailsAuditLog(
+        request.auth.isAuthorized,
+        request,
+        Outcome.Success,
+        response.status
+      )
+    }
     return h.response(processedDetails).code(statusCodes.ok)
   } catch (err) {
     request.logger.error(`Error fetching bank details: ${JSON.stringify(err)}`)
