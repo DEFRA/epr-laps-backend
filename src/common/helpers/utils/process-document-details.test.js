@@ -150,12 +150,14 @@ describe('processDocumentsByFinancialYear', () => {
     expect(result['2026 to 2027']['EN'][1].fileName).toBe('older.pdf')
   })
 
-  it('does not fail when groupedDocuments is empty', () => {
-    expect(() => processDocumentsByFinancialYear([])).not.toThrow()
-
+  it('returns no grouped documents when document list is empty', () => {
     const result = processDocumentsByFinancialYear([])
 
-    expect(result.currentFiscalYear).toBeUndefined()
+    const groupedDocuments = Object.keys(result).filter(
+      (key) => key !== 'currentFiscalYear'
+    )
+
+    expect(groupedDocuments).toHaveLength(0)
   })
 })
 
