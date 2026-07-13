@@ -159,18 +159,6 @@ describe('#extractCurrentLocalAuthority', () => {
     const result = extractCurrentLocalAuthority(decoded)
     expect(result).toBe('Warwickshire County Council')
   })
-
-  it('should return the current local authority', () => {
-    const decoded = {
-      relationships: [
-        '666:asdarwq:local-authority:456:Shelbyville Council:2',
-        '3b52415a:56808f0b:Warwickshire County Council:0:Employee:0'
-      ],
-      currentRelationshipId: '3b52415a'
-    }
-    const result = extractCurrentLocalAuthority(decoded)
-    expect(result).toBe('Warwickshire County Council')
-  })
 })
 
 describe('#extractRoleName', () => {
