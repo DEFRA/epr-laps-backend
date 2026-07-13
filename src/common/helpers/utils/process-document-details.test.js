@@ -123,6 +123,40 @@ describe('processDocumentsByFinancialYear', () => {
     expect(result['2025 to 2026']['EN']).toHaveLength(1)
     expect(result['2024 to 2025']['EN']).toHaveLength(1)
   })
+
+  it('places the newest document first within a financial year', () => {
+    const docs = [
+      {
+        sysId: '1',
+        fileName: 'older.pdf',
+        documentType: 'Grant',
+        quarter: 'Q1',
+        creationDate: '2026-01-01',
+        financialYear: '2026/2027'
+      },
+      {
+        sysId: '2',
+        fileName: 'newer.pdf',
+        documentType: 'Grant',
+        quarter: 'Q2',
+        creationDate: '2026-06-01',
+        financialYear: '2026/2027'
+      }
+    ]
+
+    const result = processDocumentsByFinancialYear(docs)
+
+    expect(result['2026 to 2027']['EN'][0].fileName).toBe('newer.pdf')
+    expect(result['2026 to 2027']['EN'][1].fileName).toBe('older.pdf')
+  })
+
+  it('does not fail when groupedDocuments is empty', () => {
+    expect(() => processDocumentsByFinancialYear([])).not.toThrow()
+
+    const result = processDocumentsByFinancialYear([])
+
+    expect(result.currentFiscalYear).toBeUndefined()
+  })
 })
 
 describe('getFinancialYearRange', () => {
