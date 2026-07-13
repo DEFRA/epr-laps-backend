@@ -43,70 +43,21 @@ describe('accessControl plugin', () => {
     vi.clearAllMocks()
   })
 
-  it('should allow access to ignored routes', async () => {
+  it.each([
+    ['ignored routes', '/health'],
+    ['other routes', '/test-route'],
+    ['new urls', '/test-route'],
+    ['registered routes', '/bank-details/test']
+  ])('should allow access to %s (%s)', async (_scenario, path) => {
     server.route({
       method: 'GET',
-      path: '/health',
+      path,
       handler: (_request, h) => h.response({ message: 'success' })
     })
 
     const response = await server.inject({
       method: 'GET',
-      url: '/health',
-      auth: {
-        credentials: { role: 'Chief Executive Officer' },
-        strategy: 'default'
-      }
-    })
-    expect(response.statusCode).toBe(200)
-  })
-
-  it('should allow access to for other routes', async () => {
-    server.route({
-      method: 'GET',
-      path: '/test-route',
-      handler: (_request, h) => h.response({ message: 'success' })
-    })
-
-    const response = await server.inject({
-      method: 'GET',
-      url: '/test-route',
-      auth: {
-        credentials: { role: 'Chief Executive Officer' },
-        strategy: 'default'
-      }
-    })
-    expect(response.statusCode).toBe(200)
-  })
-
-  it('should allow access without setting authorized when new url is added', async () => {
-    server.route({
-      method: 'GET',
-      path: '/test-route',
-      handler: (_request, h) => h.response({ message: 'success' })
-    })
-
-    const response = await server.inject({
-      method: 'GET',
-      url: '/test-route',
-      auth: {
-        credentials: { role: 'Chief Executive Officer' },
-        strategy: 'default'
-      }
-    })
-    expect(response.statusCode).toBe(200)
-  })
-
-  it('should allow access without errors when a registered route is hit', async () => {
-    server.route({
-      method: 'GET',
-      path: '/bank-details/test',
-      handler: (_request, h) => h.response({ message: 'success' })
-    })
-
-    const response = await server.inject({
-      method: 'GET',
-      url: '/bank-details/test',
+      url: path,
       auth: {
         credentials: { role: 'Chief Executive Officer' },
         strategy: 'default'

@@ -313,7 +313,7 @@ describe('sqs-listener plugin', () => {
       expect(parsedBody.resourceCost).toBe(1231)
       expect(parsedBody.supportCost).toBe(7634)
       expect(parsedBody.otherCost).toBe(123123)
-      expect(parsedBody.costCategory).toBe(null)
+      expect(parsedBody.costCategory).toBeNull()
 
       // Verify the structure contains only the expected fields
       const keys = Object.keys(parsedBody)
