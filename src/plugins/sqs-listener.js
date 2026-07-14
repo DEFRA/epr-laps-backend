@@ -132,7 +132,9 @@ const feedbackFormListener = {
       const body = JSON.parse(message.Body)
       server.logger.debug(`Feedback form body: ${JSON.stringify(body)}`)
 
-      server.logger.debug(`Feedback form main body: ${body.data.main}`)
+      server.logger.debug(
+        `Feedback form main body: ${JSON.stringify(body.data.main)}`
+      )
 
       const bodyStr = JSON.stringify({
         timestamp: body.meta.timestamp,
