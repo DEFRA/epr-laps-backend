@@ -100,7 +100,9 @@ const costDataFormListener = {
       const body = JSON.parse(message.Body)
       server.logger.debug(`Cost Data form body: ${JSON.stringify(body)}`)
 
-      server.logger.debug(`Cost Data form main body: ${body.data.main}`)
+      server.logger.debug(
+        `Cost Data form main body: ${JSON.stringify(body.data.main)}`
+      )
 
       const bodyStr = JSON.stringify({
         timestamp: body.meta.timestamp,
