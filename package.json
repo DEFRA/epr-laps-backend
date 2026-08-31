@@ -45,7 +45,7 @@
     "hapi-pino": "13.0.0",
     "hapi-pulse": "3.0.1",
     "https-proxy-agent": "8.0.0",
-    "joi": "18.0.2",
+    "joi": "18.2.3",
     "jwk-to-pem": "2.0.7",
     "mongo-locks": "3.1.2",
     "mongodb": "7.1.0",
